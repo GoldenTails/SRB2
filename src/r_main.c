@@ -173,6 +173,9 @@ consvar_t cv_drawdist_nights = {"drawdist_nights", "2048", CV_SAVE, drawdist_con
 consvar_t cv_drawdist_precip = {"drawdist_precip", "1024", CV_SAVE, drawdist_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_precipdensity = {"precipdensity", "Moderate", CV_SAVE, precipdensity_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
+// Uncapped framerate
+consvar_t cv_capframerate = {"capframerate", "On", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+
 // Okay, whoever said homremoval causes a performance hit should be shot.
 consvar_t cv_homremoval = {"homremoval", "No", CV_SAVE, homremoval_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
@@ -1445,6 +1448,9 @@ void R_RegisterEngineStuff(void)
 	// Default viewheight is changeable,
 	// initialized to standard viewheight
 	CV_RegisterVar(&cv_viewheight);
+
+	// Uncapped
+	CV_RegisterVar(&cv_capframerate);
 
 #ifdef HWRENDER
 	// GL-specific Commands
