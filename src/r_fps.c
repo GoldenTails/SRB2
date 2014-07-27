@@ -38,10 +38,12 @@ void R_InterpolateView(fixed_t frac)
 	viewy = oldview.y + FixedMul(frac, newview.y - oldview.y);
 	viewz = oldview.z + FixedMul(frac, newview.z - oldview.z);
 
-	diffangle = AngleFixed(newview.angle) - AngleFixed(oldview.angle);
-	diffaim = AngleFixed(newview.aim) - AngleFixed(oldview.aim);
-	viewangle = oldview.angle + FixedAngle(FixedMul(frac, diffangle));
-	aimingangle = oldview.aim + FixedAngle(FixedMul(frac, diffaim));
+	diffangle = newview.angle - oldview.angle;
+	diffaim = newview.aim - oldview.aim;
+
+	viewangle = oldview.angle + FixedMul(frac, diffangle);
+	aimingangle = oldview.aim + FixedMul(frac, diffaim);
+
 	viewsin = FINESINE(viewangle>>ANGLETOFINESHIFT);
 	viewcos = FINECOSINE(viewangle>>ANGLETOFINESHIFT);
 
