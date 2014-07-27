@@ -231,6 +231,11 @@ static void D_Display(void)
 	if (nodrawers)
 		return; // for comparative timing/profiling
 
+	if (cv_capframerate.value == 0)
+	{
+		R_DoThinkerLerp(I_GetTimeFrac());
+	}
+
 	// check for change of screen size (video mode)
 	if (setmodeneeded && !wipe)
 		SCR_SetMode(); // change video mode
@@ -592,17 +597,17 @@ void D_SRB2Loop(void)
 			realtics = 1;
 
 		// process tics (but maybe not if realtic == 0)
+
 		TryRunTics(realtics);
 
 		if (cv_capframerate.value == 0)
 		{
-			//R_InterpolateView(I_GetTimeFrac());
 			D_Display();
 		}
 		else
 		{
-			//R_InterpolateView(FRACUNIT);
 		}
+
 		if (lastdraw || singletics || gametic > rendergametic)
 		{
 			rendergametic = gametic;

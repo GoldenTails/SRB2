@@ -122,6 +122,142 @@ void R_SetViewContext(enum viewcontext_e _viewcontext)
 	}
 }
 
+void R_SetThinkerOldStates(void)
+{
+	thinker_t *th;
+
+	for (th = thinkercap.next; th != &thinkercap; th = th->next)
+	{
+		if (th == NULL)
+		{
+			break;
+		}
+		if (th->function.acp1 == (actionf_p1)P_MobjThinker)
+		{
+			mobj_t *mo = (mobj_t *) th;
+			mo->old_x = mo->new_x;
+			mo->old_y = mo->new_y;
+			mo->old_z = mo->new_z;
+		}
+		if (th->function.acp1 == (actionf_p1)P_RainThinker || th->function.acp1 == (actionf_p1)P_SnowThinker)
+		{
+			precipmobj_t *mo = (precipmobj_t *) th;
+			mo->old_x = mo->new_x;
+			mo->old_y = mo->new_y;
+			mo->old_z = mo->new_z;
+		}
+	}
+}
+
+void R_SetThinkerNewStates(void)
+{
+	thinker_t *th;
+
+	for (th = thinkercap.next; th != &thinkercap; th = th->next)
+	{
+		if (th == NULL)
+		{
+			break;
+		}
+		if (th->function.acp1 == (actionf_p1)P_MobjThinker)
+		{
+			mobj_t *mo = (mobj_t *) th;
+			if (mo->firstlerp == 0)
+			{
+				mo->firstlerp = 1;
+				mo->old_x = mo->x;
+				mo->old_y = mo->y;
+				mo->old_z = mo->z;
+			}
+			mo->new_x = mo->x;
+			mo->new_y = mo->y;
+			mo->new_z = mo->z;
+		}
+		if (th->function.acp1 == (actionf_p1)P_RainThinker || th->function.acp1 == (actionf_p1)P_SnowThinker)
+		{
+			precipmobj_t *mo = (precipmobj_t *) th;
+			if (mo->firstlerp == 0)
+			{
+				mo->firstlerp = 1;
+				mo->old_x = mo->x;
+				mo->old_y = mo->y;
+				mo->old_z = mo->z;
+			}
+			mo->new_x = mo->x;
+			mo->new_y = mo->y;
+			mo->new_z = mo->z;
+		}
+	}
+}
+
+void R_DoThinkerLerp(fixed_t frac)
+{
+	thinker_t *th;
+
+	if (cv_capframerate.value != 0)
+	{
+		return;
+	}
+
+	for (th = thinkercap.next; th != &thinkercap; th = th->next)
+	{
+		if (th == NULL)
+		{
+			break;
+		}
+		if (th->function.acp1 == (actionf_p1)P_MobjThinker)
+		{
+			mobj_t *mo = (mobj_t *) th;
+			if (mo->firstlerp < 1) continue;
+			mo->x = mo->old_x + R_LerpFixed(mo->old_x, mo->new_x, frac);
+			mo->y = mo->old_y + R_LerpFixed(mo->old_y, mo->new_y, frac);
+			mo->z = mo->old_z + R_LerpFixed(mo->old_z, mo->new_z, frac);
+		}
+		if (th->function.acp1 == (actionf_p1)P_RainThinker || th->function.acp1 == (actionf_p1)P_SnowThinker)
+		{
+			precipmobj_t *mo = (precipmobj_t *) th;
+			if (mo->firstlerp < 1) continue;
+			mo->x = R_LerpFixed(mo->old_x, mo->new_x, frac);
+			mo->y = R_LerpFixed(mo->old_y, mo->new_y, frac);
+			mo->z = R_LerpFixed(mo->old_z, mo->new_z, frac);
+		}
+	}
+}
+
+void R_ResetThinkerLerp(void)
+{
+	thinker_t *th;
+
+	if (cv_capframerate.value != 0)
+	{
+		return;
+	}
+
+	for (th = thinkercap.next; th != &thinkercap; th = th->next)
+	{
+		if (th == NULL)
+		{
+			break;
+		}
+		if (th->function.acp1 == (actionf_p1)P_MobjThinker)
+		{
+			mobj_t *mo = (mobj_t *) th;
+			if (mo->firstlerp < 1) continue;
+			mo->x = mo->new_x;
+			mo->y = mo->new_y;
+			mo->z = mo->new_z;
+		}
+		if (th->function.acp1 == (actionf_p1)P_RainThinker || th->function.acp1 == (actionf_p1)P_SnowThinker)
+		{
+			precipmobj_t *mo = (precipmobj_t *) th;
+			if (mo->firstlerp < 1) continue;
+			mo->x = mo->new_x;
+			mo->y = mo->new_y;
+			mo->z = mo->new_z;
+		}
+	}
+}
+
 fixed_t R_LerpFixed(fixed_t from, fixed_t to, fixed_t frac)
 {
 	return FixedMul(frac, to - from);
