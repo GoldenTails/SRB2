@@ -251,6 +251,8 @@ static char returnWadPath[256];
 
 #include "../m_argv.h"
 
+#include "../r_main.h" // Uncapped
+
 #ifdef MAC_ALERT
 #include "macosx/mac_alert.h"
 #endif
@@ -2084,7 +2086,7 @@ ticcmd_t *I_BaseTiccmd2(void)
 	return &emptycmd2;
 }
 
-#if (defined (_WIN32) && !defined (_WIN32_WCE)) && !defined (_XBOX)
+#if 0 //(defined (_WIN32) && !defined (_WIN32_WCE)) && !defined (_XBOX)
 static HMODULE winmm = NULL;
 static DWORD starttickcount = 0; // hack for win2k time bug
 static p_timeGetTime pfntimeGetTime = NULL;
@@ -2148,36 +2150,45 @@ static void I_ShutdownTimer(void)
 	}
 }
 #else
+
+static Uint32 basetime = 0;
 //
 // I_GetTime
 // returns time in 1/TICRATE second tics
 //
 tic_t I_GetTime (void)
 {
-#ifdef _arch_dreamcast
-	static Uint64 basetime = 0;
-	       Uint64 ticks = timer_ms_gettime64(); //using timer_ms_gettime64 instand of SDL_GetTicks for the Dreamcast
-#else
-	static Uint32 basetime = 0;
-	       Uint32 ticks = SDL_GetTicks();
-#endif
+	Uint32 ticks = SDL_GetTicks();
+	tic_t tics = 0;
 
 	if (!basetime)
 		basetime = ticks;
 
-	ticks -= basetime;
+	tics = ticks;
+	tics -= basetime;
 
-	ticks = (ticks*TICRATE);
+	tics = (tics*TICRATE);
+	tics = (tics/1000);
 
-#if 0 //#ifdef _WIN32_WCE
-	ticks = (ticks/10);
-#else
-	ticks = (ticks/1000);
-#endif
-
-	return (tic_t)ticks;
+	return tics;
 }
 #endif
+
+fixed_t I_GetTimeFrac (void)
+{
+	Uint32 ticks;
+	Uint32 prevticks;
+	Uint32 nextticks;
+	fixed_t frac;
+
+	ticks = SDL_GetTicks() - basetime;
+	//if (ticks > tics * 1000 / TICRATE) return 1 * FRACUNIT;
+	prevticks = prev_tics * 1000 / TICRATE;
+	nextticks = prevticks + (int)roundf((1.f/TICRATE)*1000);
+
+	frac = FixedDiv((ticks - prevticks) * FRACUNIT, (int)roundf((1.f/TICRATE)*1000 * FRACUNIT));
+	return frac > FRACUNIT ? FRACUNIT : frac;
+}
 
 //
 //I_StartupTimer

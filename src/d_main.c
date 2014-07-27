@@ -73,6 +73,7 @@ int	snprintf(char *str, size_t n, const char *fmt, ...);
 #include "dehacked.h" // Dehacked list test
 #include "m_cond.h" // condition initialization
 #include "fastcmp.h"
+#include "r_fps.h" // Uncapped
 
 #ifdef CMAKECONFIG
 #include "config.h"
@@ -575,11 +576,11 @@ void D_SRB2Loop(void)
 				debugload--;
 #endif
 
-		if (!realtics && !singletics)
+		/*if (!realtics && !singletics)
 		{
 			I_Sleep();
 			continue;
-		}
+		}*/
 
 #ifdef HW3SOUND
 		HW3S_BeginFrameUpdate();
@@ -593,13 +594,15 @@ void D_SRB2Loop(void)
 		// process tics (but maybe not if realtic == 0)
 		TryRunTics(realtics);
 
+		R_InterpolateView(I_GetTimeFrac());
+		D_Display();
 		if (lastdraw || singletics || gametic > rendergametic)
 		{
 			rendergametic = gametic;
 			rendertimeout = entertic+TICRATE/17;
 
 			// Update display, next frame, with current state.
-			D_Display();
+			//D_Display();
 			supdate = false;
 
 			if (moviemode)
@@ -617,7 +620,7 @@ void D_SRB2Loop(void)
 				if (camera.chase)
 					P_MoveChaseCamera(&players[displayplayer], &camera, false);
 			}
-			D_Display();
+			//D_Display();
 
 			if (moviemode)
 				M_SaveFrame();

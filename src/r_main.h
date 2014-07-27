@@ -93,6 +93,9 @@ extern consvar_t cv_precipdensity, cv_drawdist, cv_drawdist_nights, cv_drawdist_
 extern consvar_t cv_skybox;
 extern consvar_t cv_tailspickup;
 
+// Uncapped Framerate
+extern tic_t prev_tics;
+
 // Called by startup code.
 void R_Init(void);
 
