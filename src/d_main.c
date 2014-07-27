@@ -596,12 +596,12 @@ void D_SRB2Loop(void)
 
 		if (cv_capframerate.value == 0)
 		{
-			R_InterpolateView(I_GetTimeFrac());
+			//R_InterpolateView(I_GetTimeFrac());
 			D_Display();
 		}
 		else
 		{
-			R_InterpolateView(FRACUNIT);
+			//R_InterpolateView(FRACUNIT);
 		}
 		if (lastdraw || singletics || gametic > rendergametic)
 		{

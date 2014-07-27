@@ -18,19 +18,30 @@
 #include "p_local.h"
 #include "r_state.h"
 
+enum viewcontext_e
+{
+	VIEWCONTEXT_PLAYER1 = 0,
+	VIEWCONTEXT_PLAYER2,
+	VIEWCONTEXT_SKY1,
+	VIEWCONTEXT_SKY2
+};
+
 typedef struct {
-	mobj_t mobj;
 	fixed_t x;
 	fixed_t y;
 	fixed_t z;
+	boolean sky;
+	sector_t *sector;
+	player_t *player;
 
 	angle_t angle;
 	angle_t aim;
 } viewvars_t;
 
 //extern viewvars_t oldview;
-extern viewvars_t newview;
+extern viewvars_t *newview;
 
 void R_InterpolateView(fixed_t frac);
 void R_UpdateViewInterpolation();
+void R_SetViewContext(enum viewcontext_e _viewcontext);
 #endif
