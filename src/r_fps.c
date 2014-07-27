@@ -40,30 +40,34 @@ enum viewcontext_e viewcontext = VIEWCONTEXT_PLAYER1;
 void R_InterpolateView(fixed_t frac)
 {
 	INT32 dy = 0;
-	fixed_t diffangle;
-	fixed_t diffaim;
 
 	if (FIXED_TO_FLOAT(frac) < 0)
 		frac = 0;
 
-	viewx = oldview->x + FixedMul(frac, newview->x - oldview->x);
-	viewy = oldview->y + FixedMul(frac, newview->y - oldview->y);
-	viewz = oldview->z + FixedMul(frac, newview->z - oldview->z);
+	viewx = oldview->x + R_LerpFixed(oldview->x, newview->x, frac);
+	viewy = oldview->y + R_LerpFixed(oldview->y, newview->y, frac);
+	viewz = oldview->z + R_LerpFixed(oldview->z, newview->z, frac);
 
-	diffangle = newview->angle - oldview->angle;
-	diffaim = newview->aim - oldview->aim;
-
-	viewangle = oldview->angle + FixedMul(frac, diffangle);
-	aimingangle = oldview->aim + FixedMul(frac, diffaim);
+	viewangle = oldview->angle + R_LerpAngle(oldview->angle, newview->angle, frac);
+	aimingangle = oldview->aim + R_LerpAngle(oldview->aim, newview->aim, frac);
 
 	viewsin = FINESINE(viewangle>>ANGLETOFINESHIFT);
 	viewcos = FINECOSINE(viewangle>>ANGLETOFINESHIFT);
 
 	// this is gonna create some interesting visual errors for long distance teleports...
 	// might want to recalculate the view sector every frame instead...
-	viewplayer = frac >= FRACUNIT ? newview->player : oldview->player;
-	viewsector = frac >= FRACUNIT ? newview->sector : oldview->sector;
-	viewsky = frac >= FRACUNIT ? newview->sky : oldview->sky;
+	if (frac >= FRACUNIT)
+	{
+		viewplayer = newview->player;
+		viewsector = newview->sector;
+		viewsky    = newview->sky;
+	}
+	else
+	{
+		viewplayer = oldview->player;
+		viewsector = oldview->sector;
+		viewsky    = oldview->sky;
+	}
 
 	if (rendermode == render_soft)
 	{
@@ -116,4 +120,19 @@ void R_SetViewContext(enum viewcontext_e _viewcontext)
 			I_Error("viewcontext value is invalid: we should never get here without an assert!!");
 			break;
 	}
+}
+
+fixed_t R_LerpFixed(fixed_t from, fixed_t to, fixed_t frac)
+{
+	return FixedMul(frac, to - from);
+}
+
+INT32 R_LerpInt32(INT32 from, INT32 to, fixed_t frac)
+{
+	return FixedInt(FixedMul(frac, (to*FRACUNIT) - (from*FRACUNIT)));
+}
+
+angle_t R_LerpAngle(angle_t from, angle_t to, fixed_t frac)
+{
+	return FixedMul(frac, to - from);
 }
