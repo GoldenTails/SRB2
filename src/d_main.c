@@ -604,9 +604,6 @@ void D_SRB2Loop(void)
 		{
 			D_Display();
 		}
-		else
-		{
-		}
 
 		if (lastdraw || singletics || gametic > rendergametic)
 		{

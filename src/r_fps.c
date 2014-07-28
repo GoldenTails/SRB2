@@ -17,6 +17,10 @@
 #include "g_game.h"
 #include "i_video.h"
 #include "r_plane.h"
+#include "p_spec.h"
+#ifdef POLYOBJECTS
+#include "p_polyobj.h"
+#endif
 
 static viewvars_t p1view_old;
 static viewvars_t p1view_new;
@@ -29,6 +33,9 @@ static viewvars_t sky2view_new;
 
 viewvars_t *oldview = &p1view_old;
 viewvars_t *newview = &p1view_new;
+
+#define ISA(_THINKNAME_) th->function.acp1 == (actionf_p1)_THINKNAME_
+#define CAST(_NAME_,_TYPE_) _TYPE_ *_NAME_ = (_TYPE_ *)th
 
 
 enum viewcontext_e viewcontext = VIEWCONTEXT_PLAYER1;
@@ -132,19 +139,126 @@ void R_SetThinkerOldStates(void)
 		{
 			break;
 		}
-		if (th->function.acp1 == (actionf_p1)P_MobjThinker)
+		if (ISA(P_MobjThinker))
 		{
-			mobj_t *mo = (mobj_t *) th;
+			CAST(mo, mobj_t);
 			mo->old_x = mo->new_x;
 			mo->old_y = mo->new_y;
 			mo->old_z = mo->new_z;
 		}
-		if (th->function.acp1 == (actionf_p1)P_RainThinker || th->function.acp1 == (actionf_p1)P_SnowThinker)
+		if (ISA(P_RainThinker) || ISA(P_SnowThinker))
 		{
-			precipmobj_t *mo = (precipmobj_t *) th;
+			CAST(mo, precipmobj_t);
 			mo->old_x = mo->new_x;
 			mo->old_y = mo->new_y;
 			mo->old_z = mo->new_z;
+		}
+
+		// Other thinkers
+		if (ISA(T_MoveCeiling) || ISA(T_CrushCeiling))
+		{
+			CAST(s, ceiling_t);
+			s->old_ceilingheight = s->new_ceilingheight;
+		}
+		if (ISA(T_MoveFloor))
+		{
+			CAST(s, floormove_t);
+			s->old_floorheight = s->new_floorheight;
+		}
+		if (ISA(T_LightningFlash))
+		{
+			CAST(l, lightflash_t);
+			l->old_lightlevel = l->new_lightlevel;
+		}
+		if (ISA(T_StrobeFlash))
+		{
+			CAST(s, strobe_t);
+			s->old_lightlevel = s->new_lightlevel;
+		}
+		if (ISA(T_Glow))
+		{
+			CAST(g, glow_t);
+			g->old_lightlevel = g->new_lightlevel;
+		}
+		if (ISA(T_FireFlicker))
+		{
+			CAST(f, fireflicker_t);
+			f->old_lightlevel = f->new_lightlevel;
+		}
+		if (ISA(T_MoveElevator)
+			|| ISA(T_CameraScanner)
+			|| ISA(T_StartCrumble))
+		{
+			CAST(e, elevator_t);
+			e->old_floorheight = e->new_floorheight;
+			e->old_ceilingheight = e->new_ceilingheight;
+		}
+		if (ISA(T_ContinuousFalling)
+			|| ISA(T_ThwompSector)
+			|| ISA(T_NoEnemiesSector)
+			|| ISA(T_EachTimeThinker)
+			|| ISA(T_RaiseSector)
+			|| ISA(T_BounceCheese)
+			|| ISA(T_MarioBlock)
+			|| ISA(T_SpikeSector)
+			|| ISA(T_FloatSector)
+			|| ISA(T_BridgeThinker))
+		{
+			CAST(l, levelspecthink_t);
+			l->old_floorheight = l->new_floorheight;
+			l->old_ceilingheight = l->new_ceilingheight;
+		}
+		if (ISA(T_LaserFlash))
+		{
+			//CAST(l, laserthink_t);
+		}
+		if (ISA(T_LightFade))
+		{
+			CAST(l, lightlevel_t);
+			l->old_lightlevel = l->new_lightlevel;
+		}
+		if (ISA(T_ExecutorDelay))
+		{
+			//CAST(e, executor_t);
+		}
+		if (ISA(T_Disappear))
+		{
+			//CAST(d, disappear_t);
+		}
+#ifdef POLYOBJECTS
+		if (ISA(T_PolyObjRotate))
+		{
+			//CAST(p, polyrotate_t);
+		}
+		if (ISA(T_PolyObjMove)
+			|| ISA(T_PolyObjFlag))
+		{
+			//CAST(p, polymove_t);
+		}
+		if (ISA(T_PolyObjWaypoint))
+		{
+			//CAST(p, polywaypoint_t);
+		}
+		if (ISA(T_PolyDoorSlide))
+		{
+			//CAST(p, polyslidedoor_t);
+		}
+		if (ISA(T_PolyDoorSwing))
+		{
+			//CAST(p, polyswingdoor_t);
+		}
+#endif
+		if (ISA(T_Scroll))
+		{
+			//CAST(s, scroll_t);
+		}
+		if (ISA(T_Friction))
+		{
+			//CAST(f, friction_t);
+		}
+		if (ISA(T_Pusher))
+		{
+			//CAST(f, pusher_t);
 		}
 	}
 }
@@ -159,9 +273,9 @@ void R_SetThinkerNewStates(void)
 		{
 			break;
 		}
-		if (th->function.acp1 == (actionf_p1)P_MobjThinker)
+		if (ISA(P_MobjThinker))
 		{
-			mobj_t *mo = (mobj_t *) th;
+			CAST(mo, mobj_t);
 			if (mo->firstlerp == 0)
 			{
 				mo->firstlerp = 1;
@@ -173,9 +287,9 @@ void R_SetThinkerNewStates(void)
 			mo->new_y = mo->y;
 			mo->new_z = mo->z;
 		}
-		if (th->function.acp1 == (actionf_p1)P_RainThinker || th->function.acp1 == (actionf_p1)P_SnowThinker)
+		if (ISA(P_RainThinker) || ISA(P_SnowThinker))
 		{
-			precipmobj_t *mo = (precipmobj_t *) th;
+			CAST(mo, precipmobj_t);
 			if (mo->firstlerp == 0)
 			{
 				mo->firstlerp = 1;
@@ -186,6 +300,160 @@ void R_SetThinkerNewStates(void)
 			mo->new_x = mo->x;
 			mo->new_y = mo->y;
 			mo->new_z = mo->z;
+		}
+
+		// Other thinkers
+		if (ISA(T_MoveCeiling) || ISA(T_CrushCeiling))
+		{
+			CAST(s, ceiling_t);
+			if (s->firstlerp != 1)
+			{
+				s->firstlerp = 1;
+				s->old_ceilingheight = s->sector->ceilingheight;
+			}
+			s->new_ceilingheight = s->sector->ceilingheight;
+		}
+		if (ISA(T_MoveFloor))
+		{
+			CAST(s, floormove_t);
+			if (s->firstlerp != 1)
+			{
+				s->firstlerp = 1;
+				s->old_floorheight = s->sector->floorheight;
+			}
+			s->new_floorheight = s->sector->floorheight;
+		}
+		if (ISA(T_LightningFlash))
+		{
+			CAST(l, lightflash_t);
+			if (l->firstlerp != 1)
+			{
+				l->firstlerp = 1;
+				l->old_lightlevel = l->sector->lightlevel;
+			}
+			l->new_lightlevel = l->sector->lightlevel;
+		}
+		if (ISA(T_StrobeFlash))
+		{
+			CAST(s, strobe_t);
+			if (s->firstlerp != 1)
+			{
+				s->firstlerp = 1;
+				s->old_lightlevel = s->sector->lightlevel;
+			}
+			s->new_lightlevel = s->sector->lightlevel;
+		}
+		if (ISA(T_Glow))
+		{
+			CAST(g, glow_t);
+			if (g->firstlerp != 1)
+			{
+				g->firstlerp = 1;
+				g->old_lightlevel = g->sector->lightlevel;
+			}
+			g->new_lightlevel = g->sector->lightlevel;
+		}
+		if (ISA(T_FireFlicker))
+		{
+			CAST(f, fireflicker_t);
+			if (f->firstlerp != 1)
+			{
+				f->firstlerp = 1;
+				f->old_lightlevel = f->sector->lightlevel;
+			}
+			f->new_lightlevel = f->sector->lightlevel;
+		}
+		if (ISA(T_MoveElevator)
+			|| ISA(T_CameraScanner)
+			|| ISA(T_StartCrumble))
+		{
+			CAST(e, elevator_t);
+			if (e->firstlerp != 1)
+			{
+				e->firstlerp = 1;
+				e->old_floorheight = e->sector->floorheight;
+				e->old_ceilingheight = e->sector->ceilingheight;
+			}
+			e->new_floorheight = e->sector->floorheight;
+			e->new_ceilingheight = e->sector->ceilingheight;
+		}
+		if (ISA(T_ContinuousFalling)
+			|| ISA(T_ThwompSector)
+			|| ISA(T_NoEnemiesSector)
+			|| ISA(T_EachTimeThinker)
+			|| ISA(T_RaiseSector)
+			|| ISA(T_BounceCheese)
+			|| ISA(T_MarioBlock)
+			|| ISA(T_SpikeSector)
+			|| ISA(T_FloatSector)
+			|| ISA(T_BridgeThinker))
+		{
+			CAST(l, levelspecthink_t);
+			if (l->firstlerp != 1)
+			{
+				l->firstlerp = 1;
+				l->old_floorheight = l->sector->floorheight;
+				l->old_ceilingheight = l->sector->ceilingheight;
+			}
+			l->new_floorheight = l->sector->floorheight;
+			l->new_ceilingheight = l->sector->ceilingheight;
+		}
+		if (ISA(T_LaserFlash))
+		{
+			//CAST(l, laserthink_t);
+		}
+		if (ISA(T_LightFade))
+		{
+			CAST(l, lightlevel_t);
+			if (l->firstlerp != 1)
+			{
+				l->firstlerp = 1;
+				l->old_lightlevel = l->sector->lightlevel;
+			}
+			l->new_lightlevel = l->sector->lightlevel;
+		}
+		if (ISA(T_ExecutorDelay))
+		{
+			//CAST(e, executor_t);
+		}
+		if (ISA(T_Disappear))
+		{
+			//CAST(d, disappear_t);
+		}
+#ifdef POLYOBJECTS
+		if (ISA(T_PolyObjRotate))
+		{
+			//CAST(p, polyrotate_t);
+		}
+		if (ISA(T_PolyObjMove)
+			|| ISA(T_PolyObjFlag))
+		{
+			//CAST(p, polymove_t);
+		}
+		if (ISA(T_PolyObjWaypoint))
+		{
+			//CAST(p, polywaypoint_t);
+		}
+		if (ISA(T_PolyDoorSlide))
+		{
+			//CAST(p, polyslidedoor_t);
+		}
+		if (ISA(T_PolyDoorSwing))
+		{
+			//CAST(p, polyswingdoor_t);
+		}
+#endif
+		if (ISA(T_Scroll))
+		{
+			//CAST(s, scroll_t);
+		}
+		if (ISA(T_Friction))
+		{
+			//CAST(f, friction_t);
+		}
+		if (ISA(T_Pusher))
+		{
+			//CAST(f, pusher_t);
 		}
 	}
 }
@@ -205,21 +473,137 @@ void R_DoThinkerLerp(fixed_t frac)
 		{
 			break;
 		}
-		if (th->function.acp1 == (actionf_p1)P_MobjThinker)
+		if (ISA(P_MobjThinker))
 		{
-			mobj_t *mo = (mobj_t *) th;
+			CAST(mo, mobj_t);
 			if (mo->firstlerp < 1) continue;
 			mo->x = mo->old_x + R_LerpFixed(mo->old_x, mo->new_x, frac);
 			mo->y = mo->old_y + R_LerpFixed(mo->old_y, mo->new_y, frac);
 			mo->z = mo->old_z + R_LerpFixed(mo->old_z, mo->new_z, frac);
 		}
-		if (th->function.acp1 == (actionf_p1)P_RainThinker || th->function.acp1 == (actionf_p1)P_SnowThinker)
+		if (ISA(P_RainThinker) || ISA(P_SnowThinker))
 		{
-			precipmobj_t *mo = (precipmobj_t *) th;
+			CAST(mo, precipmobj_t);
 			if (mo->firstlerp < 1) continue;
 			mo->x = R_LerpFixed(mo->old_x, mo->new_x, frac);
 			mo->y = R_LerpFixed(mo->old_y, mo->new_y, frac);
 			mo->z = R_LerpFixed(mo->old_z, mo->new_z, frac);
+		}
+
+		// Other thinkers
+		if (ISA(T_MoveCeiling) || ISA(T_CrushCeiling))
+		{
+			CAST(s, ceiling_t);
+			if (s->firstlerp != 1) continue;
+			s->sector->ceilingheight = s->old_ceilingheight + R_LerpFixed(s->old_ceilingheight, s->new_ceilingheight, frac);
+		}
+		if (ISA(T_MoveFloor))
+		{
+			CAST(s, floormove_t);
+			if (s->firstlerp != 1) continue;
+			s->sector->floorheight = s->old_floorheight + R_LerpFixed(s->old_floorheight, s->new_floorheight, frac);
+		}
+		if (ISA(T_LightningFlash))
+		{
+			CAST(l, lightflash_t);
+			if (l->firstlerp != 1) continue;
+			l->sector->lightlevel = l->old_lightlevel + (INT16) R_LerpInt32(l->old_lightlevel, l->new_lightlevel, frac);
+		}
+		if (ISA(T_StrobeFlash))
+		{
+			CAST(s, strobe_t);
+			if (s->firstlerp != 1) continue;
+			s->sector->lightlevel = s->old_lightlevel + (INT16) R_LerpInt32(s->old_lightlevel, s->new_lightlevel, frac);
+		}
+		if (ISA(T_Glow))
+		{
+			CAST(g, glow_t);
+			if (g->firstlerp != 1) continue;
+			g->sector->lightlevel = g->old_lightlevel + (INT16) R_LerpInt32(g->old_lightlevel, g->new_lightlevel, frac);
+		}
+		if (ISA(T_FireFlicker))
+		{
+			CAST(f, fireflicker_t);
+			if (f->firstlerp != 1) continue;
+			f->sector->lightlevel = f->old_lightlevel + (INT16) R_LerpInt32(f->old_lightlevel, f->new_lightlevel, frac);
+		}
+		if (ISA(T_MoveElevator)
+			|| ISA(T_CameraScanner)
+			|| ISA(T_StartCrumble))
+		{
+			CAST(e, elevator_t);
+			if (e->firstlerp != 1) continue;
+			e->sector->ceilingheight = e->old_ceilingheight + R_LerpFixed(e->old_ceilingheight, e->new_ceilingheight, frac);
+			e->sector->floorheight = e->old_floorheight + R_LerpFixed(e->old_floorheight, e->new_floorheight, frac);
+		}
+		if (ISA(T_ContinuousFalling)
+			|| ISA(T_ThwompSector)
+			|| ISA(T_NoEnemiesSector)
+			|| ISA(T_EachTimeThinker)
+			|| ISA(T_RaiseSector)
+			|| ISA(T_BounceCheese)
+			|| ISA(T_MarioBlock)
+			|| ISA(T_SpikeSector)
+			|| ISA(T_FloatSector)
+			|| ISA(T_BridgeThinker))
+		{
+			CAST(l, levelspecthink_t);
+			if (l->firstlerp != 1) continue;
+			l->sector->ceilingheight = l->old_ceilingheight + R_LerpFixed(l->old_ceilingheight, l->new_ceilingheight, frac);
+			l->sector->floorheight = l->old_floorheight + R_LerpFixed(l->old_floorheight, l->new_floorheight, frac);
+		}
+		if (ISA(T_LaserFlash))
+		{
+			//CAST(l, laserthink_t);
+		}
+		if (ISA(T_LightFade))
+		{
+			CAST(l, lightlevel_t);
+			if (l->firstlerp != 1) continue;
+			l->sector->lightlevel = l->old_lightlevel + (INT16) R_LerpInt32(l->old_lightlevel, l->new_lightlevel, frac);
+		}
+		if (ISA(T_ExecutorDelay))
+		{
+			//CAST(e, executor_t);
+		}
+		if (ISA(T_Disappear))
+		{
+			//CAST(d, disappear_t);
+		}
+#ifdef POLYOBJECTS
+		if (ISA(T_PolyObjRotate))
+		{
+			//CAST(p, polyrotate_t);
+		}
+		if (ISA(T_PolyObjMove)
+			|| ISA(T_PolyObjFlag))
+		{
+			//CAST(p, polymove_t);
+		}
+		if (ISA(T_PolyObjWaypoint))
+		{
+			//CAST(p, polywaypoint_t);
+		}
+		if (ISA(T_PolyDoorSlide))
+		{
+			//CAST(p, polyslidedoor_t);
+		}
+		if (ISA(T_PolyDoorSwing))
+		{
+			//CAST(p, polyswingdoor_t);
+		}
+#endif
+		if (ISA(T_Scroll))
+		{
+			//CAST(s, scroll_t);
+		}
+		if (ISA(T_Friction))
+		{
+			//CAST(f, friction_t);
+		}
+		if (ISA(T_Pusher))
+		{
+			//CAST(f, pusher_t);
 		}
 	}
 }
@@ -239,21 +623,137 @@ void R_ResetThinkerLerp(void)
 		{
 			break;
 		}
-		if (th->function.acp1 == (actionf_p1)P_MobjThinker)
+		if (ISA(P_MobjThinker))
 		{
-			mobj_t *mo = (mobj_t *) th;
+			CAST(mo, mobj_t);
 			if (mo->firstlerp < 1) continue;
 			mo->x = mo->new_x;
 			mo->y = mo->new_y;
 			mo->z = mo->new_z;
 		}
-		if (th->function.acp1 == (actionf_p1)P_RainThinker || th->function.acp1 == (actionf_p1)P_SnowThinker)
+		if (ISA(P_RainThinker) || ISA(P_SnowThinker))
 		{
-			precipmobj_t *mo = (precipmobj_t *) th;
+			CAST(mo, precipmobj_t);
 			if (mo->firstlerp < 1) continue;
 			mo->x = mo->new_x;
 			mo->y = mo->new_y;
 			mo->z = mo->new_z;
+		}
+
+		// Other thinkers
+		if (ISA(T_MoveCeiling) || ISA(T_CrushCeiling))
+		{
+			CAST(s, ceiling_t);
+			if (s->firstlerp != 1) continue;
+			s->sector->ceilingheight = s->new_ceilingheight;
+		}
+		if (ISA(T_MoveFloor))
+		{
+			CAST(s, floormove_t);
+			if (s->firstlerp != 1) continue;
+			s->sector->floorheight = s->new_floorheight;
+		}
+		if (ISA(T_LightningFlash))
+		{
+			CAST(l, lightflash_t);
+			if (l->firstlerp != 1) continue;
+			l->sector->lightlevel = l->new_lightlevel;
+		}
+		if (ISA(T_StrobeFlash))
+		{
+			CAST(s, strobe_t);
+			if (s->firstlerp != 1) continue;
+			s->sector->lightlevel = s->new_lightlevel;
+		}
+		if (ISA(T_Glow))
+		{
+			CAST(g, glow_t);
+			if (g->firstlerp != 1) continue;
+			g->sector->lightlevel = g->new_lightlevel;
+		}
+		if (ISA(T_FireFlicker))
+		{
+			CAST(f, fireflicker_t);
+			if (f->firstlerp != 1) continue;
+			f->sector->lightlevel = f->new_lightlevel;
+		}
+		if (ISA(T_MoveElevator)
+			|| ISA(T_CameraScanner)
+			|| ISA(T_StartCrumble))
+		{
+			CAST(e, elevator_t);
+			if (e->firstlerp != 1) continue;
+			e->sector->ceilingheight = e->new_ceilingheight;
+			e->sector->floorheight = e->new_floorheight;
+		}
+		if (ISA(T_ContinuousFalling)
+			|| ISA(T_ThwompSector)
+			|| ISA(T_NoEnemiesSector)
+			|| ISA(T_EachTimeThinker)
+			|| ISA(T_RaiseSector)
+			|| ISA(T_BounceCheese)
+			|| ISA(T_MarioBlock)
+			|| ISA(T_SpikeSector)
+			|| ISA(T_FloatSector)
+			|| ISA(T_BridgeThinker))
+		{
+			CAST(l, levelspecthink_t);
+			if (l->firstlerp != 1) continue;
+			l->sector->ceilingheight = l->new_ceilingheight;
+			l->sector->floorheight = l->new_floorheight;
+		}
+		if (ISA(T_LaserFlash))
+		{
+			//CAST(l, laserthink_t);
+		}
+		if (ISA(T_LightFade))
+		{
+			CAST(l, lightlevel_t);
+			if (l->firstlerp != 1) continue;
+			l->sector->lightlevel = l->new_lightlevel;
+		}
+		if (ISA(T_ExecutorDelay))
+		{
+			//CAST(e, executor_t);
+		}
+		if (ISA(T_Disappear))
+		{
+			//CAST(d, disappear_t);
+		}
+#ifdef POLYOBJECTS
+		if (ISA(T_PolyObjRotate))
+		{
+			//CAST(p, polyrotate_t);
+		}
+		if (ISA(T_PolyObjMove)
+			|| ISA(T_PolyObjFlag))
+		{
+			//CAST(p, polymove_t);
+		}
+		if (ISA(T_PolyObjWaypoint))
+		{
+			//CAST(p, polywaypoint_t);
+		}
+		if (ISA(T_PolyDoorSlide))
+		{
+			//CAST(p, polyslidedoor_t);
+		}
+		if (ISA(T_PolyDoorSwing))
+		{
+			//CAST(p, polyswingdoor_t);
+		}
+#endif
+		if (ISA(T_Scroll))
+		{
+			//CAST(s, scroll_t);
+		}
+		if (ISA(T_Friction))
+		{
+			//CAST(f, friction_t);
+		}
+		if (ISA(T_Pusher))
+		{
+			//CAST(f, pusher_t);
 		}
 	}
 }
