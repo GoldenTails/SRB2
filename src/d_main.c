@@ -158,6 +158,7 @@ event_t events[MAXEVENTS];
 INT32 eventhead, eventtail;
 
 boolean dedicated = false;
+boolean tic_happened = false;
 
 //
 // D_PostEvent
@@ -598,6 +599,7 @@ void D_SRB2Loop(void)
 
 		// process tics (but maybe not if realtic == 0)
 
+		tic_happened = realtics ? true : false;
 		TryRunTics(realtics);
 
 		if (cv_capframerate.value == 0)

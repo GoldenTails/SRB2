@@ -39,6 +39,7 @@
 #include "../st_stuff.h"
 #include "../i_system.h"
 #include "../m_cheat.h"
+#include "../d_main.h"
 
 #include "hw_md2.h"
 
@@ -5847,6 +5848,7 @@ void HWR_DoPostProcessor(player_t *player)
 		// 10 by 10 grid. 2 coordinates (xy)
 		float v[SCREENVERTS][SCREENVERTS][2];
 		static double disStart = 0;
+        static float last_fractime = 0;
 		UINT8 x, y;
 		INT32 WAVELENGTH;
 		INT32 AMPLITUDE;
@@ -5876,7 +5878,15 @@ void HWR_DoPostProcessor(player_t *player)
 			}
 		}
 		HWD.pfnPostImgRedraw(v);
-		disStart += 1;
+		if (tic_happened)
+		{
+			disStart = disStart - last_fractime + 1 + FIXED_TO_FLOAT(I_GetTimeFrac());
+		}
+		else
+		{
+			disStart = disStart - last_fractime + FIXED_TO_FLOAT(I_GetTimeFrac());
+		}
+		last_fractime = FIXED_TO_FLOAT(I_GetTimeFrac());
 
 		// Capture the screen again for screen waving on the intermission
 		if(gamestate != GS_INTERMISSION)
