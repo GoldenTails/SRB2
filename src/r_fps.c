@@ -18,6 +18,7 @@
 #include "i_video.h"
 #include "r_plane.h"
 #include "p_spec.h"
+#include "r_state.h"
 #ifdef POLYOBJECTS
 #include "p_polyobj.h"
 #endif
@@ -250,7 +251,22 @@ void R_SetThinkerOldStates(void)
 #endif
 		if (ISA(T_Scroll))
 		{
-			//CAST(s, scroll_t);
+			CAST(s, scroll_t);
+			switch (s->type)
+			{
+				case sc_side:
+					s->old_textureoffset = s->new_textureoffset;
+					s->old_rowoffset = s->new_rowoffset;
+					break;
+				case sc_floor:
+				case sc_ceiling:
+					s->old_xoffs = s->new_xoffs;
+					s->old_yoffs = s->new_yoffs;
+					break;
+				case sc_carry:
+				case sc_carry_ceiling:
+					break;
+			}
 		}
 		if (ISA(T_Friction))
 		{
@@ -445,7 +461,55 @@ void R_SetThinkerNewStates(void)
 #endif
 		if (ISA(T_Scroll))
 		{
-			//CAST(s, scroll_t);
+			CAST(s, scroll_t);
+			switch (s->type)
+			{
+				case sc_side:
+				{
+					side_t *side;
+					side = sides + s->affectee;
+					if (s->firstlerp != 1)
+					{
+						s->firstlerp = 1;
+						s->old_textureoffset = side->textureoffset;
+						s->old_rowoffset = side->rowoffset;
+					}
+					s->new_textureoffset = side->textureoffset;
+					s->new_rowoffset = side->rowoffset;
+					break;
+				}
+				case sc_floor:
+				{
+					sector_t *sec;
+					sec = sectors + s->affectee;
+					if (s->firstlerp != 1)
+					{
+						s->firstlerp = 1;
+						s->old_xoffs = sec->floor_xoffs;
+						s->old_yoffs = sec->floor_yoffs;
+					}
+					s->new_xoffs = sec->floor_xoffs;
+					s->new_yoffs = sec->floor_yoffs;
+					break;
+				}
+				case sc_ceiling:
+				{
+					sector_t *sec;
+					sec = sectors + s->affectee;
+					if (s->firstlerp != 1)
+					{
+						s->firstlerp = 1;
+						s->old_xoffs = sec->ceiling_xoffs;
+						s->old_yoffs = sec->ceiling_yoffs;
+					}
+					s->new_xoffs = sec->ceiling_xoffs;
+					s->new_yoffs = sec->ceiling_yoffs;
+					break;
+				}
+				case sc_carry:
+				case sc_carry_ceiling:
+					break;
+			}
 		}
 		if (ISA(T_Friction))
 		{
@@ -595,7 +659,40 @@ void R_DoThinkerLerp(fixed_t frac)
 #endif
 		if (ISA(T_Scroll))
 		{
-			//CAST(s, scroll_t);
+			CAST(s, scroll_t);
+			switch (s->type)
+			{
+				case sc_side:
+				{
+					side_t *side;
+					side = sides + s->affectee;
+					if (s->firstlerp != 1) break;
+					side->textureoffset = s->old_textureoffset + R_LerpFixed(s->old_textureoffset, s->new_textureoffset, frac);
+					side->rowoffset = s->old_rowoffset + R_LerpFixed(s->old_rowoffset, s->new_rowoffset, frac);
+					break;
+				}
+				case sc_floor:
+				{
+					sector_t *sec;
+					sec = sectors + s->affectee;
+					if (s->firstlerp != 1) break;
+					sec->floor_xoffs = s->old_xoffs + R_LerpFixed(s->old_xoffs, s->new_xoffs, frac);
+					sec->floor_yoffs = s->old_yoffs + R_LerpFixed(s->old_yoffs, s->new_yoffs, frac);
+					break;
+				}
+				case sc_ceiling:
+				{
+					sector_t *sec;
+					sec = sectors + s->affectee;
+					if (s->firstlerp != 1) break;
+					sec->ceiling_xoffs = s->old_xoffs + R_LerpFixed(s->old_xoffs, s->new_xoffs, frac);
+					sec->ceiling_yoffs = s->old_yoffs + R_LerpFixed(s->old_yoffs, s->new_yoffs, frac);
+					break;
+				}
+				case sc_carry:
+				case sc_carry_ceiling:
+					break;
+			}
 		}
 		if (ISA(T_Friction))
 		{
@@ -745,7 +842,40 @@ void R_ResetThinkerLerp(void)
 #endif
 		if (ISA(T_Scroll))
 		{
-			//CAST(s, scroll_t);
+			CAST(s, scroll_t);
+			switch (s->type)
+			{
+				case sc_side:
+				{
+					side_t *side;
+					side = sides + s->affectee;
+					if (s->firstlerp != 1) break;
+					side->textureoffset = s->new_textureoffset;
+					side->rowoffset = s->new_rowoffset;
+					break;
+				}
+				case sc_floor:
+				{
+					sector_t *sec;
+					sec = sectors + s->affectee;
+					if (s->firstlerp != 1) break;
+					sec->floor_xoffs = s->new_xoffs;
+					sec->floor_yoffs = s->new_yoffs;
+					break;
+				}
+				case sc_ceiling:
+				{
+					sector_t *sec;
+					sec = sectors + s->affectee;
+					if (s->firstlerp != 1) break;
+					sec->ceiling_xoffs = s->new_xoffs;
+					sec->ceiling_yoffs = s->new_yoffs;
+					break;
+				}
+				case sc_carry:
+				case sc_carry_ceiling:
+					break;
+			}
 		}
 		if (ISA(T_Friction))
 		{

@@ -415,6 +415,19 @@ typedef struct
 		sc_carry,        ///< Carry objects on floor.
 		sc_carry_ceiling,///< Carry objects on ceiling (for 3Dfloor conveyors).
 	} type;
+
+	// sc_side
+	fixed_t old_textureoffset;
+	fixed_t new_textureoffset;
+	fixed_t old_rowoffset;
+	fixed_t new_rowoffset;
+
+	// sc_floor/ceiling
+	fixed_t old_xoffs;
+	fixed_t new_xoffs;
+	fixed_t old_yoffs;
+	fixed_t new_yoffs;
+	INT32 firstlerp;
 } scroll_t;
 
 void T_Scroll(scroll_t *s);
