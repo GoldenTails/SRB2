@@ -42,7 +42,7 @@ typedef struct {
 extern viewvars_t *newview;
 
 void R_InterpolateView(fixed_t frac);
-void R_UpdateViewInterpolation();
+void R_UpdateViewInterpolation(void);
 void R_SetViewContext(enum viewcontext_e _viewcontext);
 void R_SetThinkerOldStates(void);
 void R_SetThinkerNewStates(void);

@@ -2117,7 +2117,7 @@ fixed_t I_GetTimeFrac (void)
 	ticks = SDL_GetTicks() - basetime;
 	prevticks = prev_tics * 1000 / TICRATE;
 
-	frac = FixedDiv((ticks - prevticks) * FRACUNIT, (int)roundf((1.f/TICRATE)*1000 * FRACUNIT));
+	frac = FixedDiv((ticks - prevticks) * FRACUNIT, (int)lroundf((1.f/TICRATE)*1000 * FRACUNIT));
 	return frac > FRACUNIT ? FRACUNIT : frac;
 }
 

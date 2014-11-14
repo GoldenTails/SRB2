@@ -825,7 +825,7 @@ static mobj_t *viewmobj;
 
 void R_SkyboxFrame(player_t *player)
 {
-	INT32 dy = 0;
+	//INT32 dy = 0;
 	camera_t *thiscam;
 
 	if (splitscreen && player == &players[secondarydisplayplayer]
@@ -1040,7 +1040,7 @@ void R_SkyboxFrame(player_t *player)
 
 void R_SetupFrame(player_t *player, boolean skybox)
 {
-	INT32 dy = 0;
+	//INT32 dy = 0;
 	camera_t *thiscam;
 	boolean forcechase = false;
 

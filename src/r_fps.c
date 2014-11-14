@@ -91,7 +91,7 @@ void R_InterpolateView(fixed_t frac)
 	centeryfrac = centery<<FRACBITS;
 }
 
-void R_UpdateViewInterpolation()
+void R_UpdateViewInterpolation(void)
 {
 	p1view_old = p1view_new;
 	p2view_old = p2view_new;

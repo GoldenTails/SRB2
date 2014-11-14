@@ -5878,15 +5878,16 @@ void HWR_DoPostProcessor(player_t *player)
 			}
 		}
 		HWD.pfnPostImgRedraw(v);
+        float fractime = I_GetTimeFrac();
 		if (tic_happened)
 		{
-			disStart = disStart - last_fractime + 1 + FIXED_TO_FLOAT(I_GetTimeFrac());
+			disStart = disStart - last_fractime + 1 + FIXED_TO_FLOAT(fractime);
 		}
 		else
 		{
-			disStart = disStart - last_fractime + FIXED_TO_FLOAT(I_GetTimeFrac());
+			disStart = disStart - last_fractime + FIXED_TO_FLOAT(fractime);
 		}
-		last_fractime = FIXED_TO_FLOAT(I_GetTimeFrac());
+		last_fractime = FIXED_TO_FLOAT(fractime);
 
 		// Capture the screen again for screen waving on the intermission
 		if(gamestate != GS_INTERMISSION)
