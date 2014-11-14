@@ -1364,14 +1364,6 @@ void R_RenderPlayerView(player_t *player)
 #endif
 //profile stuff ---------------------------------------------------------
 
-	R_DrawPlanes();
-#ifdef FLOORSPLATS
-	R_DrawVisibleFloorSplats();
-#endif
-	// draw mid texture and sprite
-	// And now 3D floors/sides!
-	R_DrawMasked();
-
 	// PORTAL RENDERING
 	for(portal = portal_base; portal; portal = portal_base)
 	{
