@@ -54,6 +54,7 @@ set(SRB2_CORE_SOURCES
 	r_bsp.c
 	r_data.c
 	r_draw.c
+	r_fps.c
 	r_main.c
 	r_plane.c
 	r_segs.c
