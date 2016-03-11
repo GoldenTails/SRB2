@@ -630,12 +630,12 @@ void P_Ticker(boolean run)
 	if (!S_MusicPaused())
 		S_AdjustMusicStackTics();
 
-	postimgtype = postimgtype2 = postimg_none;
-
 	P_MapStart();
 
 	if (run)
 	{
+		postimgtype = postimgtype2 = postimg_none;
+
 		if (demorecording)
 			G_WriteDemoTiccmd(&players[consoleplayer].cmd, 0);
 		if (demoplayback)
