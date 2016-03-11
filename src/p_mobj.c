@@ -1622,8 +1622,8 @@ static void P_XYFriction(mobj_t *mo, fixed_t oldx, fixed_t oldy)
 			if (twodlevel || player->mo->flags2 & MF2_TWOD) // Otherwise handled in P_3DMovement
 			{
 				const fixed_t ns = FixedDiv(549*ORIG_FRICTION,500*FRACUNIT);
-				mo->momx = FixedMul(mo->momx, ns);
-				mo->momy = FixedMul(mo->momy, ns);
+				mo->momx = FixedMul(mo->momx, FRACUNIT - (FRACUNIT - ns) / NEWTICRATERATIO);
+				mo->momy = FixedMul(mo->momy, FRACUNIT - (FRACUNIT - ns) / NEWTICRATERATIO);
 			}
 		}
 		else if (abs(player->rmomx) < FixedMul(STOPSPEED, mo->scale)
@@ -1641,13 +1641,13 @@ static void P_XYFriction(mobj_t *mo, fixed_t oldx, fixed_t oldy)
 		{
 			if (oldx == mo->x && oldy == mo->y) // didn't go anywhere
 			{
-				mo->momx = FixedMul(mo->momx, ORIG_FRICTION);
-				mo->momy = FixedMul(mo->momy, ORIG_FRICTION);
+				mo->momx = FixedMul(mo->momx, FRACUNIT - (FRACUNIT - ORIG_FRICTION) / NEWTICRATERATIO);
+				mo->momy = FixedMul(mo->momy, FRACUNIT - (FRACUNIT - ORIG_FRICTION) / NEWTICRATERATIO);
 			}
 			else
 			{
-				mo->momx = FixedMul(mo->momx, mo->friction);
-				mo->momy = FixedMul(mo->momy, mo->friction);
+				mo->momx = FixedMul(mo->momx, FRACUNIT - (FRACUNIT - mo->friction) / NEWTICRATERATIO);
+				mo->momy = FixedMul(mo->momy, FRACUNIT - (FRACUNIT - mo->friction) / NEWTICRATERATIO);
 			}
 
 			mo->friction = ORIG_FRICTION;
