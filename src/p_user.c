@@ -12079,6 +12079,10 @@ void P_PlayerThink(player_t *player)
 	// Counters, time dependent power ups.
 	// Time Bonus & Ring Bonus count settings
 
+	// Only do these counters at 35 FPS
+	if ((gametic % NEWTICRATERATIO) != 0)
+		return;
+
 	if (player->ammoremovaltimer)
 	{
 		if (--player->ammoremovaltimer == 0)
