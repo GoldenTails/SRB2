@@ -336,6 +336,23 @@ static inline void P_RunThinkers(void)
 
 }
 
+static inline void P_RunPlayerThinkers(void)
+{
+	size_t i;
+	for (i = 0; i < NUM_THINKERLISTS; i++)
+	{
+		for (currentthinker = thlist[i].next; currentthinker != &thlist[i]; currentthinker = currentthinker->next)
+		{
+#ifdef PARANOIA
+			I_Assert(currentthinker->function.acp1 != NULL);
+#endif
+			mobj_t *mobj = (mobj_t *)currentthinker;
+			if (mobj->type == MT_PLAYER)
+				currentthinker->function.acp1(currentthinker);
+		}
+	}
+}
+
 //
 // P_DoAutobalanceTeams()
 //
@@ -636,26 +653,25 @@ void P_Ticker(boolean run)
 
 	P_MapStart();
 
-	if (run)
-	{
-		postimgtype = postimgtype2 = postimg_none;
+	postimgtype = postimgtype2 = postimg_none;
 
-		if (demorecording)
-			G_WriteDemoTiccmd(&players[consoleplayer].cmd, 0);
-		if (demoplayback)
-			G_ReadDemoTiccmd(&players[consoleplayer].cmd, 0);
+	if (demorecording)
+		G_WriteDemoTiccmd(&players[consoleplayer].cmd, 0);
+	if (demoplayback)
+		G_ReadDemoTiccmd(&players[consoleplayer].cmd, 0);
 
-		ps_lua_mobjhooks = 0;
-		ps_checkposition_calls = 0;
+	ps_lua_mobjhooks = 0;
+	ps_checkposition_calls = 0;
 
-		LUAh_PreThinkFrame();
+	LUAh_PreThinkFrame();
 
-		ps_playerthink_time = I_GetTimeMicros();
-		for (i = 0; i < MAXPLAYERS; i++)
-			if (playeringame[i] && players[i].mo && !P_MobjWasRemoved(players[i].mo))
-				P_PlayerThink(&players[i]);
-		ps_playerthink_time = I_GetTimeMicros() - ps_playerthink_time;
-	}
+	ps_playerthink_time = I_GetTimeMicros();
+
+	for (i = 0; i < MAXPLAYERS; i++)
+		if (playeringame[i] && players[i].mo && !P_MobjWasRemoved(players[i].mo))
+			P_PlayerThink(&players[i]);
+
+	ps_playerthink_time = I_GetTimeMicros() - ps_playerthink_time;
 
 	// Keep track of how long they've been playing!
 	if (!demoplayback) // Don't increment if a demo is playing.
@@ -672,16 +688,22 @@ void P_Ticker(boolean run)
 		ps_thinkertime = I_GetTimeMicros();
 		P_RunThinkers();
 		ps_thinkertime = I_GetTimeMicros() - ps_thinkertime;
-
-		// Run any "after all the other thinkers" stuff
-		for (i = 0; i < MAXPLAYERS; i++)
-			if (playeringame[i] && players[i].mo && !P_MobjWasRemoved(players[i].mo))
-				P_PlayerAfterThink(&players[i]);
-
-		ps_lua_thinkframe_time = I_GetTimeMicros();
-		LUAh_ThinkFrame();
-		ps_lua_thinkframe_time = I_GetTimeMicros() - ps_lua_thinkframe_time;
 	}
+	else
+	{
+		ps_thinkertime = I_GetTimeMicros();
+		P_RunPlayerThinkers();
+		ps_thinkertime = I_GetTimeMicros() - ps_thinkertime;
+	}
+
+	// Run any "after all the other thinkers" stuff
+	for (i = 0; i < MAXPLAYERS; i++)
+		if (playeringame[i] && players[i].mo && !P_MobjWasRemoved(players[i].mo))
+			P_PlayerAfterThink(&players[i]);
+
+	ps_lua_thinkframe_time = I_GetTimeMicros();
+	LUAh_ThinkFrame();
+	ps_lua_thinkframe_time = I_GetTimeMicros() - ps_lua_thinkframe_time;
 
 	// Run shield positioning
 	P_RunShields();
