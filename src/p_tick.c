@@ -763,6 +763,12 @@ void P_Ticker(boolean run)
 		LUA_HOOK(PostThinkFrame);
 	}
 
+	// Always move the camera.
+	if (splitscreen && camera2.chase)
+		P_MoveChaseCamera(&players[secondarydisplayplayer], &camera2, false);
+	if (camera.chase)
+		P_MoveChaseCamera(&players[displayplayer], &camera, false);
+
 	P_MapEnd();
 
 //	Z_CheckMemCleanup();
