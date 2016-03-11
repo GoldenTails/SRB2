@@ -336,6 +336,23 @@ static inline void P_RunThinkers(void)
 
 }
 
+static inline void P_RunPlayerThinkers(void)
+{
+	size_t i;
+	for (i = 0; i < NUM_THINKERLISTS; i++)
+	{
+		for (currentthinker = thlist[i].next; currentthinker != &thlist[i]; currentthinker = currentthinker->next)
+		{
+#ifdef PARANOIA
+			I_Assert(currentthinker->function.acp1 != NULL);
+#endif
+			mobj_t *mobj = (mobj_t *)currentthinker;
+			if (mobj->type == MT_PLAYER)
+				currentthinker->function.acp1(currentthinker);
+		}
+	}
+}
+
 //
 // P_DoAutobalanceTeams()
 //
@@ -636,34 +653,31 @@ void P_Ticker(boolean run)
 
 	P_MapStart();
 
-	if (run)
+	postimgtype = postimgtype2 = postimg_none;
+
+	if (demorecording)
+		G_WriteDemoTiccmd(&players[consoleplayer].cmd, 0);
+	if (demoplayback)
 	{
-		postimgtype = postimgtype2 = postimg_none;
-
-		if (demorecording)
-			G_WriteDemoTiccmd(&players[consoleplayer].cmd, 0);
-		if (demoplayback)
+		player_t* p = &players[consoleplayer];
+		G_ReadDemoTiccmd(&p->cmd, 0);
+		if (!cv_freedemocamera.value)
 		{
-			player_t* p = &players[consoleplayer];
-			G_ReadDemoTiccmd(&p->cmd, 0);
-			if (!cv_freedemocamera.value)
-			{
-				P_ForceLocalAngle(p, p->cmd.angleturn << 16);
-				localaiming = p->aiming;
-			}
+			P_ForceLocalAngle(p, p->cmd.angleturn << 16);
+			localaiming = p->aiming;
 		}
-
-		ps_lua_mobjhooks.value.i = 0;
-		ps_checkposition_calls.value.i = 0;
-
-		LUA_HOOK(PreThinkFrame);
-
-		PS_START_TIMING(ps_playerthink_time);
-		for (i = 0; i < MAXPLAYERS; i++)
-			if (playeringame[i] && players[i].mo && !P_MobjWasRemoved(players[i].mo))
-				P_PlayerThink(&players[i]);
-		PS_STOP_TIMING(ps_playerthink_time);
 	}
+
+	ps_lua_mobjhooks.value.i = 0;
+	ps_checkposition_calls.value.i = 0;
+
+	LUA_HOOK(PreThinkFrame);
+
+	PS_START_TIMING(ps_playerthink_time);
+	for (i = 0; i < MAXPLAYERS; i++)
+		if (playeringame[i] && players[i].mo && !P_MobjWasRemoved(players[i].mo))
+			P_PlayerThink(&players[i]);
+	PS_STOP_TIMING(ps_playerthink_time);
 
 	// Keep track of how long they've been playing!
 	if (!demoplayback) // Don't increment if a demo is playing.
@@ -680,16 +694,22 @@ void P_Ticker(boolean run)
 		PS_START_TIMING(ps_thinkertime);
 		P_RunThinkers();
 		PS_STOP_TIMING(ps_thinkertime);
-
-		// Run any "after all the other thinkers" stuff
-		for (i = 0; i < MAXPLAYERS; i++)
-			if (playeringame[i] && players[i].mo && !P_MobjWasRemoved(players[i].mo))
-				P_PlayerAfterThink(&players[i]);
-
-		PS_START_TIMING(ps_lua_thinkframe_time);
-		LUA_HookThinkFrame();
-		PS_STOP_TIMING(ps_lua_thinkframe_time);
 	}
+	else
+	{
+		PS_START_TIMING(ps_thinkertime);
+		P_RunPlayerThinkers();
+		PS_STOP_TIMING(ps_thinkertime);
+	}
+
+	// Run any "after all the other thinkers" stuff
+	for (i = 0; i < MAXPLAYERS; i++)
+		if (playeringame[i] && players[i].mo && !P_MobjWasRemoved(players[i].mo))
+			P_PlayerAfterThink(&players[i]);
+
+	PS_START_TIMING(ps_lua_thinkframe_time);
+	LUA_HookThinkFrame();
+	PS_STOP_TIMING(ps_lua_thinkframe_time);
 
 	// Run shield positioning
 	P_RunShields();
