@@ -1806,6 +1806,12 @@ void P_XYMovement(mobj_t *mo)
 	xmove = mo->momx;
 	ymove = mo->momy;
 
+	if (player)
+	{
+		xmove /= NEWTICRATERATIO;
+		ymove /= NEWTICRATERATIO;
+	}
+
 	oldx = mo->x;
 	oldy = mo->y;
 
@@ -2359,7 +2365,12 @@ boolean P_ZMovement(mobj_t *mo)
 		mo->pmomz = 0;
 		mo->eflags &= ~MFE_APPLYPMOMZ;
 	}
-	mo->z += mo->momz;
+
+	if (mo->player)
+		mo->z += mo->momz / NEWTICRATERATIO;
+	else
+		mo->z += mo->momz;
+
 	onground = P_IsObjectOnGround(mo);
 
 	if (mo->standingslope)
