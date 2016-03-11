@@ -90,7 +90,7 @@ typedef enum
 // mouseaiming (looking up/down with the mouse or keyboard)
 #define KB_LOOKSPEED (1<<25)
 #define MAXPLMOVE (50)
-#define SLOWTURNTICS (6)
+#define SLOWTURNTICS (6*NEWTICRATERATIO)
 
 // build an internal map name MAPxx from map number
 const char *G_BuildMapName(INT32 map);
