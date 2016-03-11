@@ -512,7 +512,7 @@ boolean SCR_IsAspectCorrect(INT32 width, INT32 height)
 
 // XMOD FPS display
 // moved out of os-specific code for consistency
-static boolean fpsgraph[TICRATE];
+static boolean fpsgraph[NEWTICRATE];
 static tic_t lasttic;
 
 void SCR_DisplayTicRate(void)
@@ -526,17 +526,17 @@ void SCR_DisplayTicRate(void)
 	if (gamestate == GS_NULL)
 		return;
 
-	for (i = lasttic + 1; i < TICRATE+lasttic && i < ontic; ++i)
-		fpsgraph[i % TICRATE] = false;
+	for (i = lasttic + 1; i < NEWTICRATE+lasttic && i < ontic; ++i)
+		fpsgraph[i % NEWTICRATE] = false;
 
-	fpsgraph[ontic % TICRATE] = true;
+	fpsgraph[ontic % NEWTICRATE] = true;
 
-	for (i = 0;i < TICRATE;++i)
+	for (i = 0;i < NEWTICRATE;++i)
 		if (fpsgraph[i])
 			++totaltics;
 
-	if (totaltics <= TICRATE/2) ticcntcolor = V_REDMAP;
-	else if (totaltics == TICRATE) ticcntcolor = V_GREENMAP;
+	if (totaltics <= NEWTICRATE/2) ticcntcolor = V_REDMAP;
+	else if (totaltics == NEWTICRATE) ticcntcolor = V_GREENMAP;
 
 	if (cv_ticrate.value == 2) // compact counter
 		V_DrawString(vid.width-(16*vid.dupx), h,
@@ -546,7 +546,7 @@ void SCR_DisplayTicRate(void)
 		V_DrawString(vid.width-(72*vid.dupx), h,
 			V_YELLOWMAP|V_NOSCALESTART|V_USERHUDTRANS, "FPS:");
 		V_DrawString(vid.width-(40*vid.dupx), h,
-			ticcntcolor|V_NOSCALESTART|V_USERHUDTRANS, va("%02d/%02u", totaltics, TICRATE));
+			ticcntcolor|V_NOSCALESTART|V_USERHUDTRANS, va("%02d/%02u", totaltics, NEWTICRATE));
 	}
 
 	lasttic = ontic;
