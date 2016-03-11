@@ -364,6 +364,9 @@ boolean P_DoSpring(mobj_t *spring, mobj_t *object)
 		UINT8 secondjump;
 		boolean washoming;
 
+		if (vertispeed)
+			object->momz = FixedMul(object->momz, FixedSqrt(FixedMul(FRACUNIT, NEWTICRATERATIO << FRACBITS)));
+
 		if (spring->flags & MF_ENEMY) // Spring shells
 			P_SetTarget(&spring->target, object);
 
