@@ -1469,8 +1469,11 @@ fixed_t P_GetMobjGravity(mobj_t *mo)
 			gravityadd = -gravityadd;
 			mo->eflags ^= MFE_VERTICALFLIP;
 		}
+
 		if (wasflip == !(mo->eflags & MFE_VERTICALFLIP)) // note!! == ! is not equivalent to != here - turns numeric into bool this way
 			P_PlayerFlip(mo);
+
+		gravityadd /= NEWTICRATERATIO;
 	}
 	else
 	{
