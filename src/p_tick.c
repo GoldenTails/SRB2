@@ -332,6 +332,23 @@ static inline void P_RunThinkers(void)
 
 }
 
+static inline void P_RunPlayerThinkers(void)
+{
+	size_t i;
+	for (i = 0; i < NUM_THINKERLISTS; i++)
+	{
+		for (currentthinker = thlist[i].next; currentthinker != &thlist[i]; currentthinker = currentthinker->next)
+		{
+#ifdef PARANOIA
+			I_Assert(currentthinker->function.acp1 != NULL);
+#endif
+			mobj_t *mobj = (mobj_t *)currentthinker;
+			if (mobj->type == MT_PLAYER)
+				currentthinker->function.acp1(currentthinker);
+		}
+	}
+}
+
 //
 // P_DoAutobalanceTeams()
 //
@@ -632,21 +649,18 @@ void P_Ticker(boolean run)
 
 	P_MapStart();
 
-	if (run)
-	{
-		postimgtype = postimgtype2 = postimg_none;
+	postimgtype = postimgtype2 = postimg_none;
 
-		if (demorecording)
-			G_WriteDemoTiccmd(&players[consoleplayer].cmd, 0);
-		if (demoplayback)
-			G_ReadDemoTiccmd(&players[consoleplayer].cmd, 0);
+	if (demorecording)
+		G_WriteDemoTiccmd(&players[consoleplayer].cmd, 0);
+	if (demoplayback)
+		G_ReadDemoTiccmd(&players[consoleplayer].cmd, 0);
 
-		LUAh_PreThinkFrame();
+	LUAh_PreThinkFrame();
 
-		for (i = 0; i < MAXPLAYERS; i++)
-			if (playeringame[i] && players[i].mo && !P_MobjWasRemoved(players[i].mo))
-				P_PlayerThink(&players[i]);
-	}
+	for (i = 0; i < MAXPLAYERS; i++)
+		if (playeringame[i] && players[i].mo && !P_MobjWasRemoved(players[i].mo))
+			P_PlayerThink(&players[i]);
 
 	// Keep track of how long they've been playing!
 	if (!demoplayback) // Don't increment if a demo is playing.
@@ -659,16 +673,16 @@ void P_Ticker(boolean run)
 		P_EmeraldManager(); // Power stone mode
 
 	if (run)
-	{
 		P_RunThinkers();
+	else
+		P_RunPlayerThinkers();
 
-		// Run any "after all the other thinkers" stuff
-		for (i = 0; i < MAXPLAYERS; i++)
-			if (playeringame[i] && players[i].mo && !P_MobjWasRemoved(players[i].mo))
-				P_PlayerAfterThink(&players[i]);
+	// Run any "after all the other thinkers" stuff
+	for (i = 0; i < MAXPLAYERS; i++)
+		if (playeringame[i] && players[i].mo && !P_MobjWasRemoved(players[i].mo))
+			P_PlayerAfterThink(&players[i]);
 
-		LUAh_ThinkFrame();
-	}
+	LUAh_ThinkFrame();
 
 	// Run shield positioning
 	P_RunShields();
