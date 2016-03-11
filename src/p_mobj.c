@@ -2369,10 +2369,7 @@ boolean P_ZMovement(mobj_t *mo)
 		mo->eflags &= ~MFE_APPLYPMOMZ;
 	}
 
-	if (mo->player)
-		mo->z += mo->momz / NEWTICRATERATIO;
-	else
-		mo->z += mo->momz;
+	mo->z += mo->momz;
 
 	onground = P_IsObjectOnGround(mo);
 
@@ -2942,7 +2939,7 @@ void P_PlayerZMovement(mobj_t *mo)
 		mo->eflags &= ~MFE_APPLYPMOMZ;
 	}
 
-	mo->z += mo->momz;
+	mo->z += mo->momz / NEWTICRATERATIO;
 	onground = P_IsObjectOnGround(mo);
 
 	// Have player fall through floor?

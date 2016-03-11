@@ -366,9 +366,6 @@ boolean P_DoSpring(mobj_t *spring, mobj_t *object)
 		UINT8 secondjump;
 		boolean washoming;
 
-		if (vertispeed)
-			object->momz = FixedMul(object->momz, FixedSqrt(FixedDiv(FRACUNIT, NEWTICRATERATIO << FRACBITS)));
-
 		if (spring->flags & MF_ENEMY) // Spring shells
 			P_SetTarget(&spring->target, object);
 
@@ -503,7 +500,6 @@ static void P_DoFanAndGasJet(mobj_t *spring, mobj_t *object)
 
 			if (p && !p->powers[pw_tailsfly]) // doesn't reset anim for Tails' flight
 			{
-				object->momz = FixedMul(object->momz, FixedSqrt(FixedDiv(FRACUNIT, NEWTICRATERATIO << FRACBITS)));
 				P_ResetPlayer(p);
 				if (p->panim != PA_FALL)
 					P_SetPlayerMobjState(object, S_PLAY_FALL);
@@ -519,7 +515,6 @@ static void P_DoFanAndGasJet(mobj_t *spring, mobj_t *object)
 
 			if (p)
 			{
-				object->momz = FixedMul(object->momz, FixedSqrt(FixedDiv(FRACUNIT, NEWTICRATERATIO << FRACBITS)));
 				P_ResetPlayer(p);
 				if (p->panim != PA_FALL)
 					P_SetPlayerMobjState(object, S_PLAY_FALL);
