@@ -9204,7 +9204,7 @@ static void M_DrawSetupChoosePlayerMenu(void)
 		M_CacheCharacterSelect();
 
 	if (abs(char_scroll) > FRACUNIT)
-		char_scroll -= (char_scroll>>2);
+		char_scroll -= (char_scroll>>2)/NEWTICRATERATIO;
 	else // close enough.
 		char_scroll = 0; // just be exact now.
 
