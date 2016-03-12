@@ -338,19 +338,10 @@ static inline void P_RunThinkers(void)
 
 static inline void P_RunPlayerThinkers(void)
 {
-	size_t i;
-	for (i = 0; i < NUM_THINKERLISTS; i++)
-	{
-		for (currentthinker = thlist[i].next; currentthinker != &thlist[i]; currentthinker = currentthinker->next)
-		{
-#ifdef PARANOIA
-			I_Assert(currentthinker->function.acp1 != NULL);
-#endif
-			mobj_t *mobj = (mobj_t *)currentthinker;
-			if (mobj->type == MT_PLAYER)
-				currentthinker->function.acp1(currentthinker);
-		}
-	}
+	UINT8 i;
+	for (i = 0; i < MAXPLAYERS; i++)
+		if (playeringame[i] && players[i].mo)
+			players[i].mo->thinker.function.acp1(players[i].mo);
 }
 
 //
