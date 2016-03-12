@@ -389,7 +389,7 @@ extern skincolor_t skincolors[MAXSKINCOLORS];
 // State updates, number of tics / second.
 // NOTE: used to setup the timer rate, see I_StartupTimer().
 #define TICRATE 35
-#define NEWTICRATERATIO 2 // try 4 for 140 fps :)
+#define NEWTICRATERATIO 1 // try 4 for 140 fps :)
 #define NEWTICRATE (TICRATE*NEWTICRATERATIO)
 
 #define MUSICRATE 1000 // sound timing is calculated by milliseconds
