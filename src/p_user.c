@@ -12384,7 +12384,20 @@ void P_PlayerAfterThink(player_t *player)
 		thiscam = &camera;
 
 	if (player->playerstate == PST_DEAD)
+	{
+		// camera may still move when guy is dead
+		//if (!netgame)
+		{
+			if (thiscam && thiscam->chase)
+				P_MoveChaseCamera(player, thiscam, false);
+		}
+		if (player->followmobj)
+		{
+			P_RemoveMobj(player->followmobj);
+			P_SetTarget(&player->followmobj, NULL);
+		}
 		return;
+	}
 
 	if (player->powers[pw_carry] == CR_NIGHTSMODE)
 	{
