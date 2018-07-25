@@ -679,10 +679,11 @@ void P_Ticker(boolean run)
 
 	if (runemeraldmanager)
 		P_EmeraldManager(); // Power stone mode
-
+	
 	if (run)
 	{
 		PS_START_TIMING(ps_thinkertime);
+		P_ClearShieldsAndOverlays();
 		P_RunThinkers();
 		PS_STOP_TIMING(ps_thinkertime);
 	}
