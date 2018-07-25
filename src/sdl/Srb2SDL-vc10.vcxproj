@@ -153,6 +153,11 @@
     <Link>
       <AdditionalDependencies>setupapi.lib;winmm.lib;imm32.lib;version.lib;ole32.lib;advapi32.lib;shell32.lib;gdi32.lib;oleaut32.lib;uuid.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <TreatWarningAsError>false</TreatWarningAsError>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\libs\libpng-src\projects\visualc10\libpng.vcxproj">
