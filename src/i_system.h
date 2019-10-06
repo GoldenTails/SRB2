@@ -48,6 +48,10 @@ tic_t I_GetTime(void);
 
 int I_GetTimeMicros(void);// provides microsecond counter for render stats
 
+/** \brief  Get the current time as a fraction of a tic since the last tic.
+*/
+fixed_t I_GetTimeFrac(void);
+
 /**	\brief	The I_Sleep function
 
 	\return	void

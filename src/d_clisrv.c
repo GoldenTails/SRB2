@@ -5445,6 +5445,7 @@ void TryRunTics(tic_t realtics)
 
 				rs_tictime = I_GetTimeMicros();
 
+				prev_tics = I_GetTime();
 				G_Ticker((gametic % NEWTICRATERATIO) == 0);
 				ExtraDataTicker();
 				gametic++;
