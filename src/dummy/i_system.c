@@ -21,6 +21,11 @@ int I_GetTimeMicros(void)
 	return 0;
 }
 
+fixed_t I_GetTimeFrac(void)
+{
+	return 0;
+}
+
 void I_Sleep(void){}
 
 void I_GetEvent(void){}

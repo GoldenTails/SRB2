@@ -187,6 +187,8 @@ static char returnWadPath[256];
 
 #include "../m_menu.h"
 
+#include "../r_main.h" // Frame interpolation/uncapped
+
 #ifdef MAC_ALERT
 #include "macosx/mac_alert.h"
 #endif
@@ -2134,6 +2136,8 @@ ticcmd_t *I_BaseTiccmd2(void)
 	return &emptycmd2;
 }
 
+static Uint64 basetime = 0;
+
 //
 // I_GetTime
 // returns time in 1/TICRATE second tics
@@ -2164,6 +2168,18 @@ precise_t I_GetPreciseTime(void)
 int I_PreciseToMicros(precise_t d)
 {
 	return (int)(d / (timer_frequency / 1000000.0));
+}
+
+fixed_t I_GetTimeFrac(void) {
+	Uint64 ticks;
+	Uint64 prevticks;
+	fixed_t frac;
+
+	ticks = SDL_GetTicks() - basetime;
+	prevticks = prev_tics * 1000 / TICRATE;
+
+	frac = FixedDiv((ticks - prevticks) * FRACUNIT, (int)lroundf((1.f/TICRATE)*1000 * FRACUNIT));
+	return frac > FRACUNIT ? FRACUNIT : frac;
 }
 
 //
