@@ -5272,6 +5272,7 @@ void TryRunTics(tic_t realtics)
 				if (update_stats)
 					PS_START_TIMING(ps_tictime);
 
+				prev_tics = I_GetTime();
 				G_Ticker((gametic % NEWTICRATERATIO) == 0);
 				ExtraDataTicker();
 				gametic++;
