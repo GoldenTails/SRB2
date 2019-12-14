@@ -17,6 +17,7 @@
 void CON_Init(void);
 
 boolean CON_Responder(event_t *ev);
+boolean CON_AcceptInput(void);
 
 #ifdef HAVE_THREADS
 extern I_mutex con_mutex;
