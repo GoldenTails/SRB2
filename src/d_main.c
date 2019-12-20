@@ -659,7 +659,7 @@ void D_SRB2Loop(void)
 	con_startup = false;
 
 	// make sure to do a d_display to init mode _before_ load a level
-	SCR_SetMode(); // change video mode
+	SCR_SetResolution(); // change video resolution
 	SCR_Recalc();
 
 	chosenrendermode = render_none;
