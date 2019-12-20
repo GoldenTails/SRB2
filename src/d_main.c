@@ -259,9 +259,20 @@ static void D_Display(void)
 	//    modes (resolution) are called.
 	// 4. The frame is ready to be drawn!
 
-	// Check for change of renderer or screen size (video mode)
-	if ((setrenderneeded || setmodeneeded) && !wipe)
+	// check for change of screen size
+	if (setresneeded[2] && !wipe)
+	{
+		// change resolution (interface-dependent function)
+		VID_SetResolution(setresneeded[0], setresneeded[1]);
+		setresneeded[2] = 0;
+	}
+	else if ((setrenderneeded || setmodeneeded) && !wipe)
+	{
+		if (setrenderneeded)
+			CONS_Debug(DBG_RENDER, "setrenderneeded set (%d)\n", setrenderneeded);
+
 		SCR_SetMode(); // change video mode
+	}
 
 	// Recalc the screen
 	if (vid.recalc)

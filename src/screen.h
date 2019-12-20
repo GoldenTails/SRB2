@@ -181,6 +181,7 @@ extern boolean R_SSE2;
 extern viddef_t vid;
 extern INT32 setmodeneeded; // mode number to set if needed, or 0
 extern UINT8 setrenderneeded;
+extern INT32 setresneeded[3]; // if setresneeded[2] is > 0, set resolution
 
 void SCR_ChangeRenderer(void);
 
