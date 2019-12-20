@@ -594,7 +594,9 @@ static void Impl_HandleWindowEvent(SDL_WindowEvent evt)
 			mousefocus = SDL_FALSE;
 			break;
 		case SDL_WINDOWEVENT_RESIZED:
-			VID_SetResolution(evt.data1, evt.data2);
+			setresneeded[0] = evt.data1;
+			setresneeded[1] = evt.data2;
+			setresneeded[2] = 0x48555242;
 			break;
 		case SDL_WINDOWEVENT_MAXIMIZED:
 			break;
@@ -1625,7 +1627,7 @@ INT32 VID_SetResolution(INT32 width, INT32 height)
 	vid.modenum = MAXWINMODES;
 	//Impl_SetWindowName("SRB2 "VERSIONSTRING);
 
-	SDLSetMode(vid.width, vid.height, USE_FULLSCREEN);
+	SDLSetMode(vid.width, vid.height, USE_FULLSCREEN, (setresneeded[2] == 2));
 
 	if (rendermode == render_soft)
 	{

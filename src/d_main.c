@@ -267,14 +267,21 @@ static void D_Display(void)
 	if (setrenderneeded && (moviemode == MM_APNG))
 		M_StopMovie();
 
-	// check for change of renderer or screen size (video mode)
-	if ((setrenderneeded || setmodeneeded) && !wipe)
+	// check for change of screen size
+	if (setresneeded[2] && !wipe)
+	{
+		// change resolution (interface-dependent function)
+		VID_SetResolution(setresneeded[0], setresneeded[1]);
+		setresneeded[2] = 0;
+	}
+	else if ((setrenderneeded || setmodeneeded) && !wipe)
 	{
 		if (setrenderneeded)
 		{
 			CONS_Debug(DBG_RENDER, "setrenderneeded set (%d)\n", setrenderneeded);
 			setrenderstillneeded = setrenderneeded;
 		}
+
 		SCR_SetMode(); // change video mode
 	}
 
