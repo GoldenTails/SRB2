@@ -272,18 +272,16 @@ static void D_Display(void)
 	{
 		if (setresneeded[2])
 			SCR_SetResolution();
-		else if (setmodeneeded)
-			SCR_SetMode();
-	}
-	else if ((setrenderneeded || setmodeneeded) && !wipe)
-	{
-		if (setrenderneeded)
+		else if (setrenderneeded || setmodeneeded)
 		{
-			CONS_Debug(DBG_RENDER, "setrenderneeded set (%d)\n", setrenderneeded);
-			setrenderstillneeded = setrenderneeded;
-		}
+			if (setrenderneeded)
+			{
+				CONS_Debug(DBG_RENDER, "setrenderneeded set (%d)\n", setrenderneeded);
+				setrenderstillneeded = setrenderneeded;
+			}
 
-		SCR_SetMode(); // change video mode
+			SCR_SetMode(); // change video mode
+		}
 	}
 
 	if (vid.recalc || setrenderstillneeded)
@@ -774,7 +772,7 @@ void D_SRB2Loop(void)
 	con_startup = false;
 
 	// make sure to do a d_display to init mode _before_ load a level
-	SCR_SetMode(); // change video mode
+	SCR_SetResolution(); // change video resolution
 	SCR_Recalc();
 
 	// Check and print which version is executed.
