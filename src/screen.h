@@ -200,6 +200,9 @@ void SCR_Startup(void);
 // Change video mode, only at the start of a refresh.
 void SCR_SetMode(void);
 
+// Change resolution
+void SCR_SetResolution(void);
+
 // Set drawer functions for Software
 void SCR_SetDrawFuncs(void);
 
