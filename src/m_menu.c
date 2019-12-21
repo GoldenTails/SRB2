@@ -1421,6 +1421,9 @@ static menuitem_t OP_VideoOptionsMenu[] =
 #ifdef HWRENDER
 	{IT_CALL    | IT_STRING, NULL, "OpenGL Options...",         M_OpenGLOptionsMenu, 219},
 #endif
+
+	{IT_HEADER, NULL, "Experimental", NULL, 222},
+	{IT_STRING | IT_CVAR, NULL, "Frame Interpolation",       &cv_frameinterpolation, 228},
 };
 
 static menuitem_t OP_VideoModeMenu[] =
