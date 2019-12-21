@@ -89,6 +89,7 @@ boolean frustumclipping = false;
 #endif
 
 fixed_t rendertimefrac;
+fixed_t renderdeltatics;
 
 //
 // precalculated math tables
