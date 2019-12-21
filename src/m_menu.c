@@ -12965,6 +12965,7 @@ static modedesc_t modedescs[MAXMODEDESCS+1];
 static void M_VideoModeMenu(INT32 choice)
 {
 	INT32 i, j, vdup, nummodes, width, height;
+	boolean modefound = false;
 	const char *desc;
 
 	(void)choice;
@@ -13008,7 +13009,10 @@ static void M_VideoModeMenu(INT32 choice)
 						vdup = 1;
 
 						if (i == vid.modenum)
+						{
 							vidm_selected = j;
+							modefound = true;
+						}
 					}
 					else
 						vdup = 1;
@@ -13023,7 +13027,10 @@ static void M_VideoModeMenu(INT32 choice)
 				modedescs[vidm_nummodes].desc = desc;
 
 				if (i == vid.modenum)
+				{
 					vidm_selected = vidm_nummodes;
+					modefound = true;
+				}
 
 				// Pull out the width and height
 				sscanf(desc, "%u%*c%u", &width, &height);
@@ -13042,6 +13049,12 @@ static void M_VideoModeMenu(INT32 choice)
 	// add the custom video mode entry
 	modedescs[vidm_nummodes].modenum = -1;
 	vidm_nummodes++;
+
+	if (!modefound)
+		vidm_selected = vidm_nummodes-1;
+
+	if (strlen(vidm_customres) == 0)
+		strncpy(vidm_customres, va("%dx%d", vid.width, vid.height), vidm_customreslength);
 
 	M_SetupNextMenu(&OP_VideoModeDef);
 }
