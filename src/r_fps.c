@@ -37,6 +37,16 @@ viewvars_t *newview = &p1view_new;
 
 enum viewcontext_e viewcontext = VIEWCONTEXT_PLAYER1;
 
+static fixed_t R_LerpFixed(fixed_t from, fixed_t to, fixed_t frac)
+{
+	return FixedMul(frac, to - from);
+}
+
+static angle_t R_LerpAngle(angle_t from, angle_t to, fixed_t frac)
+{
+	return FixedMul(frac, to - from);
+}
+
 // recalc necessary stuff for mouseaiming
 // slopes are already calculated for the full possible view (which is 4*viewheight).
 // 18/08/18: (No it's actually 16*viewheight, thanks Jimita for finding this out)
@@ -74,8 +84,10 @@ static void R_SetupFreelook(player_t *player, boolean skybox)
 
 void R_InterpolateView(player_t *player, boolean skybox, fixed_t frac)
 {
-	if (FIXED_TO_FLOAT(frac) < 0)
+	if (frac < 0)
 		frac = 0;
+	if (frac > FRACUNIT)
+		frac = FRACUNIT;
 
 	viewx = oldview->x + R_LerpFixed(oldview->x, newview->x, frac);
 	viewy = oldview->y + R_LerpFixed(oldview->y, newview->y, frac);
@@ -89,16 +101,8 @@ void R_InterpolateView(player_t *player, boolean skybox, fixed_t frac)
 
 	// this is gonna create some interesting visual errors for long distance teleports...
 	// might want to recalculate the view sector every frame instead...
-	if (frac >= FRACUNIT)
-	{
-		viewplayer = newview->player;
-		viewsector = newview->sector;
-	}
-	else
-	{
-		viewplayer = oldview->player;
-		viewsector = oldview->sector;
-	}
+	viewplayer = newview->player;
+	viewsector = R_PointInSubsector(viewx, viewy)->sector;
 
 	R_SetupFreelook(player, skybox);
 }
@@ -141,19 +145,4 @@ void R_SetViewContext(enum viewcontext_e _viewcontext)
 			I_Error("viewcontext value is invalid: we should never get here without an assert!!");
 			break;
 	}
-}
-
-fixed_t R_LerpFixed(fixed_t from, fixed_t to, fixed_t frac)
-{
-	return FixedMul(frac, to - from);
-}
-
-INT32 R_LerpInt32(INT32 from, INT32 to, fixed_t frac)
-{
-	return FixedInt(FixedMul(frac, (to*FRACUNIT) - (from*FRACUNIT)));
-}
-
-angle_t R_LerpAngle(angle_t from, angle_t to, fixed_t frac)
-{
-	return FixedMul(frac, to - from);
 }
