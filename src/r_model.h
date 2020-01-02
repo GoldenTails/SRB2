@@ -11,17 +11,12 @@
 #define _R_MODEL_H_
 
 #include "doomtype.h"
+#include "info.h"
 
 typedef struct
 {
 	float x, y, z;
 } vector_t;
-
-extern vector_t vectorXaxis;
-extern vector_t vectorYaxis;
-extern vector_t vectorZaxis;
-
-void VectorRotate(vector_t *rotVec, const vector_t *axisVec, float angle);
 
 typedef struct
 {

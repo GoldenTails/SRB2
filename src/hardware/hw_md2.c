@@ -73,10 +73,6 @@
  #endif
 #endif
 
-#ifndef errno
-#include "errno.h"
-#endif
-
 #ifdef HAVE_PNG
 static void PNG_error(png_structp PNG, png_const_charp pngtext)
 {

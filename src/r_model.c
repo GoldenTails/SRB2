@@ -20,6 +20,10 @@
 #include "u_list.h"
 #include <string.h>
 
+#ifndef errno
+#include "errno.h"
+#endif
+
 md2_t md2_models[NUMSPRITES];
 md2_t md2_playermodels[MAXSKINS];
 
