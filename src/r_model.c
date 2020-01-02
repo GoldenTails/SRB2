@@ -9,20 +9,305 @@
 
 #include "doomdef.h"
 #include "doomtype.h"
+#include "doomstat.h"
+#include "d_main.h"
 #include "info.h"
 #include "z_zone.h"
+#include "r_things.h"
 #include "r_model.h"
 #include "r_md2load.h"
 #include "r_md3load.h"
-#ifdef HWRENDER
-#include "hardware/hw_md2.h"
-#endif
 #include "u_list.h"
 #include <string.h>
 
-void UnloadModel(model_t *model)
+md2_t md2_models[NUMSPRITES];
+md2_t md2_playermodels[MAXSKINS];
+
+// Loads the model. That's it.
+model_t *R_LoadModel(const char *filename)
 {
-	// Wouldn't it be great if C just had destructors?
+	//Filename checking fixed ~Monster Iestyn and Golden
+	return Model_Load(va("%s"PATHSEP"%s", srb2home, filename), PU_STATIC);
+}
+
+// Reload model stuff.
+void R_ReloadModels(void)
+{
+	size_t i;
+	INT32 s;
+
+	for (s = 0; s < MAXSKINS; s++)
+	{
+		if (md2_playermodels[s].model)
+			Model_LoadSprite2(md2_playermodels[s].model);
+	}
+
+	for (i = 0; i < NUMSPRITES; i++)
+	{
+		if (md2_models[i].model)
+			Model_LoadInterpolationSettings(md2_models[i].model);
+	}
+}
+
+// Don't spam the console, or the OS with fopen requests!
+static boolean nomd2s = false;
+
+void R_InitModels(void)
+{
+	size_t i;
+	INT32 s;
+	FILE *f;
+	char name[18], filename[32];
+	float scale, offset;
+
+	CONS_Printf("R_InitModels()...\n");
+	for (s = 0; s < MAXSKINS; s++)
+	{
+		md2_playermodels[s].scale = -1.0f;
+		md2_playermodels[s].model = NULL;
+		md2_playermodels[s].grpatch = NULL;
+		md2_playermodels[s].skin = -1;
+		md2_playermodels[s].notfound = true;
+		md2_playermodels[s].error = false;
+	}
+	for (i = 0; i < NUMSPRITES; i++)
+	{
+		md2_models[i].scale = -1.0f;
+		md2_models[i].model = NULL;
+		md2_models[i].grpatch = NULL;
+		md2_models[i].skin = -1;
+		md2_models[i].notfound = true;
+		md2_models[i].error = false;
+	}
+
+	// read the models.dat file
+	//Filename checking fixed ~Monster Iestyn and Golden
+	f = fopen(va("%s"PATHSEP"%s", srb2home, "models.dat"), "rt");
+
+	if (!f)
+	{
+		CONS_Printf("%s %s\n", M_GetText("Error while loading models.dat:"), strerror(errno));
+		nomd2s = true;
+		return;
+	}
+	while (fscanf(f, "%19s %31s %f %f", name, filename, &scale, &offset) == 4)
+	{
+		if (stricmp(name, "PLAY") == 0)
+		{
+			CONS_Printf("Model for sprite PLAY detected in models.dat, use a player skin instead!\n");
+			continue;
+		}
+
+		for (i = 0; i < NUMSPRITES; i++)
+		{
+			if (stricmp(name, sprnames[i]) == 0)
+			{
+				//if (stricmp(name, "PLAY") == 0)
+					//continue;
+
+				//CONS_Debug(DBG_RENDER, "  Found: %s %s %f %f\n", name, filename, scale, offset);
+				md2_models[i].scale = scale;
+				md2_models[i].offset = offset;
+				md2_models[i].notfound = false;
+				strcpy(md2_models[i].filename, filename);
+				goto md2found;
+			}
+		}
+
+		for (s = 0; s < MAXSKINS; s++)
+		{
+			if (stricmp(name, skins[s].name) == 0)
+			{
+				//CONS_Printf("  Found: %s %s %f %f\n", name, filename, scale, offset);
+				md2_playermodels[s].skin = s;
+				md2_playermodels[s].scale = scale;
+				md2_playermodels[s].offset = offset;
+				md2_playermodels[s].notfound = false;
+				strcpy(md2_playermodels[s].filename, filename);
+				goto md2found;
+			}
+		}
+		// no sprite/player skin name found?!?
+		//CONS_Printf("Unknown sprite/player skin %s detected in models.dat\n", name);
+md2found:
+		// move on to next line...
+		continue;
+	}
+	fclose(f);
+}
+
+void R_AddPlayerModel(int skin) // For skins that were added after startup
+{
+	FILE *f;
+	char name[18], filename[32];
+	float scale, offset;
+
+	if (nomd2s)
+		return;
+
+	//CONS_Printf("R_AddPlayerModel()...\n");
+
+	// read the models.dat file
+	//Filename checking fixed ~Monster Iestyn and Golden
+	f = fopen(va("%s"PATHSEP"%s", srb2home, "models.dat"), "rt");
+
+	if (!f)
+	{
+		CONS_Printf("Error while loading models.dat\n");
+		nomd2s = true;
+		return;
+	}
+
+	// Check for any model that match the names of player skins!
+	while (fscanf(f, "%19s %31s %f %f", name, filename, &scale, &offset) == 4)
+	{
+		if (stricmp(name, skins[skin].name) == 0)
+		{
+			md2_playermodels[skin].skin = skin;
+			md2_playermodels[skin].scale = scale;
+			md2_playermodels[skin].offset = offset;
+			md2_playermodels[skin].notfound = false;
+			strcpy(md2_playermodels[skin].filename, filename);
+			goto playermd2found;
+		}
+	}
+
+	//CONS_Printf("Model for player skin %s not found\n", skins[skin].name);
+	md2_playermodels[skin].notfound = true;
+playermd2found:
+	fclose(f);
+}
+
+void R_AddSpriteModel(size_t spritenum) // For sprites that were added after startup
+{
+	FILE *f;
+	// name[18] is used to check for names in the models.dat file that match with sprites or player skins
+	// sprite names are always 4 characters long, and names is for player skins can be up to 19 characters long
+	char name[18], filename[32];
+	float scale, offset;
+
+	if (nomd2s)
+		return;
+
+	if (spritenum == SPR_PLAY) // Handled already NEWMD2: Per sprite, per-skin check
+		return;
+
+	// Read the models.dat file
+	//Filename checking fixed ~Monster Iestyn and Golden
+	f = fopen(va("%s"PATHSEP"%s", srb2home, "models.dat"), "rt");
+
+	if (!f)
+	{
+		CONS_Printf("Error while loading models.dat\n");
+		nomd2s = true;
+		return;
+	}
+
+	// Check for any MD2s that match the names of sprite names!
+	while (fscanf(f, "%19s %31s %f %f", name, filename, &scale, &offset) == 4)
+	{
+		if (stricmp(name, sprnames[spritenum]) == 0)
+		{
+			md2_models[spritenum].scale = scale;
+			md2_models[spritenum].offset = offset;
+			md2_models[spritenum].notfound = false;
+			strcpy(md2_models[spritenum].filename, filename);
+			goto spritemd2found;
+		}
+	}
+
+	//CONS_Printf("MD2 for sprite %s not found\n", sprnames[spritenum]);
+	md2_models[spritenum].notfound = true;
+spritemd2found:
+	fclose(f);
+}
+
+//
+// Model_Load
+// Load a model and convert it to the internal format.
+//
+model_t *Model_Load(const char *filename, int ztag)
+{
+	model_t *model;
+
+	// What type of file?
+	const char *extension = NULL;
+	int i;
+	for (i = (int)strlen(filename)-1; i >= 0; i--)
+	{
+		if (filename[i] != '.')
+			continue;
+
+		extension = &filename[i];
+		break;
+	}
+
+	if (!extension)
+	{
+		CONS_Printf("Model %s is lacking a file extension, unable to determine type!\n", filename);
+		return NULL;
+	}
+
+	if (!strcmp(extension, ".md3"))
+	{
+		if (!(model = MD3_LoadModel(filename, ztag, false)))
+			return NULL;
+	}
+	else if (!strcmp(extension, ".md3s")) // MD3 that will be converted in memory to use full floats
+	{
+		if (!(model = MD3_LoadModel(filename, ztag, true)))
+			return NULL;
+	}
+	else if (!strcmp(extension, ".md2"))
+	{
+		if (!(model = MD2_LoadModel(filename, ztag, false)))
+			return NULL;
+	}
+	else if (!strcmp(extension, ".md2s"))
+	{
+		if (!(model = MD2_LoadModel(filename, ztag, true)))
+			return NULL;
+	}
+	else
+	{
+		CONS_Printf("Unknown model format: %s\n", extension);
+		return NULL;
+	}
+
+	model->mdlFilename = (char*)Z_Malloc(strlen(filename)+1, ztag, 0);
+	strcpy(model->mdlFilename, filename);
+
+	Model_Optimize(model);
+	Model_GeneratePolygonNormals(model, ztag);
+	Model_LoadSprite2(model);
+	if (!model->spr2frames)
+		Model_LoadInterpolationSettings(model);
+
+	// Default material properties
+	for (i = 0 ; i < model->numMaterials; i++)
+	{
+		material_t *material = &model->materials[i];
+		material->ambient[0] = 0.7686f;
+		material->ambient[1] = 0.7686f;
+		material->ambient[2] = 0.7686f;
+		material->ambient[3] = 1.0f;
+		material->diffuse[0] = 0.5863f;
+		material->diffuse[1] = 0.5863f;
+		material->diffuse[2] = 0.5863f;
+		material->diffuse[3] = 1.0f;
+		material->specular[0] = 0.4902f;
+		material->specular[1] = 0.4902f;
+		material->specular[2] = 0.4902f;
+		material->specular[3] = 1.0f;
+		material->shininess = 25.0f;
+	}
+
+	return model;
+}
+
+// Wouldn't it be great if C just had destructors?
+void Model_Unload(model_t *model)
+{
 	int i;
 	for (i = 0; i < model->numMeshes; i++)
 	{
@@ -85,11 +370,11 @@ void UnloadModel(model_t *model)
 	if (model->materials)
 		Z_Free(model->materials);
 
-	DeleteVBOs(model);
+	Model_DeleteVBOs(model);
 	Z_Free(model);
 }
 
-tag_t *GetTagByName(model_t *model, char *name, int frame)
+tag_t *Model_GetTagByName(model_t *model, char *name, int frame)
 {
 	if (frame < model->maxNumFrames)
 	{
@@ -106,111 +391,7 @@ tag_t *GetTagByName(model_t *model, char *name, int frame)
 	return NULL;
 }
 
-//
-// LoadModel
-//
-// Load a model and
-// convert it to the
-// internal format.
-//
-model_t *LoadModel(const char *filename, int ztag)
-{
-	model_t *model;
-
-	// What type of file?
-	const char *extension = NULL;
-	int i;
-	for (i = (int)strlen(filename)-1; i >= 0; i--)
-	{
-		if (filename[i] != '.')
-			continue;
-
-		extension = &filename[i];
-		break;
-	}
-
-	if (!extension)
-	{
-		CONS_Printf("Model %s is lacking a file extension, unable to determine type!\n", filename);
-		return NULL;
-	}
-
-	if (!strcmp(extension, ".md3"))
-	{
-		if (!(model = MD3_LoadModel(filename, ztag, false)))
-			return NULL;
-	}
-	else if (!strcmp(extension, ".md3s")) // MD3 that will be converted in memory to use full floats
-	{
-		if (!(model = MD3_LoadModel(filename, ztag, true)))
-			return NULL;
-	}
-	else if (!strcmp(extension, ".md2"))
-	{
-		if (!(model = MD2_LoadModel(filename, ztag, false)))
-			return NULL;
-	}
-	else if (!strcmp(extension, ".md2s"))
-	{
-		if (!(model = MD2_LoadModel(filename, ztag, true)))
-			return NULL;
-	}
-	else
-	{
-		CONS_Printf("Unknown model format: %s\n", extension);
-		return NULL;
-	}
-
-	model->mdlFilename = (char*)Z_Malloc(strlen(filename)+1, ztag, 0);
-	strcpy(model->mdlFilename, filename);
-
-	Optimize(model);
-	GeneratePolygonNormals(model, ztag);
-	LoadModelSprite2(model);
-	if (!model->spr2frames)
-		LoadModelInterpolationSettings(model);
-
-	// Default material properties
-	for (i = 0 ; i < model->numMaterials; i++)
-	{
-		material_t *material = &model->materials[i];
-		material->ambient[0] = 0.7686f;
-		material->ambient[1] = 0.7686f;
-		material->ambient[2] = 0.7686f;
-		material->ambient[3] = 1.0f;
-		material->diffuse[0] = 0.5863f;
-		material->diffuse[1] = 0.5863f;
-		material->diffuse[2] = 0.5863f;
-		material->diffuse[3] = 1.0f;
-		material->specular[0] = 0.4902f;
-		material->specular[1] = 0.4902f;
-		material->specular[2] = 0.4902f;
-		material->specular[3] = 1.0f;
-		material->shininess = 25.0f;
-	}
-
-	return model;
-}
-
-void R_ReloadModels(void)
-{
-	size_t i;
-	INT32 s;
-
-	for (s = 0; s < MAXSKINS; s++)
-	{
-		if (md2_playermodels[s].model)
-			LoadModelSprite2(md2_playermodels[s].model);
-	}
-
-	for (i = 0; i < NUMSPRITES; i++)
-	{
-		if (md2_models[i].model)
-			LoadModelInterpolationSettings(md2_models[i].model);
-	}
-}
-
-void LoadModelInterpolationSettings(model_t *model)
+void Model_LoadInterpolationSettings(model_t *model)
 {
 	INT32 i;
 	INT32 numframes = model->meshes[0].numFrames;
@@ -249,7 +430,7 @@ void LoadModelInterpolationSettings(model_t *model)
 	#undef GET_OFFSET
 }
 
-void LoadModelSprite2(model_t *model)
+void Model_LoadSprite2(model_t *model)
 {
 	INT32 i;
 	modelspr2frames_t *spr2frames = NULL;
@@ -335,7 +516,7 @@ void LoadModelSprite2(model_t *model)
 //
 // Creates a new normal for a vertex using the average of all of the polygons it belongs to.
 //
-void GenerateVertexNormals(model_t *model)
+void Model_GenerateVertexNormals(model_t *model)
 {
 	int i;
 	for (i = 0; i < model->numMeshes; i++)
@@ -454,12 +635,12 @@ static boolean AddMaterialToList(materiallist_t **head, material_t *material)
 }
 
 //
-// Optimize
+// Model_Optimize
 //
 // Groups triangles from meshes in the model
 // Only works for models with 1 frame
 //
-void Optimize(model_t *model)
+void Model_Optimize(model_t *model)
 {
 	int numMeshes = 0;
 	int i;
@@ -607,7 +788,7 @@ void Optimize(model_t *model)
 	model->numMeshes = numMeshes;
 }
 
-void GeneratePolygonNormals(model_t *model, int ztag)
+void Model_GeneratePolygonNormals(model_t *model, int ztag)
 {
 	int i;
 	for (i = 0; i < model->numMeshes; i++)
@@ -639,7 +820,7 @@ void GeneratePolygonNormals(model_t *model, int ztag)
 	}
 }
 
-void DeleteVBOs(model_t *model)
+void Model_DeleteVBOs(model_t *model)
 {
 	(void)model;
 /*	for (int i = 0; i < model->numMeshes; i++)

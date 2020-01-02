@@ -28,25 +28,6 @@
 #pragma pack()
 #endif
 
-typedef struct
-{
-	char        filename[32];
-	float       scale;
-	float       offset;
-	model_t     *model;
-	void        *grpatch;
-	void        *blendgrpatch;
-	boolean     notfound;
-	INT32       skin;
-	boolean     error;
-} md2_t;
-
-extern md2_t md2_models[NUMSPRITES];
-extern md2_t md2_playermodels[MAXSKINS];
-
-void HWR_InitModels(void);
-void HWR_AddPlayerModel(INT32 skin);
-void HWR_AddSpriteModel(size_t spritenum);
 boolean HWR_DrawModel(gr_vissprite_t *spr);
 
 #define PLAYERMODELPREFIX "PLAYER"

@@ -101,18 +101,40 @@ typedef struct model_s
 	modelspr2frames_t *spr2frames;
 } model_t;
 
-void R_ReloadModels(void);
+typedef struct
+{
+	char        filename[32];
+	float       scale;
+	float       offset;
+	model_t     *model;
+#ifdef HWRENDER
+	void        *grpatch;
+	void        *blendgrpatch;
+#endif
+	boolean     notfound;
+	INT32       skin;
+	boolean     error;
+} md2_t;
 
-tag_t *GetTagByName(model_t *model, char *name, int frame);
-model_t *LoadModel(const char *filename, int ztag);
-void UnloadModel(model_t *model);
-void Optimize(model_t *model);
-void LoadModelInterpolationSettings(model_t *model);
-void LoadModelSprite2(model_t *model);
-void GenerateVertexNormals(model_t *model);
-void GeneratePolygonNormals(model_t *model, int ztag);
-void CreateVBOTiny(mesh_t *mesh, tinyframe_t *frame);
-void CreateVBO(mesh_t *mesh, mdlframe_t *frame);
-void DeleteVBOs(model_t *model);
+extern md2_t md2_models[NUMSPRITES];
+extern md2_t md2_playermodels[MAXSKINS];
+
+void R_InitModels(void);
+void R_ReloadModels(void);
+void R_AddPlayerModel(INT32 skin);
+void R_AddSpriteModel(size_t spritenum);
+model_t *R_LoadModel(const char *filename);
+
+tag_t *Model_GetTagByName(model_t *model, char *name, int frame);
+model_t *Model_Load(const char *filename, int ztag);
+void Model_Unload(model_t *model);
+void Model_Optimize(model_t *model);
+void Model_LoadInterpolationSettings(model_t *model);
+void Model_LoadSprite2(model_t *model);
+void Model_GenerateVertexNormals(model_t *model);
+void Model_GeneratePolygonNormals(model_t *model, int ztag);
+void Model_CreateVBOTiny(mesh_t *mesh, tinyframe_t *frame);
+void Model_CreateVBO(mesh_t *mesh, mdlframe_t *frame);
+void Model_DeleteVBOs(model_t *model);
 
 #endif

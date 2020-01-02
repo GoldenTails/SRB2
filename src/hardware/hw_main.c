@@ -6326,7 +6326,6 @@ void HWR_Startup(void)
 		HWR_InitPolyPool();
 		HWR_AddSessionCommands();
 		HWR_InitTextureCache();
-		HWR_InitModels();
 #ifdef ALAM_LIGHTING
 		HWR_InitLight();
 #endif

@@ -980,6 +980,8 @@ void R_Init(void)
 
 	R_InitDrawNodes();
 
+	R_InitModels();
+
 	framecount = 0;
 }
 
