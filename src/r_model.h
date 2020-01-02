@@ -101,9 +101,6 @@ typedef struct model_s
 	modelspr2frames_t *spr2frames;
 } model_t;
 
-extern int numModels;
-extern model_t *modelHead;
-
 void R_ReloadModels(void);
 
 tag_t *GetTagByName(model_t *model, char *name, int frame);

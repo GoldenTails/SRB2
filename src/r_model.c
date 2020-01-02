@@ -20,40 +20,6 @@
 #include "u_list.h"
 #include <string.h>
 
-static float PI = (3.1415926535897932384626433832795f);
-static float U_Deg2Rad(float deg)
-{
-	return deg * ((float)PI / 180.0f);
-}
-
-vector_t vectorXaxis = { 1.0f, 0.0f, 0.0f };
-vector_t vectorYaxis = { 0.0f, 1.0f, 0.0f };
-vector_t vectorZaxis = { 0.0f, 0.0f, 1.0f };
-
-void VectorRotate(vector_t *rotVec, const vector_t *axisVec, float angle)
-{
-	float ux, uy, uz, vx, vy, vz, wx, wy, wz, sa, ca;
-
-	angle = U_Deg2Rad(angle);
-
-	// Rotate the point (x,y,z) around the vector (u,v,w)
-	ux = axisVec->x * rotVec->x;
-	uy = axisVec->x * rotVec->y;
-	uz = axisVec->x * rotVec->z;
-	vx = axisVec->y * rotVec->x;
-	vy = axisVec->y * rotVec->y;
-	vz = axisVec->y * rotVec->z;
-	wx = axisVec->z * rotVec->x;
-	wy = axisVec->z * rotVec->y;
-	wz = axisVec->z * rotVec->z;
-	sa = sinf(angle);
-	ca = cosf(angle);
-
-	rotVec->x = axisVec->x*(ux + vy + wz) + (rotVec->x*(axisVec->y*axisVec->y + axisVec->z*axisVec->z) - axisVec->x*(vy + wz))*ca + (-wy + vz)*sa;
-	rotVec->y = axisVec->y*(ux + vy + wz) + (rotVec->y*(axisVec->x*axisVec->x + axisVec->z*axisVec->z) - axisVec->y*(ux + wz))*ca + (wx - uz)*sa;
-	rotVec->z = axisVec->z*(ux + vy + wz) + (rotVec->z*(axisVec->x*axisVec->x + axisVec->y*axisVec->y) - axisVec->z*(ux + vy))*ca + (-vx + uy)*sa;
-}
-
 void UnloadModel(model_t *model)
 {
 	// Wouldn't it be great if C just had destructors?
@@ -636,7 +602,7 @@ void Optimize(model_t *model)
 		i++;
 	}
 
-	CONS_Printf("Model::Optimize(): Model reduced from %d to %d meshes.\n", model->numMeshes, numMeshes);
+	//CONS_Printf("Model::Optimize(): Model reduced from %d to %d meshes.\n", model->numMeshes, numMeshes);
 	model->meshes = newMeshes;
 	model->numMeshes = numMeshes;
 }
@@ -672,39 +638,6 @@ void GeneratePolygonNormals(model_t *model, int ztag)
 		}
 	}
 }
-
-//
-// Reload
-//
-// Reload VBOs
-//
-#if 0
-static void Reload(void)
-{
-/*	model_t *node;
-	for (node = modelHead; node; node = node->next)
-	{
-		int i;
-		for (i = 0; i < node->numMeshes; i++)
-		{
-			mesh_t *mesh = &node->meshes[i];
-
-			if (mesh->frames)
-			{
-				int j;
-				for (j = 0; j < mesh->numFrames; j++)
-					CreateVBO(mesh, &mesh->frames[j]);
-			}
-			else if (mesh->tinyframes)
-			{
-				int j;
-				for (j = 0; j < mesh->numFrames; j++)
-					CreateVBO(mesh, &mesh->tinyframes[j]);
-			}
-		}
-	}*/
-}
-#endif
 
 void DeleteVBOs(model_t *model)
 {
