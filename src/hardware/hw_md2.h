@@ -22,7 +22,7 @@
 #define _HW_MD2_H_
 
 #include "hw_glob.h"
-#include "hw_model.h"
+#include "../r_model.h"
 
 #if defined(_MSC_VER)
 #pragma pack()

@@ -128,6 +128,10 @@ set(SRB2_CORE_RENDER_SOURCES
 	r_things.c
 	r_patch.c
 	r_portal.c
+	r_md2load.c
+	r_md3load.c
+	r_model.c
+	u_list.c
 
 	r_bsp.h
 	r_data.h
@@ -144,6 +148,10 @@ set(SRB2_CORE_RENDER_SOURCES
 	r_things.h
 	r_patch.h
 	r_portal.h
+	r_md2load.h
+	r_md3load.h
+	r_model.h
+	u_list.h
 )
 
 set(SRB2_CORE_GAME_SOURCES
@@ -425,11 +433,7 @@ if(${SRB2_CONFIG_HWRENDER})
 		${CMAKE_CURRENT_SOURCE_DIR}/hardware/hw_light.c
 		${CMAKE_CURRENT_SOURCE_DIR}/hardware/hw_main.c
 		${CMAKE_CURRENT_SOURCE_DIR}/hardware/hw_md2.c
-		${CMAKE_CURRENT_SOURCE_DIR}/hardware/hw_md2load.c
-		${CMAKE_CURRENT_SOURCE_DIR}/hardware/hw_md3load.c
-		${CMAKE_CURRENT_SOURCE_DIR}/hardware/hw_model.c
 		${CMAKE_CURRENT_SOURCE_DIR}/hardware/hw_trick.c
-		${CMAKE_CURRENT_SOURCE_DIR}/hardware/u_list.c
 	)
 
 	set (SRB2_HWRENDER_HEADERS
@@ -443,10 +447,6 @@ if(${SRB2_CONFIG_HWRENDER})
 		${CMAKE_CURRENT_SOURCE_DIR}/hardware/hw_light.h
 		${CMAKE_CURRENT_SOURCE_DIR}/hardware/hw_main.h
 		${CMAKE_CURRENT_SOURCE_DIR}/hardware/hw_md2.h
-		${CMAKE_CURRENT_SOURCE_DIR}/hardware/hw_md2load.h
-		${CMAKE_CURRENT_SOURCE_DIR}/hardware/hw_md3load.h
-		${CMAKE_CURRENT_SOURCE_DIR}/hardware/hw_model.h
-		${CMAKE_CURRENT_SOURCE_DIR}/hardware/u_list.h
 	)
 
 	set(SRB2_R_OPENGL_SOURCES

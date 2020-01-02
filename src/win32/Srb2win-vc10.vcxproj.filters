@@ -456,17 +456,17 @@
     <ClCompile Include="..\string.c">
       <Filter>M_Misc</Filter>
     </ClCompile>
-    <ClCompile Include="..\hardware\hw_md2load.c">
-      <Filter>Hw_Hardware</Filter>
+    <ClCompile Include="..\r_md2load.c">
+      <Filter>R_Rend</Filter>
     </ClCompile>
-    <ClCompile Include="..\hardware\hw_md3load.c">
-      <Filter>Hw_Hardware</Filter>
+    <ClCompile Include="..\r_md3load.c">
+      <Filter>R_Rend</Filter>
     </ClCompile>
-    <ClCompile Include="..\hardware\hw_model.c">
-      <Filter>Hw_Hardware</Filter>
+    <ClCompile Include="..\r_model.c">
+      <Filter>R_Rend</Filter>
     </ClCompile>
-    <ClCompile Include="..\hardware\u_list.c">
-      <Filter>Hw_Hardware</Filter>
+    <ClCompile Include="..\u_list.c">
+      <Filter>R_Rend</Filter>
     </ClCompile>
     <ClCompile Include="..\hardware\hw_clip.c">
       <Filter>Hw_Hardware</Filter>
@@ -531,15 +531,6 @@
     <ClInclude Include="..\hardware\hw_md2.h">
       <Filter>Hw_Hardware</Filter>
     </ClInclude>
-    <ClInclude Include="..\hardware\hw_md2load.h">
-      <Filter>Hw_Hardware</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hardware\hw_md3load.h">
-      <Filter>Hw_Hardware</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hardware\hw_model.h">
-      <Filter>Hw_Hardware</Filter>
-    </ClInclude>
     <ClInclude Include="..\hardware\hw3dsdrv.h">
       <Filter>Hw_Hardware</Filter>
     </ClInclude>
@@ -547,9 +538,6 @@
       <Filter>Hw_Hardware</Filter>
     </ClInclude>
     <ClInclude Include="..\hardware\hws_data.h">
-      <Filter>Hw_Hardware</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hardware\u_list.h">
       <Filter>Hw_Hardware</Filter>
     </ClInclude>
     <ClInclude Include="..\blua\lapi.h">
@@ -804,6 +792,15 @@
     <ClInclude Include="..\r_main.h">
       <Filter>R_Rend</Filter>
     </ClInclude>
+    <ClInclude Include="..\r_md2load.h">
+      <Filter>R_Rend</Filter>
+    </ClInclude>
+    <ClInclude Include="..\r_md3load.h">
+      <Filter>R_Rend</Filter>
+    </ClInclude>
+    <ClInclude Include="..\r_model.h">
+      <Filter>R_Rend</Filter>
+    </ClInclude>
     <ClInclude Include="..\r_plane.h">
       <Filter>R_Rend</Filter>
     </ClInclude>
@@ -820,6 +817,9 @@
       <Filter>R_Rend</Filter>
     </ClInclude>
     <ClInclude Include="..\r_things.h">
+      <Filter>R_Rend</Filter>
+    </ClInclude>
+    <ClInclude Include="..\u_list.h">
       <Filter>R_Rend</Filter>
     </ClInclude>
     <ClInclude Include="..\tables.h">

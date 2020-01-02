@@ -44,7 +44,7 @@
 #include "../r_things.h"
 #include "../r_draw.h"
 #include "../p_tick.h"
-#include "hw_model.h"
+#include "../r_model.h"
 
 #include "hw_main.h"
 #include "../v_video.h"

@@ -7,10 +7,10 @@
 	the licensing is for Sonic Robo Blast 2.
 */
 
-#ifndef _HW_MODEL_H_
-#define _HW_MODEL_H_
+#ifndef _R_MODEL_H_
+#define _R_MODEL_H_
 
-#include "../doomtype.h"
+#include "doomtype.h"
 
 typedef struct
 {
@@ -104,7 +104,7 @@ typedef struct model_s
 extern int numModels;
 extern model_t *modelHead;
 
-void HWR_ReloadModels(void);
+void R_ReloadModels(void);
 
 tag_t *GetTagByName(model_t *model, char *name, int frame);
 model_t *LoadModel(const char *filename, int ztag);

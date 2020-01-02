@@ -7,14 +7,16 @@
 	the licensing is for Sonic Robo Blast 2.
 */
 
-#include "../doomdef.h"
-#include "../doomtype.h"
-#include "../info.h"
-#include "../z_zone.h"
-#include "hw_model.h"
-#include "hw_md2load.h"
-#include "hw_md3load.h"
-#include "hw_md2.h"
+#include "doomdef.h"
+#include "doomtype.h"
+#include "info.h"
+#include "z_zone.h"
+#include "r_model.h"
+#include "r_md2load.h"
+#include "r_md3load.h"
+#ifdef HWRENDER
+#include "hardware/hw_md2.h"
+#endif
 #include "u_list.h"
 #include <string.h>
 
@@ -224,7 +226,7 @@ model_t *LoadModel(const char *filename, int ztag)
 	return model;
 }
 
-void HWR_ReloadModels(void)
+void R_ReloadModels(void)
 {
 	size_t i;
 	INT32 s;
