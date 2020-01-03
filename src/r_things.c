@@ -3848,6 +3848,8 @@ next_token:
 
 		if (!skin->availability) // Safe to print...
 			CONS_Printf(M_GetText("Patched skin '%s'\n"), skin->name);
+
+		R_AddPlayerModel(skinnum);
 	}
 	return;
 }

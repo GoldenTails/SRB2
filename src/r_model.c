@@ -90,9 +90,6 @@ void R_InitModels(void)
 {
 	size_t i;
 	INT32 s;
-	FILE *f;
-	char name[18], filename[32];
-	float scale, offset;
 
 	CONS_Printf("R_InitModels()...\n");
 
@@ -111,6 +108,7 @@ void R_InitModels(void)
 		md2_playermodels[s].notfound = true;
 		md2_playermodels[s].error = false;
 	}
+
 	for (i = 0; i < NUMSPRITES; i++)
 	{
 		md2_models[i].scale = -1.0f;
@@ -120,64 +118,9 @@ void R_InitModels(void)
 		md2_models[i].notfound = true;
 		md2_models[i].error = false;
 	}
-
-	// read the models.dat file
-	//Filename checking fixed ~Monster Iestyn and Golden
-	f = fopen(va("%s"PATHSEP"%s", srb2home, MODELSFILE), "rt");
-
-	if (!f)
-	{
-		CONS_Printf("%s %s\n", M_GetText("Error while loading "MODELSFILE":"), strerror(errno));
-		nomd2s = true;
-		return;
-	}
-	while (fscanf(f, "%19s %31s %f %f", name, filename, &scale, &offset) == 4)
-	{
-		if (stricmp(name, "PLAY") == 0)
-		{
-			CONS_Printf("Model for sprite PLAY detected in "MODELSFILE", use a player skin instead!\n");
-			continue;
-		}
-
-		for (i = 0; i < NUMSPRITES; i++)
-		{
-			if (stricmp(name, sprnames[i]) == 0)
-			{
-				//if (stricmp(name, "PLAY") == 0)
-					//continue;
-
-				//CONS_Debug(DBG_RENDER, "  Found: %s %s %f %f\n", name, filename, scale, offset);
-				md2_models[i].scale = scale;
-				md2_models[i].offset = offset;
-				md2_models[i].notfound = false;
-				strcpy(md2_models[i].filename, filename);
-				goto md2found;
-			}
-		}
-
-		for (s = 0; s < MAXSKINS; s++)
-		{
-			if (stricmp(name, skins[s].name) == 0)
-			{
-				//CONS_Printf("  Found: %s %s %f %f\n", name, filename, scale, offset);
-				md2_playermodels[s].skin = s;
-				md2_playermodels[s].scale = scale;
-				md2_playermodels[s].offset = offset;
-				md2_playermodels[s].notfound = false;
-				strcpy(md2_playermodels[s].filename, filename);
-				goto md2found;
-			}
-		}
-		// no sprite/player skin name found?!?
-		//CONS_Printf("Unknown sprite/player skin %s detected in "MODELSFILE"\n", name);
-md2found:
-		// move on to next line...
-		continue;
-	}
-	fclose(f);
 }
 
-void R_AddPlayerModel(int skin) // For skins that were added after startup
+void R_AddPlayerModel(int skin)
 {
 	FILE *f;
 	char name[18], filename[32];
@@ -185,8 +128,6 @@ void R_AddPlayerModel(int skin) // For skins that were added after startup
 
 	if (nomd2s)
 		return;
-
-	//CONS_Printf("R_AddPlayerModel()...\n");
 
 	// read the models.dat file
 	//Filename checking fixed ~Monster Iestyn and Golden
