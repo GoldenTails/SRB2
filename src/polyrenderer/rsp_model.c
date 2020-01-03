@@ -82,6 +82,7 @@ boolean RSP_RenderModel(vissprite_t *spr)
 		INT32 tics = mobj->tics;
 		boolean vflip = (!(mobj->eflags & MFE_VERTICALFLIP) != !(mobj->frame & FF_VERTICALFLIP));
 		boolean papersprite = (mobj->frame & FF_PAPERSPRITE);
+		angle_t ang;
 		angle_t rollangle = 0;
 		fpquaternion_t rollquaternion;
 		fpvector4_t rolltranslation;
@@ -191,7 +192,6 @@ boolean RSP_RenderModel(vissprite_t *spr)
 		if (!texture->data)
 		{
 			unsigned rot;
-			angle_t ang;
 			UINT8 flip;
 			lumpcache_t *lumpcache;
 			lumpnum_t lumpnum;
@@ -381,7 +381,6 @@ boolean RSP_RenderModel(vissprite_t *spr)
 		{
 			int rollflip = 1;
 			rotaxis_t rotaxis = ROTAXIS_Y;
-			angle_t ang;
 			float roll;
 			fixed_t froll;
 			float centerx, centery;
@@ -468,13 +467,14 @@ boolean RSP_RenderModel(vissprite_t *spr)
 
 			// set model angle
 			if (mobj->player)
-				model_angle = AngleFixed(mobj->player->drawangle);
+				ang = mobj->player->drawangle;
+			else if ((sprframe->rotate == SRF_SINGLE) && (!papersprite))
+				ang = (R_PointToAngle(mobj->x, mobj->y) - ANGLE_180);
 			else
-				model_angle = AngleFixed(mobj->angle);
-			if (!sprframe->rotate && (!papersprite))
-				model_angle = AngleFixed((R_PointToAngle(mobj->x, mobj->y))-ANGLE_180);
+				ang = mobj->angle;
 
-			// model angle in radians
+			// convert to fixed-point, then to radians in float
+			model_angle = AngleFixed(ang);
 			theta = -(FIXED_TO_FLOAT(model_angle) * M_PI / 180.0f);
 			cs = cos(theta);
 			sn = sin(theta);
