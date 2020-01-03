@@ -1,22 +1,15 @@
-// Emacs style mode select   -*- C++ -*-
+// SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
-//
 // Copyright (C) 1998-2000 by DooM Legacy Team.
+// Copyright (C) 1999-2020 by Sonic Team Junior.
 //
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
+// This program is free software distributed under the
+// terms of the GNU General Public License, version 2.
+// See the 'LICENSE' file for more details.
 //-----------------------------------------------------------------------------
-/// \file
+/// \file hw_md2.c
 /// \brief MD2 Handling
 ///	Inspired from md2.c by Mete Ciragan (mete@swissquake.ch)
-
 
 #ifdef __GNUC__
 #include <unistd.h>
@@ -45,365 +38,10 @@
 #include "../r_draw.h"
 #include "../p_tick.h"
 #include "../r_model.h"
+#include "../r_modeltextures.h"
 
 #include "hw_main.h"
 #include "../v_video.h"
-#ifdef HAVE_PNG
-
-#ifndef _MSC_VER
-#ifndef _LARGEFILE64_SOURCE
-#define _LARGEFILE64_SOURCE
-#endif
-#endif
-
-#ifndef _LFS64_LARGEFILE
-#define _LFS64_LARGEFILE
-#endif
-
-#ifndef _FILE_OFFSET_BITS
-#define _FILE_OFFSET_BITS 0
-#endif
-
- #include "png.h"
- #ifndef PNG_READ_SUPPORTED
- #undef HAVE_PNG
- #endif
- #if PNG_LIBPNG_VER < 100207
- //#undef HAVE_PNG
- #endif
-#endif
-
-#ifdef HAVE_PNG
-static void PNG_error(png_structp PNG, png_const_charp pngtext)
-{
-	CONS_Debug(DBG_RENDER, "libpng error at %p: %s", PNG, pngtext);
-	//I_Error("libpng error at %p: %s", PNG, pngtext);
-}
-
-static void PNG_warn(png_structp PNG, png_const_charp pngtext)
-{
-	CONS_Debug(DBG_RENDER, "libpng warning at %p: %s", PNG, pngtext);
-}
-
-static GrTextureFormat_t PNG_Load(const char *filename, int *w, int *h, GLPatch_t *grpatch)
-{
-	png_structp png_ptr;
-	png_infop png_info_ptr;
-	png_uint_32 width, height;
-	int bit_depth, color_type;
-#ifdef PNG_SETJMP_SUPPORTED
-#ifdef USE_FAR_KEYWORD
-	jmp_buf jmpbuf;
-#endif
-#endif
-	png_FILE_p png_FILE;
-	//Filename checking fixed ~Monster Iestyn and Golden
-	char *pngfilename = va("%s"PATHSEP"models"PATHSEP"%s", srb2home, filename);
-
-	FIL_ForceExtension(pngfilename, ".png");
-	png_FILE = fopen(pngfilename, "rb");
-	if (!png_FILE)
-	{
-		//CONS_Debug(DBG_RENDER, "M_SavePNG: Error on opening %s for loading\n", filename);
-		return 0;
-	}
-
-	png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL,
-		PNG_error, PNG_warn);
-	if (!png_ptr)
-	{
-		CONS_Debug(DBG_RENDER, "PNG_Load: Error on initialize libpng\n");
-		fclose(png_FILE);
-		return 0;
-	}
-
-	png_info_ptr = png_create_info_struct(png_ptr);
-	if (!png_info_ptr)
-	{
-		CONS_Debug(DBG_RENDER, "PNG_Load: Error on allocate for libpng\n");
-		png_destroy_read_struct(&png_ptr, NULL, NULL);
-		fclose(png_FILE);
-		return 0;
-	}
-
-#ifdef USE_FAR_KEYWORD
-	if (setjmp(jmpbuf))
-#else
-	if (setjmp(png_jmpbuf(png_ptr)))
-#endif
-	{
-		//CONS_Debug(DBG_RENDER, "libpng load error on %s\n", filename);
-		png_destroy_read_struct(&png_ptr, &png_info_ptr, NULL);
-		fclose(png_FILE);
-		Z_Free(grpatch->mipmap->grInfo.data);
-		return 0;
-	}
-#ifdef USE_FAR_KEYWORD
-	png_memcpy(png_jmpbuf(png_ptr), jmpbuf, sizeof jmp_buf);
-#endif
-
-	png_init_io(png_ptr, png_FILE);
-
-#ifdef PNG_SET_USER_LIMITS_SUPPORTED
-	png_set_user_limits(png_ptr, 2048, 2048);
-#endif
-
-	png_read_info(png_ptr, png_info_ptr);
-
-	png_get_IHDR(png_ptr, png_info_ptr, &width, &height, &bit_depth, &color_type,
-	 NULL, NULL, NULL);
-
-	if (bit_depth == 16)
-		png_set_strip_16(png_ptr);
-
-	if (color_type == PNG_COLOR_TYPE_GRAY || color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
-		png_set_gray_to_rgb(png_ptr);
-	else if (color_type == PNG_COLOR_TYPE_PALETTE)
-		png_set_palette_to_rgb(png_ptr);
-
-	if (png_get_valid(png_ptr, png_info_ptr, PNG_INFO_tRNS))
-		png_set_tRNS_to_alpha(png_ptr);
-	else if (color_type != PNG_COLOR_TYPE_RGB_ALPHA && color_type != PNG_COLOR_TYPE_GRAY_ALPHA)
-	{
-#if PNG_LIBPNG_VER < 10207
-		png_set_filler(png_ptr, 0xFF, PNG_FILLER_AFTER);
-#else
-		png_set_add_alpha(png_ptr, 0xFF, PNG_FILLER_AFTER);
-#endif
-	}
-
-	png_read_update_info(png_ptr, png_info_ptr);
-
-	{
-		png_uint_32 i, pitch = png_get_rowbytes(png_ptr, png_info_ptr);
-		png_bytep PNG_image = Z_Malloc(pitch*height, PU_HWRMODELTEXTURE, &grpatch->mipmap->grInfo.data);
-		png_bytepp row_pointers = png_malloc(png_ptr, height * sizeof (png_bytep));
-		for (i = 0; i < height; i++)
-			row_pointers[i] = PNG_image + i*pitch;
-		png_read_image(png_ptr, row_pointers);
-		png_free(png_ptr, (png_voidp)row_pointers);
-	}
-
-	png_destroy_read_struct(&png_ptr, &png_info_ptr, NULL);
-
-	fclose(png_FILE);
-	*w = (int)width;
-	*h = (int)height;
-	return GR_RGBA;
-}
-#endif
-
-typedef struct
-{
-	UINT8 manufacturer;
-	UINT8 version;
-	UINT8 encoding;
-	UINT8 bitsPerPixel;
-	INT16 xmin;
-	INT16 ymin;
-	INT16 xmax;
-	INT16 ymax;
-	INT16 hDpi;
-	INT16 vDpi;
-	UINT8 colorMap[48];
-	UINT8 reserved;
-	UINT8 numPlanes;
-	INT16 bytesPerLine;
-	INT16 paletteInfo;
-	INT16 hScreenSize;
-	INT16 vScreenSize;
-	UINT8 filler[54];
-} PcxHeader;
-
-static GrTextureFormat_t PCX_Load(const char *filename, int *w, int *h,
-	GLPatch_t *grpatch)
-{
-	PcxHeader header;
-#define PALSIZE 768
-	UINT8 palette[PALSIZE];
-	const UINT8 *pal;
-	RGBA_t *image;
-	size_t pw, ph, size, ptr = 0;
-	INT32 ch, rep;
-	FILE *file;
-	//Filename checking fixed ~Monster Iestyn and Golden
-	char *pcxfilename = va("%s"PATHSEP"models"PATHSEP"%s", srb2home, filename);
-
-	FIL_ForceExtension(pcxfilename, ".pcx");
-	file = fopen(pcxfilename, "rb");
-	if (!file)
-		return 0;
-
-	if (fread(&header, sizeof (PcxHeader), 1, file) != 1)
-	{
-		fclose(file);
-		return 0;
-	}
-
-	if (header.bitsPerPixel != 8)
-	{
-		fclose(file);
-		return 0;
-	}
-
-	fseek(file, -PALSIZE, SEEK_END);
-
-	pw = *w = header.xmax - header.xmin + 1;
-	ph = *h = header.ymax - header.ymin + 1;
-	image = Z_Malloc(pw*ph*4, PU_HWRMODELTEXTURE, &grpatch->mipmap->grInfo.data);
-
-	if (fread(palette, sizeof (UINT8), PALSIZE, file) != PALSIZE)
-	{
-		Z_Free(image);
-		fclose(file);
-		return 0;
-	}
-	fseek(file, sizeof (PcxHeader), SEEK_SET);
-
-	size = pw * ph;
-	while (ptr < size)
-	{
-		ch = fgetc(file);  //Hurdler: beurk
-		if (ch >= 192)
-		{
-			rep = ch - 192;
-			ch = fgetc(file);
-		}
-		else
-		{
-			rep = 1;
-		}
-		while (rep--)
-		{
-			pal = palette + ch*3;
-			image[ptr].s.red   = *pal++;
-			image[ptr].s.green = *pal++;
-			image[ptr].s.blue  = *pal++;
-			image[ptr].s.alpha = 0xFF;
-			ptr++;
-		}
-	}
-	fclose(file);
-	return GR_RGBA;
-}
-
-// -----------------+
-// md2_loadTexture  : Download a pcx or png texture for models
-// -----------------+
-static void md2_loadTexture(md2_t *model)
-{
-	GLPatch_t *grpatch;
-	const char *filename = model->filename;
-
-	if (model->grpatch)
-	{
-		grpatch = model->grpatch;
-		Z_Free(grpatch->mipmap->grInfo.data);
-	}
-	else
-	{
-		grpatch = Z_Calloc(sizeof *grpatch, PU_HWRPATCHINFO,
-		                   &(model->grpatch));
-		grpatch->mipmap = Z_Calloc(sizeof (GLMipmap_t), PU_HWRPATCHINFO, NULL);
-	}
-
-	if (!grpatch->mipmap->downloaded && !grpatch->mipmap->grInfo.data)
-	{
-		int w = 0, h = 0;
-		UINT32 size;
-		RGBA_t *image;
-
-#ifdef HAVE_PNG
-		grpatch->mipmap->grInfo.format = PNG_Load(filename, &w, &h, grpatch);
-		if (grpatch->mipmap->grInfo.format == 0)
-#endif
-		grpatch->mipmap->grInfo.format = PCX_Load(filename, &w, &h, grpatch);
-		if (grpatch->mipmap->grInfo.format == 0)
-			return;
-
-		grpatch->mipmap->downloaded = 0;
-		grpatch->mipmap->flags = 0;
-
-		grpatch->width = (INT16)w;
-		grpatch->height = (INT16)h;
-		grpatch->mipmap->width = (UINT16)w;
-		grpatch->mipmap->height = (UINT16)h;
-
-		// Lactozilla: Apply colour cube
-		image = grpatch->mipmap->grInfo.data;
-		size = w*h;
-		while (size--)
-		{
-			V_CubeApply(&image->s.red, &image->s.green, &image->s.blue);
-			image++;
-		}
-
-#ifdef GLIDE_API_COMPATIBILITY
-		// not correct!
-		grpatch->mipmap->grInfo.smallLodLog2 = GR_LOD_LOG2_256;
-		grpatch->mipmap->grInfo.largeLodLog2 = GR_LOD_LOG2_256;
-		grpatch->mipmap->grInfo.aspectRatioLog2 = GR_ASPECT_LOG2_1x1;
-#endif
-	}
-	HWD.pfnSetTexture(grpatch->mipmap);
-}
-
-// -----------------+
-// md2_loadBlendTexture  : Download a pcx or png texture for blending MD2 models
-// -----------------+
-static void md2_loadBlendTexture(md2_t *model)
-{
-	GLPatch_t *grpatch;
-	char *filename = Z_Malloc(strlen(model->filename)+7, PU_STATIC, NULL);
-	strcpy(filename, model->filename);
-
-	FIL_ForceExtension(filename, "_blend.png");
-
-	if (model->blendgrpatch)
-	{
-		grpatch = model->blendgrpatch;
-		Z_Free(grpatch->mipmap->grInfo.data);
-	}
-	else
-	{
-		grpatch = Z_Calloc(sizeof *grpatch, PU_HWRPATCHINFO,
-		                   &(model->blendgrpatch));
-		grpatch->mipmap = Z_Calloc(sizeof (GLMipmap_t), PU_HWRPATCHINFO, NULL);
-	}
-
-	if (!grpatch->mipmap->downloaded && !grpatch->mipmap->grInfo.data)
-	{
-		int w = 0, h = 0;
-#ifdef HAVE_PNG
-		grpatch->mipmap->grInfo.format = PNG_Load(filename, &w, &h, grpatch);
-		if (grpatch->mipmap->grInfo.format == 0)
-#endif
-		grpatch->mipmap->grInfo.format = PCX_Load(filename, &w, &h, grpatch);
-		if (grpatch->mipmap->grInfo.format == 0)
-		{
-			Z_Free(filename);
-			return;
-		}
-
-		grpatch->mipmap->downloaded = 0;
-		grpatch->mipmap->flags = 0;
-
-		grpatch->width = (INT16)w;
-		grpatch->height = (INT16)h;
-		grpatch->mipmap->width = (UINT16)w;
-		grpatch->mipmap->height = (UINT16)h;
-
-#ifdef GLIDE_API_COMPATIBILITY
-		// not correct!
-		grpatch->mipmap->grInfo.smallLodLog2 = GR_LOD_LOG2_256;
-		grpatch->mipmap->grInfo.largeLodLog2 = GR_LOD_LOG2_256;
-		grpatch->mipmap->grInfo.aspectRatioLog2 = GR_ASPECT_LOG2_1x1;
-#endif
-	}
-	HWD.pfnSetTexture(grpatch->mipmap); // We do need to do this so that it can be cleared and knows to recreate it when necessary
-
-	Z_Free(filename);
-}
 
 // Define for getting accurate color brightness readings according to how the human eye sees them.
 // https://en.wikipedia.org/wiki/Relative_luminance
@@ -1049,12 +687,20 @@ boolean HWR_DrawModel(gr_vissprite_t *spr)
 		//Hurdler: arf, I don't like that implementation at all... too much crappy
 		gpatch = md2->grpatch;
 		if (!gpatch || !gpatch->mipmap->grInfo.format || !gpatch->mipmap->downloaded)
-			md2_loadTexture(md2);
-		gpatch = md2->grpatch; // Load it again, because it isn't being loaded into gpatch after md2_loadtexture...
+		{
+			if (Model_LoadTexture(md2))
+			{
+				gpatch = md2->grpatch; // Load it again, because it isn't being loaded into gpatch after md2_loadtexture...
+				HWD.pfnSetTexture(gpatch->mipmap);
+			}
+		}
 
 		if ((gpatch && gpatch->mipmap->grInfo.format) // don't load the blend texture if the base texture isn't available
 			&& (!md2->blendgrpatch || !((GLPatch_t *)md2->blendgrpatch)->mipmap->grInfo.format || !((GLPatch_t *)md2->blendgrpatch)->mipmap->downloaded))
-			md2_loadBlendTexture(md2);
+		{
+			if (Model_LoadBlendTexture(md2))
+				HWD.pfnSetTexture(((GLPatch_t *)md2->blendgrpatch)->mipmap); // We do need to do this so that it can be cleared and knows to recreate it when necessary
+		}
 
 		if (gpatch && gpatch->mipmap->grInfo.format) // else if meant that if a texture couldn't be loaded, it would just end up using something else's texture
 		{

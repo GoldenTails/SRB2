@@ -233,6 +233,7 @@
     <ClInclude Include="..\r_md2load.h" />
     <ClInclude Include="..\r_md3load.h" />
     <ClInclude Include="..\r_model.h" />
+    <ClInclude Include="..\r_modeltextures.h" />
     <ClInclude Include="..\u_list.h" />
     <ClInclude Include="..\hu_stuff.h" />
     <ClInclude Include="..\info.h" />
@@ -452,6 +453,7 @@
 	<ClCompile Include="..\r_md2load.c" />
     <ClCompile Include="..\r_md3load.c" />
     <ClCompile Include="..\r_model.c" />
+    <ClCompile Include="..\r_modeltextures.c" />
     <ClCompile Include="..\u_list.c" />
     <ClCompile Include="..\screen.c" />
     <ClCompile Include="..\sounds.c" />

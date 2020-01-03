@@ -131,6 +131,7 @@ set(SRB2_CORE_RENDER_SOURCES
 	r_md2load.c
 	r_md3load.c
 	r_model.c
+	r_modeltextures.c
 	u_list.c
 
 	r_bsp.h
@@ -151,6 +152,7 @@ set(SRB2_CORE_RENDER_SOURCES
 	r_md2load.h
 	r_md3load.h
 	r_model.h
+	r_modeltextures.h
 	u_list.h
 )
 

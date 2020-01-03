@@ -411,6 +411,9 @@
     <ClInclude Include="..\r_model.h">
       <Filter>R_Rend</Filter>
     </ClInclude>
+    <ClInclude Include="..\r_modeltextures.h">
+      <Filter>R_Rend</Filter>
+    </ClInclude>
     <ClInclude Include="..\r_plane.h">
       <Filter>R_Rend</Filter>
     </ClInclude>
@@ -664,6 +667,9 @@
       <Filter>R_Rend</Filter>
     </ClCompile>
     <ClCompile Include="..\r_model.c">
+      <Filter>R_Rend</Filter>
+    </ClCompile>
+    <ClCompile Include="..\r_modeltextures.c">
       <Filter>R_Rend</Filter>
     </ClCompile>
     <ClCompile Include="..\u_list.c">

@@ -475,6 +475,7 @@ OBJS:=$(i_main_o) \
 		$(OBJDIR)/r_md2load.o \
 		$(OBJDIR)/r_md3load.o \
 		$(OBJDIR)/r_model.o \
+		$(OBJDIR)/r_modeltextures.o \
 		$(OBJDIR)/u_list.o \
 		$(OBJDIR)/screen.o   \
 		$(OBJDIR)/v_video.o  \
