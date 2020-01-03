@@ -408,6 +408,46 @@ void Model_Unload(model_t *model)
 	Z_Free(model);
 }
 
+// Returns a model, if available.
+md2_t *Model_IsAvailable(spritenum_t spritenum, skin_t *skin)
+{
+	char filename[64];
+	md2_t *md2;
+
+	// invalid sprite number
+	if ((unsigned)spritenum >= NUMSPRITES || (unsigned)spritenum == SPR_NULL)
+		return NULL;
+
+	if (skin) // Use the player MD2 list if the mobj has a skin and is using the player sprites
+	{
+		md2 = &md2_playermodels[skin-skins];
+		md2->skin = skin-skins;
+	}
+	else
+		md2 = &md2_models[spritenum];
+
+	if (md2->notfound)
+		return NULL;
+
+	if (!md2->model)
+	{
+		sprintf(filename, "models/%s", md2->filename);
+		md2->model = R_LoadModel(filename);
+
+		if (!md2->model)
+		{
+			md2->notfound = true;
+			return NULL;
+		}
+	}
+
+	// Allocate texture data
+	if (!md2->texture)
+		md2->texture = Z_Calloc(sizeof(modeltexture_t), PU_STATIC, NULL);
+
+	return md2;
+}
+
 boolean Model_AllowRendering(mobj_t *mobj)
 {
 	// Signpost overlay. Not needed.

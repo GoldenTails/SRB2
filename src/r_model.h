@@ -162,6 +162,7 @@ model_t *Model_Load(const char *filename, int ztag);
 void Model_Unload(model_t *model);
 
 // Model rendering
+md2_t *Model_IsAvailable(spritenum_t spritenum, skin_t *skin);
 boolean Model_AllowRendering(mobj_t *mobj);
 boolean Model_CanInterpolate(mobj_t *mobj, model_t *model);
 boolean Model_CanInterpolateSprite2(modelspr2frames_t *spr2frame);

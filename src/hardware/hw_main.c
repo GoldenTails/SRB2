@@ -5013,31 +5013,11 @@ static void HWR_DrawSprites(void)
 			else
 #endif
 			{
-				if (spr->mobj && spr->mobj->shadowscale && cv_shadow.value)
-				{
-					HWR_DrawDropShadow(spr->mobj, spr, spr->mobj->shadowscale);
-				}
-
-				if (spr->mobj && spr->mobj->skin && spr->mobj->sprite == SPR_PLAY)
-				{
-					if (!cv_models.value || md2_playermodels[(skin_t*)spr->mobj->skin-skins].notfound || md2_playermodels[(skin_t*)spr->mobj->skin-skins].scale < 0.0f)
-						HWR_DrawSprite(spr);
-					else
-					{
-						if (!HWR_DrawModel(spr))
-							HWR_DrawSprite(spr);
-					}
-				}
+				md2_t *model = Model_IsAvailable(spr->mobj->sprite, spr->mobj->skin);
+				if (cv_models.value && model)
+					HWR_DrawModel(spr);
 				else
-				{
-					if (!cv_models.value || md2_models[spr->mobj->sprite].notfound || md2_models[spr->mobj->sprite].scale < 0.0f)
-						HWR_DrawSprite(spr);
-					else
-					{
-						if (!HWR_DrawModel(spr))
-							HWR_DrawSprite(spr);
-					}
-				}
+					HWR_DrawSprite(spr);
 			}
 		}
 	}

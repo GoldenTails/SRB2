@@ -213,7 +213,6 @@ extern UINT32 rsp_maskdraw;
 #define RSP_MASKDRAWBIT 0x80000000
 
 boolean RSP_RenderModel(vissprite_t *spr);
-md2_t *RSP_ModelAvailable(spritenum_t spritenum, skin_t *skin);
 
 void RSP_CreateModelTexture(md2_t *model, INT32 tcnum, INT32 skincolor);
 void RSP_FreeModelTexture(md2_t *model);

@@ -38,53 +38,6 @@
 #include "../r_model.h"
 #include "../r_modeltextures.h"
 
-md2_t *RSP_ModelAvailable(spritenum_t spritenum, skin_t *skin)
-{
-	char filename[64];
-	md2_t *md2;
-
-	// invalid sprite number
-	if ((unsigned)spritenum >= NUMSPRITES || (unsigned)spritenum == SPR_NULL)
-		return NULL;
-
-	if (skin && spritenum == SPR_PLAY) // Use the player MD2 list if the mobj has a skin and is using the player sprites
-	{
-		md2 = &md2_playermodels[skin-skins];
-		md2->skin = skin-skins;
-	}
-	else if (spritenum == SPR_PLAY)	// use default model
-	{
-		md2 = &md2_playermodels[0];
-		md2->skin = 0;
-	}
-	else
-		md2 = &md2_models[spritenum];
-
-	if (md2->notfound)/* Let PLAY (or lumps get fucked) */
-		md2 = &md2_models[spritenum];
-
-	if (md2->notfound)
-		return NULL;
-
-	if (!md2->model)
-	{
-		sprintf(filename, "models/%s", md2->filename);
-		md2->model = R_LoadModel(filename);
-
-		if (!md2->model)
-		{
-			md2->notfound = true;
-			return NULL;
-		}
-	}
-
-	// Allocate texture data
-	if (!md2->texture)
-		md2->texture = Z_Calloc(sizeof(modeltexture_t), PU_STATIC, NULL);
-
-	return md2;
-}
-
 // Macros to improve code readability
 #define MD3_XYZ_SCALE   (1.0f / 64.0f)
 #define VERTEX_OFFSET   ((i * 9) + (j * 3))		/* (i * 9) = (XYZ coords * vertex count) */
@@ -144,7 +97,7 @@ boolean RSP_RenderModel(vissprite_t *spr)
 		RSP_RestoreViewpoint(); \
 }
 
-		md2 = RSP_ModelAvailable(spr->spritenum, (skin_t *)spr->skin);
+		md2 = Model_IsAvailable(spr->spritenum, (skin_t *)spr->skin);
 		if (!md2)
 		{
 			RESETVIEW

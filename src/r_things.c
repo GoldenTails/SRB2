@@ -1448,7 +1448,7 @@ static void R_ProjectSprite(mobj_t *thing)
 
 #ifdef POLYRENDERER
 	skin = (skin_t *)thing->skin;
-	md2 = RSP_ModelAvailable(thing->sprite, skin);
+	md2 = Model_IsAvailable(thing->sprite, skin);
 
 	model = (cv_models.value && md2);
 	frustumclipping = false;
