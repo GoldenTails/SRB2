@@ -28,6 +28,11 @@
 #include "polyrenderer/r_softpoly.h"
 #endif
 
+#ifdef HWRENDER
+#include "hardware/hw_glob.h"
+#include "hardware/hw_drv.h"
+#endif
+
 md2_t md2_models[NUMSPRITES];
 md2_t md2_playermodels[MAXSKINS];
 
@@ -444,6 +449,15 @@ md2_t *Model_IsAvailable(spritenum_t spritenum, skin_t *skin)
 	// Allocate texture data
 	if (!md2->texture)
 		md2->texture = Z_Calloc(sizeof(modeltexture_t), PU_STATIC, NULL);
+
+#ifdef HWRENDER
+	// Create mesh VBOs
+	if (!md2->meshVBOs && (rendermode == render_opengl))
+	{
+		HWD.pfnCreateModelVBOs(md2->model);
+		md2->meshVBOs = true;
+	}
+#endif
 
 	return md2;
 }

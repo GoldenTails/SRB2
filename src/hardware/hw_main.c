@@ -5015,7 +5015,7 @@ static void HWR_DrawSprites(void)
 			{
 				md2_t *model = Model_IsAvailable(spr->mobj->sprite, spr->mobj->skin);
 				if (cv_models.value && model)
-					HWR_DrawModel(spr);
+					HWR_DrawModel(model, spr);
 				else
 					HWR_DrawSprite(spr);
 			}

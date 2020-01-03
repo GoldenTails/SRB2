@@ -479,22 +479,23 @@ static void HWR_GetBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, INT
 // HWR_DrawModel
 //
 
-boolean HWR_DrawModel(gr_vissprite_t *spr)
+boolean HWR_DrawModel(md2_t *md2, gr_vissprite_t *spr)
 {
 	FSurfaceInfo Surf;
-
-	char filename[64];
 	INT32 frame = 0;
 	INT32 nextFrame = -1;
 	UINT8 spr2 = 0;
 	FTransform p;
-	md2_t *md2;
 	UINT8 color[4];
 
-	if (!cv_models.value)
-		return false;
+	if (md2->error)
+		return false; // we already failed loading this before :(
 
 	if (spr->precip)
+		return false;
+
+	// Lactozilla: Disallow certain models from rendering
+	if (!Model_AllowRendering(spr->mobj))
 		return false;
 
 	memset(&p, 0x00, sizeof(FTransform));
@@ -551,9 +552,18 @@ boolean HWR_DrawModel(gr_vissprite_t *spr)
 		INT32 mod;
 		float finalscale;
 
-		// Apparently people don't like jump frames like that, so back it goes
-		//if (tics > durs)
-			//durs = tics;
+		if (spr->mobj->skin && spr->mobj->sprite == SPR_PLAY)
+		{
+			sprdef = &((skin_t *)spr->mobj->skin)->sprites[spr->mobj->sprite2];
+			sprinfo = &((skin_t *)spr->mobj->skin)->sprinfo[spr->mobj->sprite2];
+		}
+		else
+		{
+			sprdef = &sprites[spr->mobj->sprite];
+			sprinfo = &spriteinfo[spr->mobj->sprite];
+		}
+
+		sprframe = &sprdef->spriteframes[spr->mobj->frame & FF_FRAMEMASK];
 
 		if (spr->mobj->flags2 & MF2_SHADOW)
 			Surf.FlatColor.s.alpha = 0x40;
@@ -561,53 +571,6 @@ boolean HWR_DrawModel(gr_vissprite_t *spr)
 			HWR_TranstableToAlpha((spr->mobj->frame & FF_TRANSMASK)>>FF_TRANSSHIFT, &Surf);
 		else
 			Surf.FlatColor.s.alpha = 0xFF;
-
-		// dont forget to enabled the depth test because we can't do this like
-		// before: polygons models are not sorted
-
-		// 1. load model+texture if not already loaded
-		// 2. draw model with correct position, rotation,...
-		if (spr->mobj->skin && spr->mobj->sprite == SPR_PLAY) // Use the player MD2 list if the mobj has a skin and is using the player sprites
-		{
-			md2 = &md2_playermodels[(skin_t*)spr->mobj->skin-skins];
-			md2->skin = (skin_t*)spr->mobj->skin-skins;
-			sprinfo = &((skin_t *)spr->mobj->skin)->sprinfo[spr->mobj->sprite2];
-		}
-		else
-		{
-			md2 = &md2_models[spr->mobj->sprite];
-			sprinfo = &spriteinfo[spr->mobj->sprite];
-		}
-
-		if (md2->error)
-			return false; // we already failed loading this before :(
-		if (!md2->model)
-		{
-			//CONS_Debug(DBG_RENDER, "Loading model... (%s)", sprnames[spr->mobj->sprite]);
-			sprintf(filename, "models/%s", md2->filename);
-			md2->model = R_LoadModel(filename);
-			if (!md2->model)
-			{
-				//CONS_Debug(DBG_RENDER, " FAILED\n");
-				md2->error = true; // prevent endless fail
-				return false;
-			}
-		}
-
-		// Allocate texture data
-		if (!md2->texture)
-			md2->texture = Z_Calloc(sizeof(modeltexture_t), PU_STATIC, NULL);
-
-		// Create mesh VBOs
-		if (!md2->meshVBOs)
-		{
-			HWD.pfnCreateModelVBOs(md2->model);
-			md2->meshVBOs = true;
-		}
-
-		// Lactozilla: Disallow certain models from rendering
-		if (!Model_AllowRendering(spr->mobj))
-			return false;
 
 		//HWD.pfnSetBlend(blend); // This seems to actually break translucency?
 		finalscale = md2->scale;
