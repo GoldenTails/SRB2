@@ -10,8 +10,13 @@
 #ifndef _R_MODEL_H_
 #define _R_MODEL_H_
 
+#include "doomdata.h"
 #include "doomtype.h"
-#include "info.h"
+#include "doomstat.h"
+#include "r_things.h"
+
+extern consvar_t cv_models;
+extern consvar_t cv_modelinterpolation;
 
 typedef struct
 {
@@ -114,15 +119,24 @@ typedef struct
 extern md2_t md2_models[NUMSPRITES];
 extern md2_t md2_playermodels[MAXSKINS];
 
+// Model initialization
 void R_InitModels(void);
 void R_ReloadModels(void);
 void R_AddPlayerModel(INT32 skin);
 void R_AddSpriteModel(size_t spritenum);
 model_t *R_LoadModel(const char *filename);
 
-tag_t *Model_GetTagByName(model_t *model, char *name, int frame);
+// Model loading and unloading
 model_t *Model_Load(const char *filename, int ztag);
 void Model_Unload(model_t *model);
+
+// Model rendering
+boolean Model_AllowRendering(mobj_t *mobj);
+boolean Model_CanInterpolate(mobj_t *mobj, model_t *model);
+boolean Model_CanInterpolateSprite2(modelspr2frames_t *spr2frame);
+UINT8 Model_GetSprite2(md2_t *md2, skin_t *skin, UINT8 spr2, player_t *player);
+
+// Miscellaneous stuff
 void Model_Optimize(model_t *model);
 void Model_LoadInterpolationSettings(model_t *model);
 void Model_LoadSprite2(model_t *model);
@@ -131,5 +145,6 @@ void Model_GeneratePolygonNormals(model_t *model, int ztag);
 void Model_CreateVBOTiny(mesh_t *mesh, tinyframe_t *frame);
 void Model_CreateVBO(mesh_t *mesh, mdlframe_t *frame);
 void Model_DeleteVBOs(model_t *model);
+tag_t *Model_GetTagByName(model_t *model, char *name, int frame);
 
 #endif

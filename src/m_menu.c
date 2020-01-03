@@ -23,6 +23,7 @@
 #include "d_netcmd.h"
 #include "console.h"
 #include "r_local.h"
+#include "r_model.h"
 #include "hu_stuff.h"
 #include "g_game.h"
 #include "g_input.h"
@@ -1409,8 +1410,8 @@ static menuitem_t OP_ColorOptionsMenu[] =
 static menuitem_t OP_OpenGLOptionsMenu[] =
 {
 	{IT_HEADER, NULL, "3D Models", NULL, 0},
-	{IT_STRING|IT_CVAR,         NULL, "Models",              &cv_grmodels,             12},
-	{IT_STRING|IT_CVAR,         NULL, "Model interpolation", &cv_grmodelinterpolation, 22},
+	{IT_STRING|IT_CVAR,         NULL, "Models",              &cv_models,             12},
+	{IT_STRING|IT_CVAR,         NULL, "Model interpolation", &cv_modelinterpolation, 22},
 	{IT_STRING|IT_CVAR,         NULL, "Model lighting",      &cv_grmodellighting, 32},
 
 	{IT_HEADER, NULL, "General", NULL, 51},

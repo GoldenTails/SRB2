@@ -27,6 +27,11 @@
 md2_t md2_models[NUMSPRITES];
 md2_t md2_playermodels[MAXSKINS];
 
+static CV_PossibleValue_t modelinterpolation_cons_t[] = {{0, "Off"}, {1, "Sometimes"}, {2, "Always"}, {0, NULL}};
+
+consvar_t cv_models = {"models", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_modelinterpolation = {"modelinterpolation", "Sometimes", CV_SAVE, modelinterpolation_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+
 // Loads the model. That's it.
 model_t *R_LoadModel(const char *filename)
 {
@@ -65,6 +70,9 @@ void R_InitModels(void)
 	float scale, offset;
 
 	CONS_Printf("R_InitModels()...\n");
+	CV_RegisterVar(&cv_modelinterpolation);
+	CV_RegisterVar(&cv_models);
+
 	for (s = 0; s < MAXSKINS; s++)
 	{
 		md2_playermodels[s].scale = -1.0f;
@@ -376,6 +384,86 @@ void Model_Unload(model_t *model)
 
 	Model_DeleteVBOs(model);
 	Z_Free(model);
+}
+
+boolean Model_AllowRendering(mobj_t *mobj)
+{
+	// Signpost overlay. Not needed.
+	if (mobj->state-states == S_PLAY_SIGN)
+		return false;
+
+	// Otherwise, render the model.
+	return true;
+}
+
+boolean Model_CanInterpolate(mobj_t *mobj, model_t *model)
+{
+	if (cv_modelinterpolation.value == 2) // Always interpolate
+		return true;
+	return model->interpolate[(mobj->frame & FF_FRAMEMASK)];
+}
+
+boolean Model_CanInterpolateSprite2(modelspr2frames_t *spr2frame)
+{
+	if (cv_modelinterpolation.value == 2) // Always interpolate
+		return true;
+	return spr2frame->interpolate;
+}
+
+//
+// Model_GetSprite2 (see P_GetSkinSprite2)
+// For non-super players, tries each sprite2's immediate predecessor until it finds one with a number of frames or ends up at standing.
+// For super players, does the same as above - but tries the super equivalent for each sprite2 before the non-super version.
+//
+UINT8 Model_GetSprite2(md2_t *md2, skin_t *skin, UINT8 spr2, player_t *player)
+{
+	UINT8 super = 0, i = 0;
+
+	if (!md2 || !md2->model || !md2->model->spr2frames || !skin)
+		return 0;
+
+	if ((playersprite_t)(spr2 & ~FF_SPR2SUPER) >= free_spr2)
+		return 0;
+
+	while (!md2->model->spr2frames[spr2].numframes
+		&& spr2 != SPR2_STND
+		&& ++i != 32) // recursion limiter
+	{
+		if (spr2 & FF_SPR2SUPER)
+		{
+			super = FF_SPR2SUPER;
+			spr2 &= ~FF_SPR2SUPER;
+			continue;
+		}
+
+		switch(spr2)
+		{
+		// Normal special cases.
+		case SPR2_JUMP:
+			spr2 = ((player
+					? player->charflags
+					: skin->flags)
+					& SF_NOJUMPSPIN) ? SPR2_SPNG : SPR2_ROLL;
+			break;
+		case SPR2_TIRE:
+			spr2 = ((player
+					? player->charability
+					: skin->ability)
+					== CA_SWIM) ? SPR2_SWIM : SPR2_FLY;
+			break;
+		// Use the handy list, that's what it's there for!
+		default:
+			spr2 = spr2defaults[spr2];
+			break;
+		}
+
+		spr2 |= super;
+	}
+
+	if (i >= 32) // probably an infinite loop...
+		return 0;
+
+	return spr2;
 }
 
 tag_t *Model_GetTagByName(model_t *model, char *name, int frame)

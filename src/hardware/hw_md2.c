@@ -475,87 +475,6 @@ static void HWR_GetBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, INT
 #define NORMALFOG 0x00000000
 #define FADEFOG 0x19000000
 
-static boolean HWR_AllowModel(mobj_t *mobj)
-{
-	// Signpost overlay. Not needed.
-	if (mobj->state-states == S_PLAY_SIGN)
-		return false;
-
-	// Otherwise, render the model.
-	return true;
-}
-
-static boolean HWR_CanInterpolateModel(mobj_t *mobj, model_t *model)
-{
-	if (cv_grmodelinterpolation.value == 2) // Always interpolate
-		return true;
-	return model->interpolate[(mobj->frame & FF_FRAMEMASK)];
-}
-
-static boolean HWR_CanInterpolateSprite2(modelspr2frames_t *spr2frame)
-{
-	if (cv_grmodelinterpolation.value == 2) // Always interpolate
-		return true;
-	return spr2frame->interpolate;
-}
-
-//
-// HWR_GetModelSprite2 (see P_GetSkinSprite2)
-// For non-super players, tries each sprite2's immediate predecessor until it finds one with a number of frames or ends up at standing.
-// For super players, does the same as above - but tries the super equivalent for each sprite2 before the non-super version.
-//
-
-static UINT8 HWR_GetModelSprite2(md2_t *md2, skin_t *skin, UINT8 spr2, player_t *player)
-{
-	UINT8 super = 0, i = 0;
-
-	if (!md2 || !md2->model || !md2->model->spr2frames || !skin)
-		return 0;
-
-	if ((playersprite_t)(spr2 & ~FF_SPR2SUPER) >= free_spr2)
-		return 0;
-
-	while (!md2->model->spr2frames[spr2].numframes
-		&& spr2 != SPR2_STND
-		&& ++i != 32) // recursion limiter
-	{
-		if (spr2 & FF_SPR2SUPER)
-		{
-			super = FF_SPR2SUPER;
-			spr2 &= ~FF_SPR2SUPER;
-			continue;
-		}
-
-		switch(spr2)
-		{
-		// Normal special cases.
-		case SPR2_JUMP:
-			spr2 = ((player
-					? player->charflags
-					: skin->flags)
-					& SF_NOJUMPSPIN) ? SPR2_SPNG : SPR2_ROLL;
-			break;
-		case SPR2_TIRE:
-			spr2 = ((player
-					? player->charability
-					: skin->ability)
-					== CA_SWIM) ? SPR2_SWIM : SPR2_FLY;
-			break;
-		// Use the handy list, that's what it's there for!
-		default:
-			spr2 = spr2defaults[spr2];
-			break;
-		}
-
-		spr2 |= super;
-	}
-
-	if (i >= 32) // probably an infinite loop...
-		return 0;
-
-	return spr2;
-}
-
 //
 // HWR_DrawModel
 //
@@ -572,7 +491,7 @@ boolean HWR_DrawModel(gr_vissprite_t *spr)
 	md2_t *md2;
 	UINT8 color[4];
 
-	if (!cv_grmodels.value)
+	if (!cv_models.value)
 		return false;
 
 	if (spr->precip)
@@ -679,7 +598,7 @@ boolean HWR_DrawModel(gr_vissprite_t *spr)
 		}
 
 		// Lactozilla: Disallow certain models from rendering
-		if (!HWR_AllowModel(spr->mobj))
+		if (!Model_AllowRendering(spr->mobj))
 			return false;
 
 		//HWD.pfnSetBlend(blend); // This seems to actually break translucency?
@@ -754,7 +673,7 @@ boolean HWR_DrawModel(gr_vissprite_t *spr)
 		frame = (spr->mobj->frame & FF_FRAMEMASK);
 		if (spr->mobj->skin && spr->mobj->sprite == SPR_PLAY && md2->model->spr2frames)
 		{
-			spr2 = HWR_GetModelSprite2(md2, spr->mobj->skin, spr->mobj->sprite2, spr->mobj->player);
+			spr2 = Model_GetSprite2(md2, spr->mobj->skin, spr->mobj->sprite2, spr->mobj->player);
 			mod = md2->model->spr2frames[spr2].numframes;
 #ifndef DONTHIDEDIFFANIMLENGTH // by default, different anim length is masked by the mod
 			if (mod > (INT32)((skin_t *)spr->mobj->skin)->sprites[spr2].numframes)
@@ -773,14 +692,14 @@ boolean HWR_DrawModel(gr_vissprite_t *spr)
 
 #ifdef USE_MODEL_NEXTFRAME
 #define INTERPOLERATION_LIMIT TICRATE/4
-		if (cv_grmodelinterpolation.value && tics <= durs && tics <= INTERPOLERATION_LIMIT)
+		if (cv_modelinterpolation.value && tics <= durs && tics <= INTERPOLERATION_LIMIT)
 		{
 			if (durs > INTERPOLERATION_LIMIT)
 				durs = INTERPOLERATION_LIMIT;
 
 			if (spr->mobj->skin && spr->mobj->sprite == SPR_PLAY && md2->model->spr2frames)
 			{
-				if (HWR_CanInterpolateSprite2(&md2->model->spr2frames[spr2])
+				if (Model_CanInterpolateSprite2(&md2->model->spr2frames[spr2])
 					&& (spr->mobj->frame & FF_ANIMATE
 					|| (spr->mobj->state->nextstate != S_NULL
 					&& states[spr->mobj->state->nextstate].sprite == SPR_PLAY
@@ -795,7 +714,7 @@ boolean HWR_DrawModel(gr_vissprite_t *spr)
 						nextFrame = -1;
 				}
 			}
-			else if (HWR_CanInterpolateModel(spr->mobj, md2->model))
+			else if (Model_CanInterpolate(spr->mobj, md2->model))
 			{
 				// frames are handled differently for states with FF_ANIMATE, so get the next frame differently for the interpolation
 				if (spr->mobj->frame & FF_ANIMATE)
