@@ -104,41 +104,45 @@ static void R_InstallSpriteLump(UINT16 wad,            // graphics patch
 
 #ifdef POLYRENDERER
 	{
+		lumpcache_t *lumpcache;
 		UINT8 rot = (rotation != 0) ? (rotation-1) : 0;
 		patch_t *patch;
 		rsp_spritetexture_t *tex;
 		INT32 blockwidth, blockheight;
 
-		lumpcache_t *lumpcache = wadfiles[wad]->patchcache->software;
-		if (!lumpcache[lump])
-			Z_Malloc(sizeof(rsp_spritetexture_t) * 8, PU_SOFTPOLY, &lumpcache[lump]);
-		tex = lumpcache[lump];
-		tex += rot;
-
-		if (R_CheckIfPatch(lumppat))
+		if (wadfiles[wad]->patchcache)
 		{
-			patch = (patch_t *)W_CacheLumpNumPwad(wad, lump, PU_STATIC);
+			lumpcache = wadfiles[wad]->patchcache->software;
+			if (!lumpcache[lump])
+				Z_Malloc(sizeof(rsp_spritetexture_t) * 8, PU_SOFTPOLY, &lumpcache[lump]);
+			tex = lumpcache[lump];
+			tex += rot;
 
-			// size up to nearest power of 2
-			blockwidth = 1;
-			blockheight = 1;
-			while (blockwidth < SHORT(patch->width))
-				blockwidth <<= 1;
-			while (blockheight < SHORT(patch->height))
-				blockheight <<= 1;
+			if (R_CheckIfPatch(lumppat))
+			{
+				patch = (patch_t *)W_CacheLumpNumPwad(wad, lump, PU_STATIC);
 
-			tex->width = blockwidth;
-			tex->height = blockheight;
-			tex->lumpnum = lumppat;
-			tex->data = NULL;
+				// size up to nearest power of 2
+				blockwidth = 1;
+				blockheight = 1;
+				while (blockwidth < SHORT(patch->width))
+					blockwidth <<= 1;
+				while (blockheight < SHORT(patch->height))
+					blockheight <<= 1;
 
-			Z_Free(patch);
-		}
-		else
-		{
-			// not even a patch
-			tex->width = -1;
-			tex->height = -1;
+				tex->width = blockwidth;
+				tex->height = blockheight;
+				tex->lumpnum = lumppat;
+				tex->data = NULL;
+
+				Z_Free(patch);
+			}
+			else
+			{
+				// not even a patch
+				tex->width = -1;
+				tex->height = -1;
+			}
 		}
 	}
 #endif
