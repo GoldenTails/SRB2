@@ -54,6 +54,7 @@ int	snprintf(char *str, size_t n, const char *fmt, ...);
 #include "p_saveg.h"
 #include "r_main.h"
 #include "r_local.h"
+#include "r_model.h"
 #include "s_sound.h"
 #include "st_stuff.h"
 #include "v_video.h"
@@ -1277,6 +1278,9 @@ void D_SRB2Main(void)
 
 	CONS_Printf("I_StartupGraphics()...\n");
 	I_StartupGraphics();
+
+	// Init 3D models
+	R_InitModels();
 
 #ifdef HWRENDER
 	// Lactozilla: Add every hardware mode CVAR and CCMD.
