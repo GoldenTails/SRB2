@@ -823,6 +823,71 @@ boolean R_PNGDimensions(UINT8 *png, INT16 *width, INT16 *height, size_t size)
 #endif
 
 //
+// RSP_GenerateTexture
+//
+// Generate a texture for the polygon renderer.
+//
+#ifdef POLYRENDERER
+void RSP_GenerateTexture(patch_t *patch, UINT8 *buffer, INT32 x, INT32 y, INT32 maxwidth, INT32 maxheight, boolean flip, UINT8 *colormap, UINT8 *translation)
+{
+	fixed_t col, ofs;
+	column_t *column;
+	UINT8 *desttop, *dest;
+	UINT8 *source, *deststop;
+
+	if (x >= maxwidth)
+		return;
+	if (y >= maxheight)
+		return;
+
+	desttop = buffer + ((y*maxwidth) + x);
+	deststop = desttop + (maxwidth * maxheight);
+
+	if (!colormap) colormap = colormaps;
+	if (!translation) translation = colormap;
+
+	for (col = 0; col < SHORT(patch->width); col++, desttop++)
+	{
+		INT32 topdelta, prevdelta = -1;
+		if (x+col < 0) // don't draw off the left of the buffer (WRAP PREVENTION)
+			continue;
+		if (x+col >= maxwidth) // don't draw off the right of the buffer (WRAP PREVENTION)
+			break;
+		column = (column_t *)((UINT8 *)patch + LONG(patch->columnofs[flip ? (patch->width-1-col) : col]));
+
+		while (column->topdelta != 0xff)
+		{
+			topdelta = column->topdelta;
+			if (topdelta <= prevdelta)
+				topdelta += prevdelta;
+			prevdelta = topdelta;
+
+			dest = desttop + (topdelta * maxwidth);
+			source = (UINT8 *)column+3;
+
+			for (ofs = 0; dest < deststop && ofs < column->length; ofs++)
+			{
+				if (dest >= buffer && source[ofs] != TRANSPARENTPIXEL)
+				{
+					UINT8 pixel = source[ofs];
+					if (colormap && translation)
+						*dest = colormap[translation[pixel]];
+					else if (colormap)
+						*dest = colormap[pixel];
+					else if (translation)
+						*dest = translation[pixel];
+					else
+						*dest = pixel;
+				}
+				dest += maxwidth;
+			}
+			column = (column_t *)((UINT8 *)column + column->length + 4);
+		}
+	}
+}
+#endif
+
+//
 // R_ParseSpriteInfoFrame
 //
 // Parse a SPRTINFO frame.

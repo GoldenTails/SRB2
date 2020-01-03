@@ -586,15 +586,17 @@ boolean HWR_DrawModel(gr_vissprite_t *spr)
 			//CONS_Debug(DBG_RENDER, "Loading model... (%s)", sprnames[spr->mobj->sprite]);
 			sprintf(filename, "models/%s", md2->filename);
 			md2->model = R_LoadModel(filename);
-
-			if (md2->model)
-				HWD.pfnCreateModelVBOs(md2->model);
-			else
+			if (!md2->model)
 			{
 				//CONS_Debug(DBG_RENDER, " FAILED\n");
 				md2->error = true; // prevent endless fail
 				return false;
 			}
+		}
+		if (!md2->meshVBOs)
+		{
+			HWD.pfnCreateModelVBOs(md2->model);
+			md2->meshVBOs = true;
 		}
 
 		// Lactozilla: Disallow certain models from rendering
@@ -607,7 +609,7 @@ boolean HWR_DrawModel(gr_vissprite_t *spr)
 		gpatch = md2->grpatch;
 		if (!gpatch || !gpatch->mipmap->grInfo.format || !gpatch->mipmap->downloaded)
 		{
-			if (Model_LoadTexture(md2))
+			if (Model_LoadTexture(md2, -1))
 			{
 				gpatch = md2->grpatch; // Load it again, because it isn't being loaded into gpatch after md2_loadtexture...
 				HWD.pfnSetTexture(gpatch->mipmap);

@@ -722,6 +722,16 @@ typedef struct
 } rotsprite_t;
 #endif/*ROTSPRITE*/
 
+#ifdef POLYRENDERER
+typedef struct
+{
+	INT16 width;
+	INT16 height;
+	UINT32 lumpnum;
+	UINT8 *data;
+} rsp_spritetexture_t;
+#endif
+
 typedef enum
 {
 	SRF_SINGLE      = 0,   // 0-angle for all rotations
@@ -776,6 +786,10 @@ typedef struct
 	// Lump to use for view angles 0-7/15.
 	lumpnum_t lumppat[16]; // lump number 16 : 16 wad : lump
 	size_t lumpid[16]; // id in the spriteoffset, spritewidth, etc. tables
+
+#ifdef POLYRENDERER
+	rsp_spritetexture_t rsp_texture[8];
+#endif
 
 	// Flip bits (1 = flip) to use for view angles 0-7/15.
 	UINT16 flip;

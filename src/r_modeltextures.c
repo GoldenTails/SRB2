@@ -16,6 +16,10 @@
 
 #include "r_modeltextures.h"
 
+#ifdef POLYRENDERER
+#include "polyrenderer/r_softpoly.h"
+#endif
+
 #ifdef HWRENDER
 #include "hardware/hw_md2.h"
 #endif
@@ -281,7 +285,7 @@ static RGBA_t *Model_PCXLoad(const char *filename, int *rwidth, int *rheight, in
 // Model_LoadTexture
 // Download a PNG or PCX texture for models.
 //
-boolean Model_LoadTexture(md2_t *model)
+boolean Model_LoadTexture(md2_t *model, INT32 skinnum)
 {
 	const char *filename = model->filename;
 
@@ -352,9 +356,48 @@ boolean Model_LoadTexture(md2_t *model)
 		}
 		return true;
 	}
-#else
-	(void)filename;
+	else
 #endif
+	{
+#ifdef POLYRENDERER
+		rsp_modeltexture_t *texture;
+		int w = 0, h = 0;
+		int size = 0;
+		RGBA_t *image;
+		RGBA_t *loadedimg;
+
+		// texture was already loaded
+		if (model->texture)
+			return true;
+
+		// make new texture
+		RSP_FreeModelTexture(model);
+		texture = Z_Calloc(sizeof *texture, PU_SOFTPOLY, &(model->texture));
+
+#ifdef HAVE_PNG
+		loadedimg = Model_PNGLoad(filename, &w, &h, &size);
+		if (!loadedimg)
+#endif
+		{
+			loadedimg = Model_PCXLoad(filename, &w, &h, &size);
+			if (!loadedimg)
+				return false;
+		}
+
+		Z_Malloc(size, PU_SOFTPOLY, &texture->data);
+
+		// copy texture
+		image = texture->data;
+		M_Memcpy(image, loadedimg, size);
+		Z_Free(loadedimg);
+
+		// load!
+		texture->width = (INT16)w;
+		texture->height = (INT16)h;
+		RSP_CreateModelTexture(model, 0, 0);
+		return true;
+#endif
+	}
 	return false;
 }
 
@@ -432,7 +475,49 @@ boolean Model_LoadBlendTexture(md2_t *model)
 			return true;
 		}
 	}
+	else
 #endif
+	{
+#ifdef POLYRENDERER
+		rsp_modeltexture_t *texture;
+		int w = 0, h = 0;
+		int size = 0;
+		RGBA_t *image;
+		RGBA_t *loadedimg;
+
+		// texture was already loaded
+		if (model->blendtexture)
+			return true;
+
+		// make new texture
+		RSP_FreeModelBlendTexture(model);
+		texture = Z_Calloc(sizeof *texture, PU_SOFTPOLY, &(model->blendtexture));
+
+#ifdef HAVE_PNG
+		loadedimg = Model_PNGLoad(filename, &w, &h, &size);
+		if (!loadedimg)
+#endif
+		{
+			loadedimg = Model_PCXLoad(filename, &w, &h, &size);
+			if (!loadedimg)
+			{
+				Z_Free(filename);
+				return false;
+			}
+		}
+
+		Z_Malloc(size, PU_SOFTPOLY, &texture->data);
+
+		// copy texture
+		image = texture->data;
+		M_Memcpy(image, loadedimg, size);
+		Z_Free(loadedimg);
+
+		texture->width = (INT16)w;
+		texture->height = (INT16)h;
+		return true;
+#endif
+	}
 
 	Z_Free(filename);
 	return false;

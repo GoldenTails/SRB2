@@ -39,6 +39,10 @@ void R_AddSpriteDefs(UINT16 wadnum);
 // vars for R_DrawMaskedColumn
 extern INT16 *mfloorclip;
 extern INT16 *mceilingclip;
+#ifdef POLYRENDERER
+extern INT16 *rsp_mfloorclip;
+extern INT16 *rsp_mceilingclip;
+#endif
 extern fixed_t spryscale;
 extern fixed_t sprtopscreen;
 extern fixed_t sprbotscreen;
@@ -134,6 +138,11 @@ typedef struct vissprite_s
 	struct vissprite_s *linkdraw;
 
 	mobj_t *mobj; // for easy access
+#ifdef POLYRENDERER
+	spritenum_t spritenum;
+	void *skin;
+	boolean model;
+#endif
 
 	INT32 x1, x2;
 
@@ -180,6 +189,12 @@ typedef struct vissprite_s
 	INT16 clipbot[MAXVIDWIDTH], cliptop[MAXVIDWIDTH];
 
 	INT32 dispoffset; // copy of info->dispoffset, affects ordering but not drawing
+
+#ifdef POLYRENDERER
+	fixed_t viewx, viewy, viewz;
+	angle_t viewangle, aimingangle;
+	fixed_t viewcos, viewsin;
+#endif
 } vissprite_t;
 
 extern UINT32 visspritecount;

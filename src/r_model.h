@@ -18,6 +18,17 @@
 extern consvar_t cv_models;
 extern consvar_t cv_modelinterpolation;
 
+#ifdef POLYRENDERER
+extern consvar_t cv_texturemapping;
+enum
+{
+	TEXMAP_FIXED = 1,
+	TEXMAP_FLOAT,
+};
+#endif
+
+#define USE_MODEL_NEXTFRAME
+
 typedef struct
 {
 	float x, y, z;
@@ -103,17 +114,24 @@ typedef struct model_s
 
 typedef struct
 {
-	char        filename[32];
-	float       scale;
-	float       offset;
-	model_t     *model;
+	char            filename[32];
+	float           scale;
+	float           offset;
+	model_t         *model;
+	boolean         meshVBOs;
 #ifdef HWRENDER
-	void        *grpatch;
-	void        *blendgrpatch;
+	void            *grpatch;
+	void            *blendgrpatch;
 #endif
-	boolean     notfound;
-	INT32       skin;
-	boolean     error;
+#ifdef POLYRENDERER
+	void            *texture;
+	void            *blendtexture;
+	rsp_texture_t   rsp_tex;
+	rsp_texture_t   rsp_blendtex[MAXTRANSLATIONS][7];
+#endif
+	boolean         notfound;
+	INT32           skin;
+	boolean         error;
 } md2_t;
 
 extern md2_t md2_models[NUMSPRITES];

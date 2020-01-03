@@ -80,6 +80,10 @@ int	snprintf(char *str, size_t n, const char *fmt, ...);
 #include "config.h.in"
 #endif
 
+#ifdef POLYRENDERER
+#include "polyrenderer/r_softpoly.h"
+#endif
+
 #ifdef HWRENDER
 #include "hardware/hw_main.h" // 3D View Rendering
 #endif

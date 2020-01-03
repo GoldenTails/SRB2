@@ -238,6 +238,8 @@ set(SRB2_CONFIG_HAVE_OPENMPT ON CACHE BOOL
 	"Enable OpenMPT support.")
 set(SRB2_CONFIG_HWRENDER ON CACHE BOOL
 	"Enable hardware rendering through OpenGL.")
+set(SRB2_CONFIG_POLYRENDERER ON CACHE BOOL
+	"Enable model rendering in software mode.")
 set(SRB2_CONFIG_USEASM OFF CACHE BOOL
 	"Enable NASM tmap implementation for software mode speedup.")
 set(SRB2_CONFIG_YASM OFF CACHE BOOL
@@ -457,6 +459,23 @@ if(${SRB2_CONFIG_HWRENDER})
 
 	set(SRB2_R_OPENGL_HEADERS
 		${CMAKE_CURRENT_SOURCE_DIR}/hardware/r_opengl/r_opengl.h
+	)
+
+endif()
+
+if(${SRB2_CONFIG_POLYRENDERER})
+	add_definitions(-DSPOLYRENDERER)
+	set(SRB2_POLYRENDERER_SOURCES
+		${CMAKE_CURRENT_SOURCE_DIR}/polyrenderer/r_softpoly.c
+		${CMAKE_CURRENT_SOURCE_DIR}/polyrenderer/rsp_draw.c
+		${CMAKE_CURRENT_SOURCE_DIR}/polyrenderer/rsp_math.c
+		${CMAKE_CURRENT_SOURCE_DIR}/polyrenderer/rsp_model.c
+		${CMAKE_CURRENT_SOURCE_DIR}/polyrenderer/rsp_spans.c
+		${CMAKE_CURRENT_SOURCE_DIR}/polyrenderer/rsp_tris.c
+	)
+
+	set (SRB2_POLYRENDERER_HEADERS
+		${CMAKE_CURRENT_SOURCE_DIR}/polyrenderer/r_softpoly.h
 	)
 
 endif()

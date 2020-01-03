@@ -17,6 +17,29 @@
 #include "r_defs.h"
 #include "doomdef.h"
 
+#ifdef POLYRENDERER
+typedef struct
+{
+	INT16 width;
+	INT16 height;
+	UINT8 *data;
+} rsp_texture_t;
+
+// md2
+typedef struct
+{
+	INT16 width;
+	INT16 height;
+	void *data;
+} rsp_modeltexture_t;
+
+void RSP_GenerateTexture(patch_t *patch, UINT8 *buffer,
+						INT32 x, INT32 y,
+						INT32 maxwidth, INT32 maxheight,
+						boolean flip,
+						UINT8 *colormap, UINT8 *translation);
+#endif
+
 // Structs
 typedef enum
 {

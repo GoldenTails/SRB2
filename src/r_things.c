@@ -32,6 +32,11 @@
 #include "p_slopes.h"
 #include "d_netfil.h" // blargh. for nameonly().
 #include "m_cheat.h" // objectplace
+
+#ifdef POLYRENDERER
+#include "polyrenderer/r_softpoly.h"
+#endif
+
 #ifdef HWRENDER
 #include "hardware/hw_md2.h"
 #include "hardware/hw_glob.h"
@@ -104,6 +109,41 @@ static void R_InstallSpriteLump(UINT16 wad,            // graphics patch
 	if (maxframe ==(size_t)-1 || frame > maxframe)
 		maxframe = frame;
 
+#ifdef POLYRENDERER
+	{
+		UINT8 rot = (rotation != 0) ? (rotation-1) : 0;
+		patch_t *patch;
+		rsp_spritetexture_t *tex = &sprtemp[frame].rsp_texture[rot];
+		INT32 blockwidth, blockheight;
+
+		if (R_CheckIfPatch(lumppat))
+		{
+			patch = (patch_t *)W_CacheLumpNumPwad(wad, lump, PU_STATIC);
+
+			// size up to nearest power of 2
+			blockwidth = 1;
+			blockheight = 1;
+			while (blockwidth < SHORT(patch->width))
+				blockwidth <<= 1;
+			while (blockheight < SHORT(patch->height))
+				blockheight <<= 1;
+
+			tex->width = blockwidth;
+			tex->height = blockheight;
+			tex->lumpnum = lumppat;
+			tex->data = NULL;
+
+			Z_Free(patch);
+		}
+		else
+		{
+			// not even a patch
+			tex->width = -1;
+			tex->height = -1;
+		}
+	}
+#endif
+
 	// rotsprite
 #ifdef ROTSPRITE
 	sprtemp[frame].rotsprite.cached = 0;
@@ -127,6 +167,10 @@ static void R_InstallSpriteLump(UINT16 wad,            // graphics patch
 		{
 			sprtemp[frame].lumppat[r] = lumppat;
 			sprtemp[frame].lumpid[r] = lumpid;
+#ifdef POLYRENDERER
+			if (r > 0)
+				sprtemp[frame].rsp_texture[r] = sprtemp[frame].rsp_texture[0];
+#endif
 		}
 		sprtemp[frame].flip = flipped ? 0xFFFF : 0; // 1111111111111111 in binary
 		return;
@@ -595,6 +639,10 @@ static vissprite_t *R_NewVisSprite(void)
 //
 INT16 *mfloorclip;
 INT16 *mceilingclip;
+#ifdef POLYRENDERER
+INT16 *rsp_mfloorclip;
+INT16 *rsp_mceilingclip;
+#endif
 
 fixed_t spryscale = 0, sprtopscreen = 0, sprbotscreen = 0;
 fixed_t windowtop = 0, windowbottom = 0;
@@ -1347,7 +1395,16 @@ static void R_ProjectSprite(mobj_t *thing)
 	fixed_t tx, tz;
 	fixed_t xscale, yscale, sortscale; //added : 02-02-98 : aaargll..if I were a math-guy!!!
 
+#ifdef POLYRENDERER
+	boolean model;
+	skin_t *skin;
+	md2_t *md2;
+#endif
+
 	INT32 x1, x2;
+	boolean checkvisible = true;
+	boolean checkzvisible = true;
+	boolean checksides = true;
 
 	spritedef_t *sprdef;
 	spriteframe_t *sprframe;
@@ -1390,6 +1447,20 @@ static void R_ProjectSprite(mobj_t *thing)
 #ifdef ROTSPRITE
 	patch_t *rotsprite = NULL;
 	INT32 rollangle = 0;
+#endif
+
+#ifdef POLYRENDERER
+	skin = (skin_t *)thing->skin;
+	md2 = RSP_ModelAvailable(thing->sprite, skin);
+
+	model = (cv_models.value && md2);
+	frustumclipping = false;
+
+	if (model)
+	{
+		checkvisible = false;
+		papersprite = false;
+	}
 #endif
 
 	// transform the origin point
@@ -1645,14 +1716,14 @@ static void R_ProjectSprite(mobj_t *thing)
 		x1 = (centerxfrac + FixedMul(tx,xscale))>>FRACBITS;
 
 		// off the right side?
-		if (x1 > viewwidth)
+		if (checkvisible && (x1 > viewwidth))
 			return;
 
 		tx += offset2;
 		x2 = ((centerxfrac + FixedMul(tx,xscale))>>FRACBITS); x2--;
 
 		// off the left side
-		if (x2 < 0)
+		if (checkvisible && (x2 < 0))
 			return;
 	}
 
@@ -1672,8 +1743,14 @@ static void R_ProjectSprite(mobj_t *thing)
 		tz = gxt-gyt;
 		linkscale = FixedDiv(projectiony, tz);
 
+		// thing is behind view plane?
 		if (tz < FixedMul(MINZ, this_scale))
-			return;
+		{
+			if (checkzvisible)
+				return;
+			else
+				tz = FixedMul(MINZ, this_scale);
+		}
 
 		if (sortscale < linkscale)
 			dispoffset *= -1; // if it's physically behind, make sure it's ordered behind (if dispoffset > 0)
@@ -1779,6 +1856,13 @@ static void R_ProjectSprite(mobj_t *thing)
 	vis->shear.offset = 0;
 
 	vis->mobj = thing; // Easy access! Tails 06-07-2002
+#ifdef POLYRENDERER
+	vis->spritenum = thing->sprite;
+	vis->skin = thing->skin;
+	vis->model = model;
+	if (model)
+		modelinview = true;
+#endif
 
 	vis->x1 = x1 < portalclipstart ? portalclipstart : x1;
 	vis->x2 = x2 >= portalclipend ? portalclipend-1 : x2;
@@ -1862,6 +1946,10 @@ static void R_ProjectSprite(mobj_t *thing)
 
 	if (oldthing->shadowscale && cv_shadow.value)
 		R_ProjectDropShadow(oldthing, vis, oldthing->shadowscale, basetx, tz);
+
+#ifdef POLYRENDERER
+	RSP_StoreSpriteViewpoint(vis);
+#endif
 
 	// Debug
 	++objectsdrawn;
@@ -2359,7 +2447,10 @@ static void R_CreateDrawNodes(maskcount_t* mask, drawnode_t* head, boolean temps
 	for (rover = vsprsortedhead.prev; rover != &vsprsortedhead; rover = rover->prev)
 	{
 		if (rover->szt > vid.height || rover->sz < 0)
-			continue;
+#ifdef POLYRENDERER
+			if (!rover->model)
+#endif
+				continue;
 
 		sintersect = (rover->x1 + rover->x2) / 2;
 
@@ -2483,11 +2574,18 @@ static void R_CreateDrawNodes(maskcount_t* mask, drawnode_t* head, boolean temps
 			}
 			else if (r2->sprite)
 			{
+#ifdef POLYRENDERER
+				if (r2->sprite->model || rover->model)
+					goto skip;
+#endif
 				if (r2->sprite->x1 > rover->x2 || r2->sprite->x2 < rover->x1)
 					continue;
 				if (r2->sprite->szt > rover->sz || r2->sprite->sz < rover->szt)
 					continue;
 
+#ifdef POLYRENDERER
+				skip:
+#endif
 				if (r2->sprite->sortscale > rover->sortscale
 				 || (r2->sprite->sortscale == rover->sortscale && r2->sprite->dispoffset > rover->dispoffset))
 				{
@@ -2573,7 +2671,18 @@ static void R_DrawSprite(vissprite_t *spr)
 {
 	mfloorclip = spr->clipbot;
 	mceilingclip = spr->cliptop;
+#ifdef POLYRENDERER
+	rsp_mfloorclip = mfloorclip;
+	rsp_mceilingclip = mceilingclip;
+	if (!spr->model)
+		R_DrawVisSprite(spr);
+	else if (!RSP_RenderModel(spr))
+#endif
 	R_DrawVisSprite(spr);
+#ifdef POLYRENDERER
+	rsp_mfloorclip = NULL;
+	rsp_mceilingclip = NULL;
+#endif
 }
 
 // Special drawer for precipitation sprites Tails 08-18-2002
@@ -2598,8 +2707,24 @@ void R_ClipSprites(drawseg_t* dsstart, portal_t* portal)
 		fixed_t		scale;
 		fixed_t		lowscale;
 		INT32		silhouette;
+#ifdef POLYRENDERER
+		boolean model = false;
+		INT32 ox1 = 0, ox2 = 0;
+#endif
 
 		spr = R_GetVisSprite(clippedvissprites);
+
+#ifdef POLYRENDERER
+		// Arkus: Yes, clip against the ENTIRE viewport.
+		// You don't know how big the model is!
+		// Lactozilla: Arkus is gay
+		if (spr->model)
+		{
+			model = true;
+			ox1 = spr->x1, ox2 = spr->x2;
+			spr->x1 = 0, spr->x2 = viewwidth;
+		}
+#endif
 
 		for (x = spr->x1; x <= spr->x2; x++)
 			spr->clipbot[x] = spr->cliptop[x] = -2;
@@ -2774,6 +2899,13 @@ void R_ClipSprites(drawseg_t* dsstart, portal_t* portal)
 
 		if (portal)
 		{
+#ifdef POLYRENDERER
+			if (model)
+			{
+				spr->x1 = portal->start;
+				spr->x2 = portal->end;
+			}
+#endif
 			for (x = spr->x1; x <= spr->x2; x++)
 			{
 				if (spr->clipbot[x] > portal->floorclip[x - portal->start])
@@ -2782,6 +2914,12 @@ void R_ClipSprites(drawseg_t* dsstart, portal_t* portal)
 					spr->cliptop[x] = portal->ceilingclip[x - portal->start];
 			}
 		}
+
+#ifdef POLYRENDERER
+		// Arkus: Restore column positions.
+		if (model)
+			spr->x1 = ox1, spr->x2 = ox2;
+#endif
 	}
 }
 

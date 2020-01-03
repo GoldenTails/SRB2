@@ -48,6 +48,10 @@
 #include "m_anigif.h"
 #include "md5.h"
 
+#ifdef POLYRENDERER
+#include "polyrenderer/r_softpoly.h"
+#endif
+
 #ifdef NETGAME_DEVMODE
 #define CV_RESTRICT CV_NETVAR
 #else

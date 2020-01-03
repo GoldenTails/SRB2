@@ -24,13 +24,33 @@
 #include "errno.h"
 #endif
 
+#ifdef POLYRENDERER
+#include "polyrenderer/r_softpoly.h"
+#endif
+
 md2_t md2_models[NUMSPRITES];
 md2_t md2_playermodels[MAXSKINS];
 
 static CV_PossibleValue_t modelinterpolation_cons_t[] = {{0, "Off"}, {1, "Sometimes"}, {2, "Always"}, {0, NULL}};
+#ifdef POLYRENDERER
+static CV_PossibleValue_t texturemapping_cons_t[] = {
+	{TEXMAP_FIXED, "Fixed-Point"},
+	{TEXMAP_FLOAT, "Floating-Point"},
+	{0, NULL}};
+static void CV_TextureMapping_OnChange(void);
+#endif
 
 consvar_t cv_models = {"models", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_modelinterpolation = {"modelinterpolation", "Sometimes", CV_SAVE, modelinterpolation_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+
+#ifdef POLYRENDERER
+consvar_t cv_texturemapping = {"texturemapping", "Floating-Point", CV_SAVE|CV_CALL, texturemapping_cons_t, CV_TextureMapping_OnChange, 0, NULL, NULL, 0, 0, NULL};
+
+static void CV_TextureMapping_OnChange(void)
+{
+	R_SetViewSize();
+}
+#endif
 
 // Loads the model. That's it.
 model_t *R_LoadModel(const char *filename)
@@ -70,8 +90,10 @@ void R_InitModels(void)
 	float scale, offset;
 
 	CONS_Printf("R_InitModels()...\n");
+
 	CV_RegisterVar(&cv_modelinterpolation);
 	CV_RegisterVar(&cv_models);
+	CV_RegisterVar(&cv_texturemapping);
 
 	for (s = 0; s < MAXSKINS; s++)
 	{

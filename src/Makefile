@@ -219,6 +219,14 @@ ifdef NO_IPV6
 endif
 endif
 
+ifdef NO_POLYRENDERER
+	OPTS+=-DNO_POLYRENDERER
+else
+	OPTS+=-DPOLYRENDERER
+	OBJS+=$(OBJDIR)/r_softpoly.o $(OBJDIR)/rsp_spans.o $(OBJDIR)/rsp_draw.o \
+		 $(OBJDIR)/rsp_math.o $(OBJDIR)/rsp_tris.o $(OBJDIR)/rsp_model.o
+endif
+
 ifdef NOHW
 	OPTS+=-DNOHW
 else
@@ -681,6 +689,9 @@ $(OBJDIR)/depend.dep:
 	-$(MKDIR) $(OBJDIR)
 	$(CC) $(CFLAGS) -MM *.c > $(OBJDIR)/depend.ped
 	$(CC) $(CFLAGS) -MM $(INTERFACE)/*.c >> $(OBJDIR)/depend.ped
+ifndef NO_POLYRENDERER
+	$(CC) $(CFLAGS) -MM polyrenderer/*.c >> $(OBJDIR)/depend.ped
+endif
 ifndef NOHW
 	$(CC) $(CFLAGS) -MM hardware/*.c >> $(OBJDIR)/depend.ped
 endif
@@ -711,6 +722,9 @@ ifdef MACOSX
 $(OBJDIR)/%.o: sdl/macosx/%.c
 	$(CC) $(CFLAGS) $(WFLAGS) -c $< -o $@
 endif
+
+$(OBJDIR)/%.o: polyrenderer/%.c
+	$(CC) $(CFLAGS) $(WFLAGS) -c $< -o $@
 
 $(OBJDIR)/%.o: hardware/%.c
 	$(CC) $(CFLAGS) $(WFLAGS) -c $< -o $@
