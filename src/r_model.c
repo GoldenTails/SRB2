@@ -98,7 +98,9 @@ void R_InitModels(void)
 
 	CV_RegisterVar(&cv_modelinterpolation);
 	CV_RegisterVar(&cv_models);
+#ifdef POLYRENDERER
 	CV_RegisterVar(&cv_texturemapping);
+#endif
 
 	for (s = 0; s < MAXSKINS; s++)
 	{
