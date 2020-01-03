@@ -466,10 +466,10 @@ boolean RSP_RenderModel(vissprite_t *spr)
 			triangle.flipped = vflip;
 
 			// set model angle
-			if (mobj->player)
-				ang = mobj->player->drawangle;
-			else if ((sprframe->rotate == SRF_SINGLE) && (!papersprite))
+			if ((sprframe->rotate == SRF_SINGLE) && (!papersprite))
 				ang = (R_PointToAngle(mobj->x, mobj->y) - ANGLE_180);
+			else if (mobj->player)
+				ang = mobj->player->drawangle;
 			else
 				ang = mobj->angle;
 
