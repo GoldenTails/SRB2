@@ -28,6 +28,10 @@ enum
 #endif
 
 #define USE_MODEL_NEXTFRAME
+#define MODEL_INTERPOLATION_FLAG "+i"
+
+#define MODELSFOLDER "models"
+#define MODELSFILE "models.dat"
 
 typedef struct
 {
@@ -83,8 +87,6 @@ typedef struct tag_s
 	char name[64];
 //	matrix_t transform;
 } tag_t;
-
-#define MODEL_INTERPOLATION_FLAG "+i"
 
 typedef struct
 {

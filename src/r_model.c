@@ -121,11 +121,11 @@ void R_InitModels(void)
 
 	// read the models.dat file
 	//Filename checking fixed ~Monster Iestyn and Golden
-	f = fopen(va("%s"PATHSEP"%s", srb2home, "models.dat"), "rt");
+	f = fopen(va("%s"PATHSEP"%s", srb2home, MODELSFILE), "rt");
 
 	if (!f)
 	{
-		CONS_Printf("%s %s\n", M_GetText("Error while loading models.dat:"), strerror(errno));
+		CONS_Printf("%s %s\n", M_GetText("Error while loading "MODELSFILE":"), strerror(errno));
 		nomd2s = true;
 		return;
 	}
@@ -133,7 +133,7 @@ void R_InitModels(void)
 	{
 		if (stricmp(name, "PLAY") == 0)
 		{
-			CONS_Printf("Model for sprite PLAY detected in models.dat, use a player skin instead!\n");
+			CONS_Printf("Model for sprite PLAY detected in "MODELSFILE", use a player skin instead!\n");
 			continue;
 		}
 
@@ -167,7 +167,7 @@ void R_InitModels(void)
 			}
 		}
 		// no sprite/player skin name found?!?
-		//CONS_Printf("Unknown sprite/player skin %s detected in models.dat\n", name);
+		//CONS_Printf("Unknown sprite/player skin %s detected in "MODELSFILE"\n", name);
 md2found:
 		// move on to next line...
 		continue;
@@ -188,11 +188,11 @@ void R_AddPlayerModel(int skin) // For skins that were added after startup
 
 	// read the models.dat file
 	//Filename checking fixed ~Monster Iestyn and Golden
-	f = fopen(va("%s"PATHSEP"%s", srb2home, "models.dat"), "rt");
+	f = fopen(va("%s"PATHSEP"%s", srb2home, MODELSFILE), "rt");
 
 	if (!f)
 	{
-		CONS_Printf("Error while loading models.dat\n");
+		CONS_Printf("Error while loading "MODELSFILE"\n");
 		nomd2s = true;
 		return;
 	}
@@ -233,11 +233,11 @@ void R_AddSpriteModel(size_t spritenum) // For sprites that were added after sta
 
 	// Read the models.dat file
 	//Filename checking fixed ~Monster Iestyn and Golden
-	f = fopen(va("%s"PATHSEP"%s", srb2home, "models.dat"), "rt");
+	f = fopen(va("%s"PATHSEP"%s", srb2home, MODELSFILE), "rt");
 
 	if (!f)
 	{
-		CONS_Printf("Error while loading models.dat\n");
+		CONS_Printf("Error while loading "MODELSFILE"\n");
 		nomd2s = true;
 		return;
 	}
@@ -436,7 +436,7 @@ md2_t *Model_IsAvailable(spritenum_t spritenum, skin_t *skin)
 
 	if (!md2->model)
 	{
-		sprintf(filename, "models/%s", md2->filename);
+		sprintf(filename, MODELSFOLDER"/%s", md2->filename);
 		md2->model = R_LoadModel(filename);
 
 		if (!md2->model)

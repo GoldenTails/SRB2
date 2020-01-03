@@ -86,7 +86,7 @@ static RGBA_t *Model_PNGLoad(const char *filename, int *rwidth, int *rheight, in
 #endif
 	png_FILE_p png_FILE;
 	//Filename checking fixed ~Monster Iestyn and Golden
-	char *pngfilename = va("%s"PATHSEP"models"PATHSEP"%s", srb2home, filename);
+	char *pngfilename = va("%s"PATHSEP MODELSFOLDER PATHSEP"%s", srb2home, filename);
 
 	FIL_ForceExtension(pngfilename, ".png");
 	png_FILE = fopen(pngfilename, "rb");
@@ -221,7 +221,7 @@ static RGBA_t *Model_PCXLoad(const char *filename, int *rwidth, int *rheight, in
 	INT32 ch, rep;
 	FILE *file;
 	//Filename checking fixed ~Monster Iestyn and Golden
-	char *pcxfilename = va("%s"PATHSEP"models"PATHSEP"%s", srb2home, filename);
+	char *pcxfilename = va("%s"PATHSEP MODELSFOLDER PATHSEP"%s", srb2home, filename);
 
 	FIL_ForceExtension(pcxfilename, ".pcx");
 	file = fopen(pcxfilename, "rb");
