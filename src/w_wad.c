@@ -867,12 +867,10 @@ void W_InitFileCache(wadfile_t *wadfile, UINT16 numlumps)
 	wadfile->patchcache = Z_Calloc(sizeof(patchcache_t), PU_STATIC, NULL);
 	Z_Calloc(numlumps * sizeof (*wadfile->patchcache->lumps), PU_STATIC, &wadfile->patchcache->lumps);
 #ifdef POLYRENDERER
-	Z_Calloc(numlumps * sizeof (*wadfile->patchcache->rspcache), PU_SOFTPOLY, &wadfile->patchcache->rspcache);
+	Z_Calloc(numlumps * sizeof (*wadfile->patchcache->software), PU_SOFTPOLY, &wadfile->patchcache->software);
 #endif
-
 #ifdef HWRENDER
-	// allocates GLPatch info structures and store them in a tree
-	wadfile->hwrcache = M_AATreeAlloc(AATREE_ZUSER);
+	Z_Calloc(numlumps * sizeof (*wadfile->patchcache->hardware), PU_STATIC, &wadfile->patchcache->hardware);
 #endif
 }
 

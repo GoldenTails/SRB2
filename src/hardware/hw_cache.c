@@ -775,15 +775,8 @@ void HWR_InitTextureCache(void)
 }
 
 // Callback function for HWR_FreeTextureCache.
-static void FreeMipmapColormap(INT32 patchnum, void *patch)
+static void FreeMipmapColormap(GLPatch_t *pat)
 {
-	GLPatch_t* const pat = patch;
-	(void)patchnum; //unused
-
-	// The patch must be valid, obviously
-	if (!pat)
-		return;
-
 	// The mipmap must be valid, obviously
 	while (pat->mipmap)
 	{
@@ -816,7 +809,7 @@ static void FreeMipmapColormap(INT32 patchnum, void *patch)
 
 void HWR_FreeMipmapCache(void)
 {
-	INT32 i;
+	INT32 i, j;
 
 	// free references to the textures
 	HWD.pfnClearMipMapCache();
@@ -829,7 +822,20 @@ void HWR_FreeMipmapCache(void)
 	// Alam: free the Z_Blocks before freeing it's users
 	// free all patch colormaps after each level: must be done after ClearMipMapCache!
 	for (i = 0; i < numwadfiles; i++)
-		M_AATreeIterate(wadfiles[i]->hwrcache, FreeMipmapColormap);
+	{
+		lumpcache_t *lumpcache;
+		if (!wadfiles[i]->patchcache)
+			continue;
+
+		lumpcache = wadfiles[i]->patchcache->hardware;
+
+		for (j = 0; j < wadfiles[i]->numlumps; j++)
+		{
+			GLPatch_t *grpatch = lumpcache[j];
+			if (grpatch)
+				FreeMipmapColormap(grpatch);
+		}
+	}
 }
 
 void HWR_FreeTextureCache(void)
@@ -1304,16 +1310,15 @@ GLPatch_t *HWR_GetPic(lumpnum_t lumpnum)
 
 GLPatch_t *HWR_GetCachedGLPatchPwad(UINT16 wadnum, UINT16 lumpnum)
 {
-	aatree_t *hwrcache = wadfiles[wadnum]->hwrcache;
+	lumpcache_t *lumpcache = wadfiles[wadnum]->patchcache->hardware;
 	GLPatch_t *grpatch;
 
-	if (!(grpatch = M_AATreeGet(hwrcache, lumpnum)))
+	if (!(grpatch = lumpcache[lumpnum]))
 	{
-		grpatch = Z_Calloc(sizeof(GLPatch_t), PU_HWRPATCHINFO, NULL);
+		grpatch = Z_Calloc(sizeof(GLPatch_t), PU_HWRPATCHINFO, &lumpcache[lumpnum]);
 		grpatch->wadnum = wadnum;
 		grpatch->lumpnum = lumpnum;
 		grpatch->mipmap = Z_Calloc(sizeof(GLMipmap_t), PU_HWRPATCHINFO, NULL);
-		M_AATreeSet(hwrcache, lumpnum, grpatch);
 	}
 
 	return grpatch;

@@ -109,7 +109,7 @@ static void R_InstallSpriteLump(UINT16 wad,            // graphics patch
 		rsp_spritetexture_t *tex;
 		INT32 blockwidth, blockheight;
 
-		lumpcache_t *lumpcache = wadfiles[wad]->patchcache->rspcache;
+		lumpcache_t *lumpcache = wadfiles[wad]->patchcache->software;
 		if (!lumpcache[lump])
 			Z_Malloc(sizeof(rsp_spritetexture_t) * 8, PU_SOFTPOLY, &lumpcache[lump]);
 		tex = lumpcache[lump];

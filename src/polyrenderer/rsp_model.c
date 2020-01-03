@@ -207,7 +207,7 @@ boolean RSP_RenderModel(vissprite_t *spr)
 			lumpnum = sprframe->lumppat[rot];
 			wad = WADFILENUM(lumpnum);
 			lump = LUMPNUM(lumpnum);
-			lumpcache = wadfiles[wad]->patchcache->rspcache;
+			lumpcache = wadfiles[wad]->patchcache->software;
 			if (!lumpcache[lump])
 			{
 				RESETVIEW
