@@ -14,6 +14,8 @@
 #include "doomdata.h"
 #include "doomstat.h"
 
+#include "r_modeltextures.h"
+
 #ifdef HWRENDER
 #include "hardware/hw_md2.h"
 #endif
@@ -50,11 +52,13 @@
 
 static void Model_PNGError(png_structp PNG, png_const_charp pngtext)
 {
+	(void)PNG;
 	CONS_Debug(DBG_RENDER, "Model_PNGError: %s", pngtext);
 }
 
 static void Model_PNGWarning(png_structp PNG, png_const_charp pngtext)
 {
+	(void)PNG;
 	CONS_Debug(DBG_RENDER, "Model_PNGWarning: %s", pngtext);
 }
 
