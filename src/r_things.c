@@ -1903,10 +1903,10 @@ static void R_ProjectSprite(mobj_t *thing)
 		vis->xiscale = iscale;
 	}
 
-	if (vis->projx1 > x1)
+	if (vis->projx1 > projx1)
 	{
-		vis->startfrac += FixedDiv(vis->xiscale, this_scale)*(vis->x1-x1);
-		vis->scale += scalestep*(vis->x1 - x1);
+		vis->startfrac += FixedDiv(vis->xiscale, this_scale)*(vis->projx1-projx1);
+		vis->scale += scalestep*(vis->projx1 - projx1);
 	}
 
 	//Fab: lumppat is the lump number of the patch to use, this is different
