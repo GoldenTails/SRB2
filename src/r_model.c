@@ -418,7 +418,7 @@ md2_t *Model_IsAvailable(spritenum_t spritenum, skin_t *skin)
 	if ((unsigned)spritenum >= NUMSPRITES || (unsigned)spritenum == SPR_NULL)
 		return NULL;
 
-	if (skin) // Use the player MD2 list if the mobj has a skin and is using the player sprites
+	if (skin && spritenum == SPR_PLAY) // Use the player model list if the mobj has a skin and is using the player sprites
 	{
 		md2 = &md2_playermodels[skin-skins];
 		md2->skin = skin-skins;
