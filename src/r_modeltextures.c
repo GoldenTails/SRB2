@@ -22,6 +22,7 @@
 
 #ifdef HWRENDER
 #include "hardware/hw_md2.h"
+#include "hardware/hw_glide.h"
 #endif
 
 #include "d_main.h"
@@ -257,7 +258,7 @@ static RGBA_t *Model_PCXLoad(const char *filename, int *rwidth, int *rheight, in
 	size = pw * ph;
 	while (ptr < size)
 	{
-		ch = fgetc(file); // :hurdlerDISGUST:
+		ch = fgetc(file);
 		if (ch >= 192)
 		{
 			rep = ch - 192;
@@ -287,57 +288,99 @@ static RGBA_t *Model_PCXLoad(const char *filename, int *rwidth, int *rheight, in
 //
 boolean Model_LoadTexture(md2_t *model, INT32 skinnum)
 {
+	modeltexturedata_t *texture = NULL;
 	const char *filename = model->filename;
+	int w = 0, h = 0;
+	int size = 0;
+	RGBA_t *image;
+	RGBA_t *loadedimg;
+#ifdef HWRENDER
+	GLPatch_t *grpatch = NULL;
+#endif
 
+	// make new texture
+	if (!model->texture->base)
+		texture = Z_Calloc(sizeof *texture, PU_STATIC, &(model->texture->base));
+	else
+		texture = model->texture->base;
+
+#ifdef POLYRENDERER
+	if (rendermode == render_soft)
+		RSP_FreeModelTexture(model);
+	else
+#endif
 #ifdef HWRENDER
 	if (rendermode == render_opengl)
 	{
-		GLPatch_t *grpatch;
-
-		if (model->grpatch)
+		if (model->texture->grpatch)
 		{
-			grpatch = model->grpatch;
+			grpatch = model->texture->grpatch;
 			Z_Free(grpatch->mipmap->grInfo.data);
 		}
 		else
 		{
 			grpatch = Z_Calloc(sizeof *grpatch, PU_HWRPATCHINFO,
-							   &(model->grpatch));
+							   &(model->texture->grpatch));
 			grpatch->mipmap = Z_Calloc(sizeof (GLMipmap_t), PU_HWRPATCHINFO, NULL);
 		}
+	}
+#endif
 
+	// load texture
+	if (!texture->data)
+	{
+#ifdef HAVE_PNG
+		loadedimg = Model_PNGLoad(filename, &w, &h, &size);
+		if (!loadedimg)
+#endif
+		{
+			loadedimg = Model_PCXLoad(filename, &w, &h, &size);
+			if (!loadedimg)
+				return false;
+		}
+
+		Z_Calloc(size, PU_STATIC, &texture->data);
+
+		// copy texture
+		image = texture->data;
+		M_Memcpy(image, loadedimg, size);
+		Z_Free(loadedimg);
+
+		texture->width = (INT16)w;
+		texture->height = (INT16)h;
+		texture->size = size;
+	}
+
+	// copy texture into renderer memory
+#ifdef POLYRENDERER
+	if (rendermode == render_soft)
+	{
+		// create base texture
+		RSP_CreateModelTexture(model, 0, 0);
+		return true;
+	}
+#endif
+
+#ifdef HWRENDER
+	if (rendermode == render_opengl)
+	{
 		if (!grpatch->mipmap->downloaded && !grpatch->mipmap->grInfo.data)
 		{
-			int w = 0, h = 0;
-			int size = 0;
-			RGBA_t *image;
-			RGBA_t *loadedimg;
-
-#ifdef HAVE_PNG
-			loadedimg = Model_PNGLoad(filename, &w, &h, &size);
-			if (!loadedimg)
-#endif
-			{
-				loadedimg = Model_PCXLoad(filename, &w, &h, &size);
-				if (!loadedimg)
-					return false;
-			}
-
-			Z_Malloc(size, PU_HWRMODELTEXTURE, &grpatch->mipmap->grInfo.data);
+			// texture is RGBA, right??
+			Z_Calloc(texture->size, PU_HWRMODELTEXTURE, &grpatch->mipmap->grInfo.data);
 
 			// copy texture
 			image = grpatch->mipmap->grInfo.data;
-			M_Memcpy(image, loadedimg, size);
-			Z_Free(loadedimg);
+			M_Memcpy(image, texture->data, texture->size);
 
 			grpatch->mipmap->grInfo.format = GR_RGBA;
 			grpatch->mipmap->downloaded = 0;
 			grpatch->mipmap->flags = 0;
 
-			grpatch->width = (INT16)w;
-			grpatch->height = (INT16)h;
-			grpatch->mipmap->width = (UINT16)w;
-			grpatch->mipmap->height = (UINT16)h;
+			grpatch->width = (INT16)texture->width;
+			grpatch->height = (INT16)texture->height;
+			grpatch->mipmap->width = (UINT16)texture->width;
+			grpatch->mipmap->height = (UINT16)texture->height;
 
 			// Lactozilla: Apply colour cube
 			size = w*h;
@@ -356,48 +399,8 @@ boolean Model_LoadTexture(md2_t *model, INT32 skinnum)
 		}
 		return true;
 	}
-	else
 #endif
-	{
-#ifdef POLYRENDERER
-		rsp_modeltexture_t *texture;
-		int w = 0, h = 0;
-		int size = 0;
-		RGBA_t *image;
-		RGBA_t *loadedimg;
 
-		// texture was already loaded
-		if (model->texture)
-			return true;
-
-		// make new texture
-		RSP_FreeModelTexture(model);
-		texture = Z_Calloc(sizeof *texture, PU_SOFTPOLY, &(model->texture));
-
-#ifdef HAVE_PNG
-		loadedimg = Model_PNGLoad(filename, &w, &h, &size);
-		if (!loadedimg)
-#endif
-		{
-			loadedimg = Model_PCXLoad(filename, &w, &h, &size);
-			if (!loadedimg)
-				return false;
-		}
-
-		Z_Malloc(size, PU_SOFTPOLY, &texture->data);
-
-		// copy texture
-		image = texture->data;
-		M_Memcpy(image, loadedimg, size);
-		Z_Free(loadedimg);
-
-		// load!
-		texture->width = (INT16)w;
-		texture->height = (INT16)h;
-		RSP_CreateModelTexture(model, 0, 0);
-		return true;
-#endif
-	}
 	return false;
 }
 
@@ -407,92 +410,51 @@ boolean Model_LoadTexture(md2_t *model, INT32 skinnum)
 //
 boolean Model_LoadBlendTexture(md2_t *model)
 {
+	modeltexturedata_t *texture = NULL;
+	int w = 0, h = 0;
+	int size = 0;
+	RGBA_t *image;
+	RGBA_t *loadedimg;
+#ifdef HWRENDER
+	GLPatch_t *grpatch = NULL;
+#endif
+
+	// make filename
 	char *filename = Z_Malloc(strlen(model->filename)+7, PU_STATIC, NULL);
 	strcpy(filename, model->filename);
-
 	FIL_ForceExtension(filename, "_blend.png");
 
+	// make new texture
+	if (!model->texture->blend)
+		texture = Z_Calloc(sizeof *texture, PU_STATIC, &(model->texture->blend));
+	else
+		texture = model->texture->blend;
+
+#ifdef POLYRENDERER
+	if (rendermode == render_soft)
+		RSP_FreeModelBlendTexture(model);
+	else
+#endif
 #ifdef HWRENDER
 	if (rendermode == render_opengl)
 	{
-		GLPatch_t *grpatch;
-
-		if (model->blendgrpatch)
+		if (model->texture->blendgrpatch)
 		{
-			grpatch = model->blendgrpatch;
+			grpatch = model->texture->blendgrpatch;
 			Z_Free(grpatch->mipmap->grInfo.data);
 		}
 		else
 		{
 			grpatch = Z_Calloc(sizeof *grpatch, PU_HWRPATCHINFO,
-							   &(model->blendgrpatch));
+							   &(model->texture->blendgrpatch));
 			grpatch->mipmap = Z_Calloc(sizeof (GLMipmap_t), PU_HWRPATCHINFO, NULL);
 		}
-
-		if (!grpatch->mipmap->downloaded && !grpatch->mipmap->grInfo.data)
-		{
-			int w = 0, h = 0;
-			int size = 0;
-			RGBA_t *image;
-			RGBA_t *loadedimg;
-
-#ifdef HAVE_PNG
-			loadedimg = Model_PNGLoad(filename, &w, &h, &size);
-			if (!loadedimg)
-#endif
-			{
-				loadedimg = Model_PCXLoad(filename, &w, &h, &size);
-				if (!loadedimg)
-				{
-					Z_Free(filename);
-					return false;
-				}
-			}
-
-			Z_Malloc(size, PU_HWRMODELTEXTURE, &grpatch->mipmap->grInfo.data);
-
-			// copy texture
-			image = grpatch->mipmap->grInfo.data;
-			M_Memcpy(image, loadedimg, size);
-			Z_Free(loadedimg);
-
-			grpatch->mipmap->grInfo.format = GR_RGBA;
-			grpatch->mipmap->downloaded = 0;
-			grpatch->mipmap->flags = 0;
-
-			grpatch->width = (INT16)w;
-			grpatch->height = (INT16)h;
-			grpatch->mipmap->width = (UINT16)w;
-			grpatch->mipmap->height = (UINT16)h;
-
-#ifdef GLIDE_API_COMPATIBILITY
-			// not correct!
-			grpatch->mipmap->grInfo.smallLodLog2 = GR_LOD_LOG2_256;
-			grpatch->mipmap->grInfo.largeLodLog2 = GR_LOD_LOG2_256;
-			grpatch->mipmap->grInfo.aspectRatioLog2 = GR_ASPECT_LOG2_1x1;
-#endif
-
-			return true;
-		}
 	}
-	else
 #endif
+
+	// load texture
+	if (!texture->data)
 	{
-#ifdef POLYRENDERER
-		rsp_modeltexture_t *texture;
-		int w = 0, h = 0;
-		int size = 0;
-		RGBA_t *image;
-		RGBA_t *loadedimg;
-
-		// texture was already loaded
-		if (model->blendtexture)
-			return true;
-
-		// make new texture
-		RSP_FreeModelBlendTexture(model);
-		texture = Z_Calloc(sizeof *texture, PU_SOFTPOLY, &(model->blendtexture));
-
 #ifdef HAVE_PNG
 		loadedimg = Model_PNGLoad(filename, &w, &h, &size);
 		if (!loadedimg)
@@ -506,7 +468,7 @@ boolean Model_LoadBlendTexture(md2_t *model)
 			}
 		}
 
-		Z_Malloc(size, PU_SOFTPOLY, &texture->data);
+		Z_Calloc(size, PU_STATIC, &texture->data);
 
 		// copy texture
 		image = texture->data;
@@ -515,9 +477,52 @@ boolean Model_LoadBlendTexture(md2_t *model)
 
 		texture->width = (INT16)w;
 		texture->height = (INT16)h;
-		return true;
-#endif
+		texture->size = size;
 	}
+
+	// copy texture into renderer memory
+#ifdef POLYRENDERER
+	if (rendermode == render_soft)
+	{
+		// nothing to do here
+		Z_Free(filename);
+		return true;
+	}
+#endif
+
+#ifdef HWRENDER
+	if (rendermode == render_opengl)
+	{
+		if (!grpatch->mipmap->downloaded && !grpatch->mipmap->grInfo.data)
+		{
+			// texture is RGBA, right??
+			Z_Calloc(texture->size, PU_HWRMODELTEXTURE, &grpatch->mipmap->grInfo.data);
+
+			// copy texture
+			image = grpatch->mipmap->grInfo.data;
+			M_Memcpy(image, texture->data, texture->size);
+
+			grpatch->mipmap->grInfo.format = GR_RGBA;
+			grpatch->mipmap->downloaded = 0;
+			grpatch->mipmap->flags = 0;
+
+			grpatch->width = (INT16)texture->width;
+			grpatch->height = (INT16)texture->height;
+			grpatch->mipmap->width = (UINT16)texture->width;
+			grpatch->mipmap->height = (UINT16)texture->height;
+
+#ifdef GLIDE_API_COMPATIBILITY
+			// not correct!
+			grpatch->mipmap->grInfo.smallLodLog2 = GR_LOD_LOG2_256;
+			grpatch->mipmap->grInfo.largeLodLog2 = GR_LOD_LOG2_256;
+			grpatch->mipmap->grInfo.aspectRatioLog2 = GR_ASPECT_LOG2_1x1;
+#endif
+		}
+
+		Z_Free(filename);
+		return true;
+	}
+#endif
 
 	Z_Free(filename);
 	return false;

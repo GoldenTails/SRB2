@@ -823,12 +823,11 @@ boolean R_PNGDimensions(UINT8 *png, INT16 *width, INT16 *height, size_t size)
 #endif
 
 //
-// RSP_GenerateTexture
+// R_GenerateSpriteTexture
 //
 // Generate a texture for the polygon renderer.
 //
-#ifdef POLYRENDERER
-void RSP_GenerateTexture(patch_t *patch, UINT8 *buffer, INT32 x, INT32 y, INT32 maxwidth, INT32 maxheight, boolean flip, UINT8 *colormap, UINT8 *translation)
+void R_GenerateSpriteTexture(patch_t *patch, UINT8 *buffer, INT32 x, INT32 y, INT32 maxwidth, INT32 maxheight, boolean flip, UINT8 *colormap, UINT8 *translation)
 {
 	fixed_t col, ofs;
 	column_t *column;
@@ -885,7 +884,6 @@ void RSP_GenerateTexture(patch_t *patch, UINT8 *buffer, INT32 x, INT32 y, INT32 
 		}
 	}
 }
-#endif
 
 //
 // R_ParseSpriteInfoFrame

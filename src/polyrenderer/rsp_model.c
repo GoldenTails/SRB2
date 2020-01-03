@@ -78,6 +78,10 @@ md2_t *RSP_ModelAvailable(spritenum_t spritenum, skin_t *skin)
 		}
 	}
 
+	// Allocate texture data
+	if (!md2->texture)
+		md2->texture = Z_Calloc(sizeof(modeltexture_t), PU_STATIC, NULL);
+
 	return md2;
 }
 
@@ -136,21 +140,22 @@ boolean RSP_RenderModel(vissprite_t *spr)
 		UINT8 *translation = NULL;
 		boolean translationset = true;
 
+#define RESETVIEW { \
+	if (rsp_portalrender) \
+		RSP_RestoreViewpoint(); \
+}
+
 		md2 = RSP_ModelAvailable(spr->spritenum, (skin_t *)spr->skin);
 		if (!md2)
 		{
-			// restore previous viewpoint
-			if (rsp_portalrender)
-				RSP_RestoreViewpoint();
+			RESETVIEW
 			return false;
 		}
 
 		// Lactozilla: Disallow certain models from rendering
 		if (!Model_AllowRendering(mobj))
 		{
-			// restore previous viewpoint
-			if (rsp_portalrender)
-				RSP_RestoreViewpoint();
+			RESETVIEW
 			return false;
 		}
 
@@ -161,11 +166,12 @@ boolean RSP_RenderModel(vissprite_t *spr)
 			skincolor = (skincolors_t)skins[0].prefcolor;
 
 		// load normal texture
-		if (!md2->texture)
+		if (!md2->texture->rsp_tex.data)
 		{
 			if (mobj->skin && mobj->sprite == SPR_PLAY)
 				skinnum = (skin_t*)mobj->skin-skins;
 			Model_LoadTexture(md2, skinnum);
+			Model_LoadBlendTexture(md2);
 		}
 
 		// set translation
@@ -204,21 +210,17 @@ boolean RSP_RenderModel(vissprite_t *spr)
 			translationset = false;
 		}
 
-		// load blend texture
-		if (!md2->blendtexture)
-			Model_LoadBlendTexture(md2);
-
 		// load translated texture
 		if (tc < 0)
 			tc = -tc;
-		if (tc && md2->rsp_blendtex[skincolor][tc].data == NULL)
+		if (tc && md2->texture->rsp_blendtex[skincolor][tc].data == NULL)
 			RSP_CreateModelTexture(md2, tc, skincolor);
 
 		// use corresponding texture for this model
-		if (md2->rsp_blendtex[skincolor][tc].data != NULL)
-			texture = &md2->rsp_blendtex[skincolor][tc];
+		if (md2->texture->rsp_blendtex[skincolor][tc].data != NULL)
+			texture = &md2->texture->rsp_blendtex[skincolor][tc];
 		else
-			texture = &md2->rsp_tex;
+			texture = &md2->texture->rsp_tex;
 
 		if (mobj->skin && mobj->sprite == SPR_PLAY)
 			sprdef = &((skin_t *)mobj->skin)->sprites[mobj->sprite2];
@@ -232,6 +234,9 @@ boolean RSP_RenderModel(vissprite_t *spr)
 			unsigned rot;
 			angle_t ang;
 			UINT8 flip;
+			lumpcache_t *lumpcache;
+			lumpnum_t lumpnum;
+			UINT16 wad, lump;
 
 			if (sprframe->rotate != SRF_SINGLE || papersprite)
 				ang = R_PointToAngle (mobj->x, mobj->y) - (mobj->player ? mobj->player->drawangle : mobj->angle);
@@ -273,12 +278,21 @@ boolean RSP_RenderModel(vissprite_t *spr)
 			}
 
 			// get rsp_texture
-			sprtexp = &sprframe->rsp_texture[rot];
+			lumpnum = sprframe->lumppat[rot];
+			wad = WADFILENUM(lumpnum);
+			lump = LUMPNUM(lumpnum);
+			lumpcache = wadfiles[wad]->patchcache->rspcache;
+			if (!lumpcache[lump])
+			{
+				RESETVIEW
+				return false;
+			}
+
+			sprtexp = lumpcache[lump];
+			sprtexp += rot;
 			if (!sprtexp)
 			{
-				// restore previous viewpoint
-				if (rsp_portalrender)
-					RSP_RestoreViewpoint();
+				RESETVIEW
 				return false;
 			}
 
@@ -293,9 +307,7 @@ boolean RSP_RenderModel(vissprite_t *spr)
 				// uuhhh.....
 				if (!sprtexp->lumpnum)
 				{
-					// restore previous viewpoint
-					if (rsp_portalrender)
-						RSP_RestoreViewpoint();
+					RESETVIEW
 					return false;
 				}
 
@@ -303,9 +315,7 @@ boolean RSP_RenderModel(vissprite_t *spr)
 				// (R_CheckIfPatch has most likely failed)
 				if ((sprtexp->width) < 1 || (sprtexp->height < 1))
 				{
-					// restore previous viewpoint
-					if (rsp_portalrender)
-						RSP_RestoreViewpoint();
+					RESETVIEW
 					return false;
 				}
 
@@ -317,7 +327,7 @@ boolean RSP_RenderModel(vissprite_t *spr)
 				memset(sprtexp->data, TRANSPARENTPIXEL, sprtexp->width * sprtexp->height);
 
 				// generate the texture, then clear lumpnum
-				RSP_GenerateTexture(source, sprtexp->data, 0, 0, sprtexp->width, sprtexp->height, flip, NULL, NULL);
+				R_GenerateSpriteTexture(source, sprtexp->data, 0, 0, sprtexp->width, sprtexp->height, flip, NULL, NULL);
 				sprtexp->lumpnum = 0;
 
 				// aight bro u have lost yuor cache privileges
@@ -610,6 +620,7 @@ boolean RSP_RenderModel(vissprite_t *spr)
 	}
 
 #undef FIXTRIANGLE
+#undef RESETVIEW
 
 	RSP_ClearDepthBuffer();
 	return true;
@@ -689,8 +700,8 @@ static boolean BlendTranslations(UINT8 *px, RGBA_t *sourcepx, RGBA_t *blendpx, I
 
 void RSP_CreateModelTexture(md2_t *model, INT32 tcnum, INT32 skincolor)
 {
-	rsp_modeltexture_t *texture = model->texture;
-	rsp_modeltexture_t *blendtexture = model->blendtexture;
+	modeltexturedata_t *texture = model->texture->base;
+	modeltexturedata_t *blendtexture = model->texture->blend;
 	rsp_texture_t *ttex;
 	rsp_texture_t *ntex;
 	size_t i, size = 0;
@@ -710,8 +721,8 @@ void RSP_CreateModelTexture(md2_t *model, INT32 tcnum, INT32 skincolor)
 
 	if (tcnum < 0)
 		tcnum = -tcnum;
-	ttex = &model->rsp_blendtex[skincolor][tcnum];
-	ntex = &model->rsp_tex;
+	ttex = &model->texture->rsp_blendtex[skincolor][tcnum];
+	ntex = &model->texture->rsp_tex;
 
 	// base texture
 	if (!tcnum)
@@ -789,7 +800,7 @@ void RSP_CreateModelTexture(md2_t *model, INT32 tcnum, INT32 skincolor)
 				{
 					if (blendimage[i].s.alpha == 0)
 					{
-						ttex->data[i] = model->rsp_tex.data[i];
+						ttex->data[i] = ntex->data[i];
 						continue;
 					}
 					else
@@ -950,31 +961,29 @@ void RSP_CreateModelTexture(md2_t *model, INT32 tcnum, INT32 skincolor)
 
 void RSP_FreeModelTexture(md2_t *model)
 {
-	rsp_modeltexture_t *texture = model->texture;
-	model->rsp_tex.width = 1;
-	model->rsp_tex.height = 1;
+	modeltexturedata_t *texture = model->texture->base;
+	model->texture->rsp_tex.width = 1;
+	model->texture->rsp_tex.height = 1;
 
 	if (texture)
 	{
 		if (texture->data)
 			Z_Free(texture->data);
-		Z_Free(model->texture);
+		texture->data = NULL;
 	}
-	if (model->rsp_tex.data)
-		Z_Free(model->rsp_tex.data);
+	if (model->texture->rsp_tex.data)
+		Z_Free(model->texture->rsp_tex.data);
 
-	model->texture = NULL;
-	model->rsp_tex.data = NULL;
+	model->texture->rsp_tex.data = NULL;
 }
 
 void RSP_FreeModelBlendTexture(md2_t *model)
 {
-	rsp_modeltexture_t *blendtexture = model->blendtexture;
-	if (model->blendtexture)
+	modeltexturedata_t *blendtexture = model->texture->blend;
+	if (blendtexture)
 	{
 		if (blendtexture->data)
 			Z_Free(blendtexture->data);
-		Z_Free(model->blendtexture);
+		blendtexture->data = NULL;
 	}
-	model->blendtexture = NULL;
 }

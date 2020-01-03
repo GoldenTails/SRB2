@@ -593,6 +593,12 @@ boolean HWR_DrawModel(gr_vissprite_t *spr)
 				return false;
 			}
 		}
+
+		// Allocate texture data
+		if (!md2->texture)
+			md2->texture = Z_Calloc(sizeof(modeltexture_t), PU_STATIC, NULL);
+
+		// Create mesh VBOs
 		if (!md2->meshVBOs)
 		{
 			HWD.pfnCreateModelVBOs(md2->model);
@@ -606,21 +612,21 @@ boolean HWR_DrawModel(gr_vissprite_t *spr)
 		//HWD.pfnSetBlend(blend); // This seems to actually break translucency?
 		finalscale = md2->scale;
 		//Hurdler: arf, I don't like that implementation at all... too much crappy
-		gpatch = md2->grpatch;
+		gpatch = md2->texture->grpatch;
 		if (!gpatch || !gpatch->mipmap->grInfo.format || !gpatch->mipmap->downloaded)
 		{
 			if (Model_LoadTexture(md2, -1))
 			{
-				gpatch = md2->grpatch; // Load it again, because it isn't being loaded into gpatch after md2_loadtexture...
+				gpatch = md2->texture->grpatch; // Load it again, because it isn't loaded into gpatch after Model_LoadTexture...
 				HWD.pfnSetTexture(gpatch->mipmap);
 			}
 		}
 
 		if ((gpatch && gpatch->mipmap->grInfo.format) // don't load the blend texture if the base texture isn't available
-			&& (!md2->blendgrpatch || !((GLPatch_t *)md2->blendgrpatch)->mipmap->grInfo.format || !((GLPatch_t *)md2->blendgrpatch)->mipmap->downloaded))
+			&& (!md2->texture->blendgrpatch || !((GLPatch_t *)md2->texture->blendgrpatch)->mipmap->grInfo.format || !((GLPatch_t *)md2->texture->blendgrpatch)->mipmap->downloaded))
 		{
 			if (Model_LoadBlendTexture(md2))
-				HWD.pfnSetTexture(((GLPatch_t *)md2->blendgrpatch)->mipmap); // We do need to do this so that it can be cleared and knows to recreate it when necessary
+				HWD.pfnSetTexture(((GLPatch_t *)md2->texture->blendgrpatch)->mipmap); // We do need to do this so that it can be cleared and knows to recreate it when necessary
 		}
 
 		if (gpatch && gpatch->mipmap->grInfo.format) // else if meant that if a texture couldn't be loaded, it would just end up using something else's texture
@@ -656,7 +662,7 @@ boolean HWR_DrawModel(gr_vissprite_t *spr)
 			}
 
 			// Translation or skin number found
-			HWR_GetBlendedTexture(gpatch, (GLPatch_t *)md2->blendgrpatch, skinnum, spr->colormap, (skincolors_t)spr->mobj->color);
+			HWR_GetBlendedTexture(gpatch, (GLPatch_t *)md2->texture->blendgrpatch, skinnum, spr->colormap, (skincolors_t)spr->mobj->color);
 		}
 		else
 		{

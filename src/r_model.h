@@ -114,21 +114,34 @@ typedef struct model_s
 
 typedef struct
 {
+	INT16 width;
+	INT16 height;
+	size_t size;
+	void *data;
+} modeltexturedata_t;
+
+typedef struct
+{
+	modeltexturedata_t *base;
+	modeltexturedata_t *blend;
+#ifdef HWRENDER
+	void               *grpatch;
+	void               *blendgrpatch;
+#endif
+#ifdef POLYRENDERER
+	rsp_texture_t      rsp_tex;
+	rsp_texture_t      rsp_blendtex[MAXTRANSLATIONS][7];
+#endif
+} modeltexture_t;
+
+typedef struct
+{
 	char            filename[32];
 	float           scale;
 	float           offset;
 	model_t         *model;
 	boolean         meshVBOs;
-#ifdef HWRENDER
-	void            *grpatch;
-	void            *blendgrpatch;
-#endif
-#ifdef POLYRENDERER
-	void            *texture;
-	void            *blendtexture;
-	rsp_texture_t   rsp_tex;
-	rsp_texture_t   rsp_blendtex[MAXTRANSLATIONS][7];
-#endif
+	modeltexture_t  *texture;
 	boolean         notfound;
 	INT32           skin;
 	boolean         error;

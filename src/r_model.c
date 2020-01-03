@@ -99,7 +99,7 @@ void R_InitModels(void)
 	{
 		md2_playermodels[s].scale = -1.0f;
 		md2_playermodels[s].model = NULL;
-		md2_playermodels[s].grpatch = NULL;
+		md2_playermodels[s].texture = NULL;
 		md2_playermodels[s].skin = -1;
 		md2_playermodels[s].notfound = true;
 		md2_playermodels[s].error = false;
@@ -108,7 +108,7 @@ void R_InitModels(void)
 	{
 		md2_models[i].scale = -1.0f;
 		md2_models[i].model = NULL;
-		md2_models[i].grpatch = NULL;
+		md2_models[i].texture = NULL;
 		md2_models[i].skin = -1;
 		md2_models[i].notfound = true;
 		md2_models[i].error = false;
@@ -308,7 +308,7 @@ model_t *Model_Load(const char *filename, int ztag)
 		return NULL;
 	}
 
-	model->mdlFilename = (char*)Z_Malloc(strlen(filename)+1, ztag, 0);
+	model->mdlFilename = (char*)Z_Malloc(strlen(filename)+1, ztag, NULL);
 	strcpy(model->mdlFilename, filename);
 
 	Model_Optimize(model);

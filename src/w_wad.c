@@ -825,13 +825,7 @@ UINT16 W_InitFile(const char *filename, boolean mainfile, boolean startup)
 	//
 	// set up caching
 	//
-	Z_Calloc(numlumps * sizeof (*wadfile->lumpcache), PU_STATIC, &wadfile->lumpcache);
-	Z_Calloc(numlumps * sizeof (*wadfile->patchcache), PU_STATIC, &wadfile->patchcache);
-
-#ifdef HWRENDER
-	// allocates GLPatch info structures and store them in a tree
-	wadfile->hwrcache = M_AATreeAlloc(AATREE_ZUSER);
-#endif
+	W_InitFileCache(wadfile, numlumps);
 
 	//
 	// add the wadfile
@@ -862,6 +856,24 @@ UINT16 W_InitFile(const char *filename, boolean mainfile, boolean startup)
 
 	W_InvalidateLumpnumCache();
 	return wadfile->numlumps;
+}
+
+// Initialize lump cache.
+void W_InitFileCache(wadfile_t *wadfile, UINT16 numlumps)
+{
+	Z_Calloc(numlumps * sizeof (*wadfile->lumpcache), PU_STATIC, &wadfile->lumpcache);
+
+	// Init patch cache
+	Z_Calloc(sizeof (*wadfile->patchcache), PU_STATIC, &wadfile->patchcache);
+	Z_Calloc(numlumps * sizeof (*wadfile->patchcache->lumps), PU_STATIC, &wadfile->patchcache->lumps);
+#ifdef POLYRENDERER
+	Z_Calloc(numlumps * sizeof (*wadfile->patchcache->rspcache), PU_SOFTPOLY, &wadfile->patchcache->rspcache);
+#endif
+
+#ifdef HWRENDER
+	// allocates GLPatch info structures and store them in a tree
+	wadfile->hwrcache = M_AATreeAlloc(AATREE_ZUSER);
+#endif
 }
 
 /** Tries to load a series of files.
@@ -1606,7 +1618,7 @@ static inline boolean W_IsPatchCachedPWAD(UINT16 wad, UINT16 lump, void *ptr)
 	if (!TestValidLump(wad, lump))
 		return false;
 
-	lcache = wadfiles[wad]->patchcache[lump];
+	lcache = wadfiles[wad]->patchcache->lumps[lump];
 
 	if (ptr)
 	{
@@ -1672,7 +1684,7 @@ void *W_CacheSoftwarePatchNumPwad(UINT16 wad, UINT16 lump, INT32 tag)
 	if (!TestValidLump(wad, lump))
 		return NULL;
 
-	lumpcache = wadfiles[wad]->patchcache;
+	lumpcache = wadfiles[wad]->patchcache->lumps;
 
 	if (!lumpcache[lump])
 	{
