@@ -82,8 +82,14 @@ boolean RSP_RenderModel(vissprite_t *spr)
 		INT32 tics = mobj->tics;
 		boolean vflip = (!(mobj->eflags & MFE_VERTICALFLIP) != !(mobj->frame & FF_VERTICALFLIP));
 		boolean papersprite = (mobj->frame & FF_PAPERSPRITE);
+		angle_t rollangle = 0;
+		fpquaternion_t rollquaternion;
+		fpvector4_t rolltranslation;
 		spritedef_t *sprdef;
 		spriteframe_t *sprframe;
+#ifdef ROTSPRITE
+		spriteinfo_t *sprinfo;
+#endif
 		float finalscale;
 		float pol = 0.0f;
 		INT32 skinnum = 0;
@@ -166,11 +172,21 @@ boolean RSP_RenderModel(vissprite_t *spr)
 			texture = &md2->texture->rsp_tex;
 
 		if (mobj->skin && mobj->sprite == SPR_PLAY)
+		{
 			sprdef = &((skin_t *)mobj->skin)->sprites[mobj->sprite2];
+#ifdef ROTSPRITE
+			sprinfo = &((skin_t *)mobj->skin)->sprinfo[mobj->sprite2];
+#endif
+		}
 		else
+		{
 			sprdef = &sprites[mobj->sprite];
+#ifdef ROTSPRITE
+			sprinfo = &spriteinfo[mobj->sprite];
+#endif
+		}
 
-		sprframe = &sprdef->spriteframes[spr->mobj->frame & FF_FRAMEMASK];
+		sprframe = &sprdef->spriteframes[mobj->frame & FF_FRAMEMASK];
 
 		if (!texture->data)
 		{
@@ -264,11 +280,11 @@ boolean RSP_RenderModel(vissprite_t *spr)
 			texture = &sprtex;
 		}
 
-		if (spr->mobj->frame & FF_ANIMATE)
+		if (mobj->frame & FF_ANIMATE)
 		{
 			// set duration and tics to be the correct values for FF_ANIMATE states
-			durs = spr->mobj->state->var2;
-			tics = spr->mobj->anim_duration;
+			durs = mobj->state->var2;
+			tics = mobj->anim_duration;
 		}
 
 		frameIndex = (mobj->frame & FF_FRAMEMASK);
@@ -328,7 +344,7 @@ boolean RSP_RenderModel(vissprite_t *spr)
 				{
 					if (mobj->state->nextstate != S_NULL && states[mobj->state->nextstate].sprite != SPR_NULL
 					&& !(mobj->player && (mobj->state->nextstate == S_PLAY_WAIT) && mobj->state == &states[S_PLAY_STND]))
-						nextFrameIndex = (states[spr->mobj->state->nextstate].frame & FF_FRAMEMASK) % mod;
+						nextFrameIndex = (states[mobj->state->nextstate].frame & FF_FRAMEMASK) % mod;
 				}
 			}
 
@@ -352,6 +368,45 @@ boolean RSP_RenderModel(vissprite_t *spr)
 		// SRB2CBTODO: MD2 scaling support
 		finalscale = md2->scale * FIXED_TO_FLOAT(mobj->scale);
 		finalscale *= 0.5f;
+
+#ifdef ROTSPRITE
+		if (mobj->rollangle)
+		{
+			int rollflip = 1;
+			rotaxis_t rotaxis = ROTAXIS_Y;
+			angle_t ang;
+			float roll;
+			fixed_t froll;
+			float centerx, centery;
+
+			rollangle = mobj->rollangle;
+			froll = AngleFixed(rollangle);
+			roll = FIXED_TO_FLOAT(froll);
+
+			// rotation axis
+			if (sprinfo->available)
+				rotaxis = (UINT8)(sprinfo->pivot[(mobj->frame & FF_FRAMEMASK)].rotaxis);
+
+			// for NiGHTS specifically but should work everywhere else
+			ang = R_PointToAngle(mobj->x, mobj->y) - (mobj->player ? mobj->player->drawangle : mobj->angle);
+			if ((sprframe->rotate & SRF_RIGHT) && (ang < ANGLE_180)) // See from right
+				rollflip = 1;
+			else if ((sprframe->rotate & SRF_LEFT) && (ang >= ANGLE_180)) // See from left
+				rollflip = -1;
+
+			roll *= rollflip;
+			if (rotaxis == 2) // Z
+				rollquaternion = RSP_QuaternionFromEuler(0.0f, roll, 0.0f);
+			else if (rotaxis == 1) // Y
+				rollquaternion = RSP_QuaternionFromEuler(0.0f, 0.0f, roll);
+			else // X
+				rollquaternion = RSP_QuaternionFromEuler(roll, 0.0f, 0.0f);
+
+			centerx = FIXED_TO_FLOAT(mobj->radius/2);
+			centery = FIXED_TO_FLOAT(mobj->height/2);
+			RSP_MakeVector4(rolltranslation, centerx, 0.0f, centery);
+		}
+#endif
 
 		// Render every mesh
 		for (meshnum = 0; meshnum < md2->model->numMeshes; meshnum++)
@@ -437,6 +492,12 @@ boolean RSP_RenderModel(vissprite_t *spr)
 				{ \
 					RSP_MakeVector4(modelvec, rotx, roty, rotz); \
 					RSP_QuaternionRotateVector(&modelvec, modelquaternion); \
+					if (rollangle) \
+					{ \
+						modelvec = RSP_VectorAdd(&modelvec, &rolltranslation); \
+						RSP_QuaternionRotateVector(&modelvec, &rollquaternion); \
+						modelvec = RSP_VectorSubtract(&modelvec, &rolltranslation); \
+					} \
 					rotx = modelvec.x; \
 					roty = modelvec.y; \
 					rotz = modelvec.z; \
