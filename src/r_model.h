@@ -130,7 +130,7 @@ typedef struct
 #endif
 #ifdef POLYRENDERER
 	rsp_texture_t      rsp_tex;
-	rsp_texture_t      rsp_blendtex[MAXTRANSLATIONS][7];
+	rsp_texture_t      rsp_blendtex[8][MAXTRANSLATIONS];
 #endif
 } modeltexture_t;
 

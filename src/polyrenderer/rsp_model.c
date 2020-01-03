@@ -138,7 +138,6 @@ boolean RSP_RenderModel(vissprite_t *spr)
 
 		skincolors_t skincolor = SKINCOLOR_NONE;
 		UINT8 *translation = NULL;
-		boolean translationset = true;
 
 #define RESETVIEW { \
 	if (rsp_maskdraw) \
@@ -183,42 +182,33 @@ boolean RSP_RenderModel(vissprite_t *spr)
 				tc = TC_METALSONIC;
 			else
 				tc = TC_BOSS;
-			translation = R_GetTranslationColormap(tc, mobj->color, GTC_CACHE);
 		}
 		else if (mobj->colorized)
-		{
-			tc = TC_RAINBOW;
-			translation = R_GetTranslationColormap(tc, mobj->color, GTC_CACHE);
-		}
+			translation = R_GetTranslationColormap(TC_RAINBOW, mobj->color, GTC_CACHE);
 		else if (mobj->player && mobj->player->dashmode >= DASHMODE_THRESHOLD
 			&& (mobj->player->charflags & SF_DASHMODE)
 			&& ((leveltime/2) & 1))
 		{
-			tc = TC_RAINBOW;
 			if (mobj->player->charflags & SF_MACHINE)
-			{
 				tc = TC_DASHMODE;
-				translation = R_GetTranslationColormap(tc, 0, GTC_CACHE);
-			}
 			else
-				translation = R_GetTranslationColormap(tc, mobj->color, GTC_CACHE);
+				translation = R_GetTranslationColormap(TC_RAINBOW, mobj->color, GTC_CACHE);
 		}
 		else
 		{
 			if (mobj->color)
 				tc = TC_DEFAULT; // intentional
-			translationset = false;
 		}
 
 		// load translated texture
 		if (tc < 0)
 			tc = -tc;
-		if (tc && md2->texture->rsp_blendtex[skincolor][tc].data == NULL)
+		if (tc && md2->texture->rsp_blendtex[tc][skincolor].data == NULL)
 			RSP_CreateModelTexture(md2, tc, skincolor);
 
 		// use corresponding texture for this model
-		if (md2->texture->rsp_blendtex[skincolor][tc].data != NULL)
-			texture = &md2->texture->rsp_blendtex[skincolor][tc];
+		if (md2->texture->rsp_blendtex[tc][skincolor].data != NULL)
+			texture = &md2->texture->rsp_blendtex[tc][skincolor];
 		else
 			texture = &md2->texture->rsp_tex;
 
@@ -258,23 +248,6 @@ boolean RSP_RenderModel(vissprite_t *spr)
 					rot = (ang+ANGLE_202h)>>29;
 
 				flip = sprframe->flip & (1<<rot);
-			}
-
-			// sprite translation
-			if (!translationset)
-			{
-				if (mobj->color)
-				{
-					// New colormap stuff for skins Tails 06-07-2002
-					if (mobj->skin && mobj->sprite == SPR_PLAY) // This thing is a player!
-						translation = R_GetTranslationColormap((INT32)skinnum, mobj->color, GTC_CACHE);
-					else
-						translation = R_GetTranslationColormap(TC_DEFAULT, mobj->color, GTC_CACHE);
-				}
-				else if (mobj->sprite == SPR_PLAY) // Looks like a player, but doesn't have a color? Get rid of green sonic syndrome.
-					translation = R_GetTranslationColormap(TC_DEFAULT, skins[0].prefcolor, GTC_CACHE);
-				else
-					translation = NULL;
 			}
 
 			// get rsp_texture
@@ -686,8 +659,10 @@ static boolean BlendTranslations(UINT8 *px, RGBA_t *sourcepx, RGBA_t *blendpx, I
 			*px = NearestColorSafe(
 				(ialpha * icolor.s.red + balpha * bcolor.s.red)/255,
 				(ialpha * icolor.s.green + balpha * bcolor.s.green)/255,
-				(ialpha * icolor.s.blue + balpha * bcolor.s.blue)/255);
+				(ialpha * icolor.s.blue + balpha * bcolor.s.blue)/255
+			);
 		}
+		return true;
 	}
 	else if (translation == TC_ALLWHITE)
 	{
@@ -719,9 +694,7 @@ void RSP_CreateModelTexture(md2_t *model, INT32 tcnum, INT32 skincolor)
 	if (skincolor && ((!blendtexture) || (blendtexture && !blendtexture->data)))
 		skincolor = 0;
 
-	if (tcnum < 0)
-		tcnum = -tcnum;
-	ttex = &model->texture->rsp_blendtex[skincolor][tcnum];
+	ttex = &model->texture->rsp_blendtex[tcnum][skincolor];
 	ntex = &model->texture->rsp_tex;
 
 	// base texture
@@ -759,6 +732,8 @@ void RSP_CreateModelTexture(md2_t *model, INT32 tcnum, INT32 skincolor)
 		// doesn't exist?
 		if (!texture->data)
 			return;
+		if (!blendtexture->data)
+			return;
 
 		ttex->width = texture->width;
 		ttex->height = texture->height;
@@ -775,38 +750,18 @@ void RSP_CreateModelTexture(md2_t *model, INT32 tcnum, INT32 skincolor)
 
 			if (image[i].s.alpha < 1)
 				ttex->data[i] = TRANSPARENTPIXEL;
-			else if (!BlendTranslations(&ttex->data[i], &image[i], &blendimage[i], tcnum))
+			else if (!BlendTranslations(&ttex->data[i], &image[i], &blendimage[i], -tcnum))
 			{
 				UINT16 brightness;
 
-				// Don't bother with blending the pixel if the alpha of the blend pixel is 0
-				if (tcnum == TC_RAINBOW)
+				if (blendimage[i].s.alpha == 0)
 				{
-					if (image[i].s.alpha == 0 && blendimage[i].s.alpha == 0)
-					{
-						ttex->data[i] = TRANSPARENTPIXEL;
-						continue;
-					}
-					else
-					{
-						UINT16 imagebright, blendbright;
-						SETBRIGHTNESS(imagebright,image[i].s.red,image[i].s.green,image[i].s.blue);
-						SETBRIGHTNESS(blendbright,blendimage[i].s.red,blendimage[i].s.green,blendimage[i].s.blue);
-						// slightly dumb average between the blend image color and base image colour, usually one or the other will be fully opaque anyway
-						brightness = (imagebright*(255-blendimage[i].s.alpha))/255 + (blendbright*blendimage[i].s.alpha)/255;
-					}
+					ttex->data[i] = ntex->data[i];
+					continue;
 				}
 				else
 				{
-					if (blendimage[i].s.alpha == 0)
-					{
-						ttex->data[i] = ntex->data[i];
-						continue;
-					}
-					else
-					{
-						SETBRIGHTNESS(brightness,blendimage[i].s.red,blendimage[i].s.green,blendimage[i].s.blue);
-					}
+					SETBRIGHTNESS(brightness,blendimage[i].s.red,blendimage[i].s.green,blendimage[i].s.blue);
 				}
 
 				// Calculate a sort of "gradient" for the skincolor
@@ -816,72 +771,10 @@ void RSP_CreateModelTexture(md2_t *model, INT32 tcnum, INT32 skincolor)
 					UINT8 firsti, secondi, mul;
 					UINT32 r, g, b;
 
-					// Rainbow needs to find the closest match to the textures themselves, instead of matching brightnesses to other colors.
-					// Ensue horrible mess.
-					if (tcnum == TC_RAINBOW)
-					{
-						UINT16 brightdif = 256;
-						UINT8 colorbrightnesses[16];
-						INT32 compare, m, d;
-						UINT8 i;
-
-						// Ignore pure white & pitch black
-						if (brightness > 253 || brightness < 2)
-						{
-							ttex->data[i] = NearestColorSafe(image[i].s.red,image[i].s.green,image[i].s.blue);
-							continue;
-						}
-
-						firsti = 0;
-						mul = 0;
-
-						for (i = 0; i < 16; i++)
-						{
-							RGBA_t tempc = V_GetColor(translation[i]);
-							SETBRIGHTNESS(colorbrightnesses[i], tempc.s.red, tempc.s.green, tempc.s.blue); // store brightnesses for comparison
-						}
-
-						for (i = 0; i < 16; i++)
-						{
-							if (brightness > colorbrightnesses[i]) // don't allow greater matches (because calculating a makeshift gradient for this is already a huge mess as is)
-								continue;
-							compare = abs((INT16)(colorbrightnesses[i]) - (INT16)(brightness));
-							if (compare < brightdif)
-							{
-								brightdif = (UINT16)compare;
-								firsti = i; // best matching color that's equal brightness or darker
-							}
-						}
-
-						secondi = firsti+1; // next color in line
-						if (secondi == 16)
-						{
-							m = (INT16)brightness; // - 0;
-							d = (INT16)colorbrightnesses[firsti]; // - 0;
-						}
-						else
-						{
-							m = (INT16)brightness - (INT16)colorbrightnesses[secondi];
-							d = (INT16)colorbrightnesses[firsti] - (INT16)colorbrightnesses[secondi];
-						}
-
-						if (m >= d)
-							m = d-1;
-
-						// calculate the "gradient" multiplier based on how close this color is to the one next in line
-						if (m <= 0 || d <= 0)
-							mul = 0;
-						else
-							mul = 15 - ((m * 16) / d);
-					}
-					else
-					{
-						// Thankfully, it's normally way more simple.
-						// Just convert brightness to a skincolor value, use remainder to find the gradient multipler
-						firsti = ((UINT8)(255-brightness) / 16);
-						secondi = firsti+1;
-						mul = ((UINT8)(255-brightness) % 16);
-					}
+					// Just convert brightness to a skincolor value, use remainder to find the gradient multipler
+					firsti = ((UINT8)(255-brightness) / 16);
+					secondi = firsti+1;
+					mul = ((UINT8)(255-brightness) % 16);
 
 					blendcolor = V_GetColor(translation[firsti]);
 
@@ -910,32 +803,8 @@ void RSP_CreateModelTexture(md2_t *model, INT32 tcnum, INT32 skincolor)
 					}
 				}
 
-				if (tcnum == TC_RAINBOW)
+				// Color strength depends on image alpha
 				{
-					UINT32 tempcolor;
-					UINT16 colorbright;
-					UINT8 red, green, blue;
-
-					SETBRIGHTNESS(colorbright,blendcolor.s.red,blendcolor.s.green,blendcolor.s.blue);
-					if (colorbright == 0)
-						colorbright = 1; // no dividing by 0 please
-
-					tempcolor = (brightness * blendcolor.s.red) / colorbright;
-					tempcolor = min(255, tempcolor);
-					red = (UINT8)tempcolor;
-
-					tempcolor = (brightness * blendcolor.s.green) / colorbright;
-					tempcolor = min(255, tempcolor);
-					green = (UINT8)tempcolor;
-
-					tempcolor = (brightness * blendcolor.s.blue) / colorbright;
-					tempcolor = min(255, tempcolor);
-					blue = (UINT8)tempcolor;
-					ttex->data[i] = NearestColorSafe(red, green, blue);
-				}
-				else
-				{
-					// Color strength depends on image alpha
 					INT32 tempcolor;
 					UINT8 red, green, blue;
 
