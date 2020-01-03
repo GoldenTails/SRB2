@@ -203,6 +203,10 @@ void RSP_SetDrawerFunctions(void);
 void RSP_DebugRender(INT32 model);
 void RSP_ClearDepthBuffer(void);
 
+// Debugging info
+extern INT32 rsp_meshesdrawn;
+extern INT32 rsp_trisdrawn;
+
 // MASKING STUFF
 void RSP_StoreViewpoint(void);
 void RSP_RestoreViewpoint(void);
@@ -212,8 +216,8 @@ void RSP_RestoreSpriteViewpoint(vissprite_t *spr);
 extern UINT32 rsp_maskdraw;
 #define RSP_MASKDRAWBIT 0x80000000
 
+// 3D models
 boolean RSP_RenderModel(vissprite_t *spr);
-
 void RSP_CreateModelTexture(md2_t *model, INT32 tcnum, INT32 skincolor);
 void RSP_FreeModelTexture(md2_t *model);
 void RSP_FreeModelBlendTexture(md2_t *model);

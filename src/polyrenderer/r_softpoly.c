@@ -16,6 +16,10 @@ rendertarget_t rsp_target;
 viewpoint_t rsp_viewpoint;
 fpmatrix16_t *rsp_projectionmatrix = NULL;
 
+// Debugging info
+INT32 rsp_meshesdrawn = 0;
+INT32 rsp_trisdrawn = 0;
+
 // init the polygon renderer
 void RSP_Init(void)
 {
@@ -121,6 +125,8 @@ void RSP_OnFrame(void)
 	rsp_viewwindowy = viewwindowy;
 	rsp_target.aiming = true;
 	rsp_maskdraw = 0;
+	rsp_meshesdrawn = 0;
+	rsp_trisdrawn = 0;
 }
 
 // MASKING STUFF
