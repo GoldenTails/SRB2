@@ -110,7 +110,7 @@ boolean RSP_RenderModel(vissprite_t *spr)
 		return false;
 
 	// load sprite viewpoint
-	if (rsp_portalrender)
+	if (rsp_maskdraw)
 		RSP_RestoreSpriteViewpoint(spr);
 
 	if (modelquaternion == NULL)
@@ -141,7 +141,7 @@ boolean RSP_RenderModel(vissprite_t *spr)
 		boolean translationset = true;
 
 #define RESETVIEW { \
-	if (rsp_portalrender) \
+	if (rsp_maskdraw) \
 		RSP_RestoreViewpoint(); \
 }
 

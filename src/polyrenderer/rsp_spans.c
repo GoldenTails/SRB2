@@ -31,7 +31,7 @@ static inline void texspanloop(fixed_t y, fixed_t startXPrestep, fixed_t endXPre
 	UINT16 u, v;
 	UINT8 pixel = 0;
 	boolean depth_only = ((rsp_target.mode & (RENDERMODE_DEPTH|RENDERMODE_COLOR)) == RENDERMODE_DEPTH);
-	INT32 ix;
+	INT32 ix, clipleft, clipright;
 
 	// avoid a crash here
 	if (!rsp_curpixelfunc)
@@ -42,14 +42,23 @@ static inline void texspanloop(fixed_t y, fixed_t startXPrestep, fixed_t endXPre
 	if (rsp_target.aiming)
 		rsp_ypix += SOFTWARE_AIMING;
 
+	clipleft = rsp_portalclip[0];
+	clipright = rsp_portalclip[1];
+
+	if (startXPrestep < (clipleft<<FRACBITS))
+		startXPrestep += (clipleft<<FRACBITS);
+	if (startXPrestep < 0)
+		startXPrestep = 0;
+	if (endXPrestep > (clipright<<FRACBITS))
+		endXPrestep = (clipright<<FRACBITS);
+	if (endXPrestep >= (viewwidth<<FRACBITS))
+		endXPrestep = (viewwidth-1)<<FRACBITS;
+
 	for (x = startXPrestep; x <= endXPrestep; x += FRACUNIT)
 	{
 		ix = x>>FRACBITS;
-		if (ix < 0) continue;
-		if (ix >= rsp_target.width) break;
 		if (rsp_mfloorclip && rsp_mceilingclip)
 		{
-			if (ix >= viewwidth) break;
 			if (rsp_ypix >= rsp_mfloorclip[ix]) continue;
 			if (rsp_ypix <= rsp_mceilingclip[ix]) continue;
 		}
@@ -197,7 +206,7 @@ static inline void texspanloop_fp(float y, float startXPrestep, float endXPreste
 	UINT16 u, v;
 	UINT8 pixel = 0;
 	boolean depth_only = ((rsp_target.mode & (RENDERMODE_DEPTH|RENDERMODE_COLOR)) == RENDERMODE_DEPTH);
-	INT32 ix;
+	INT32 ix, clipleft, clipright;
 
 	// avoid a crash here
 	if (!rsp_curpixelfunc)
@@ -208,14 +217,23 @@ static inline void texspanloop_fp(float y, float startXPrestep, float endXPreste
 	if (rsp_target.aiming)
 		rsp_ypix += SOFTWARE_AIMING;
 
+	clipleft = rsp_portalclip[0];
+	clipright = rsp_portalclip[1];
+
+	if (startXPrestep < clipleft)
+		startXPrestep += clipleft;
+	if (startXPrestep < 0.0f)
+		startXPrestep = 0.0f;
+	if (endXPrestep > clipright)
+		endXPrestep = (float)clipright;
+	if (endXPrestep > viewwidth-1)
+		endXPrestep = (float)viewwidth-1;
+
 	for (x = startXPrestep; x <= endXPrestep; x++)
 	{
 		ix = FLOAT_TO_FIXED(x)>>FRACBITS;
-		if (ix < 0) continue;
-		if (ix >= rsp_target.width) break;
 		if (rsp_mfloorclip && rsp_mceilingclip)
 		{
-			if (ix >= viewwidth) break;
 			if (rsp_ypix >= rsp_mfloorclip[ix]) continue;
 			if (rsp_ypix <= rsp_mceilingclip[ix]) continue;
 		}

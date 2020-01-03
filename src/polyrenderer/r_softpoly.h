@@ -203,13 +203,14 @@ void RSP_SetDrawerFunctions(void);
 void RSP_DebugRender(INT32 model);
 void RSP_ClearDepthBuffer(void);
 
-// PORTAL STUFF
+// MASKING STUFF
 void RSP_StoreViewpoint(void);
 void RSP_RestoreViewpoint(void);
 void RSP_StoreSpriteViewpoint(vissprite_t *spr);
 void RSP_RestoreSpriteViewpoint(vissprite_t *spr);
 
-extern UINT8 rsp_portalrender;
+extern UINT32 rsp_maskdraw;
+#define RSP_MASKDRAWBIT 0x80000000
 
 boolean RSP_RenderModel(vissprite_t *spr);
 md2_t *RSP_ModelAvailable(spritenum_t spritenum, skin_t *skin);

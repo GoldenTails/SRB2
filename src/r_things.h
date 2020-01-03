@@ -42,6 +42,7 @@ extern INT16 *mceilingclip;
 #ifdef POLYRENDERER
 extern INT16 *rsp_mfloorclip;
 extern INT16 *rsp_mceilingclip;
+extern INT32 rsp_portalclip[2];
 #endif
 extern fixed_t spryscale;
 extern fixed_t sprtopscreen;
@@ -91,6 +92,7 @@ typedef struct
 	size_t drawsegs[2];
 	size_t vissprites[2];
 	fixed_t viewx, viewy, viewz;			/**< View z stored at the time of the BSP traversal for the view/portal. Masked sorting/drawing needs it. */
+	angle_t viewangle, aimingangle;
 	sector_t* viewsector;
 } maskcount_t;
 
@@ -145,6 +147,7 @@ typedef struct vissprite_s
 #endif
 
 	INT32 x1, x2;
+	INT32 clipleft, clipright;
 
 	fixed_t gx, gy; // for line side calculation
 	fixed_t gz, gzt; // global bottom/top for silhouette clipping
