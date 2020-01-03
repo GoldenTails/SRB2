@@ -117,7 +117,7 @@ static RGBA_t *Model_PNGLoad(const char *filename, int *rwidth, int *rheight, in
 		CONS_Debug(DBG_RENDER, "libpng load error on %s\n", filename);
 		png_destroy_read_struct(&png_ptr, &png_info_ptr, NULL);
 		fclose(png_FILE);
-		return false;
+		return NULL;
 	}
 #ifdef USE_FAR_KEYWORD
 	png_memcpy(png_jmpbuf(png_ptr), jmpbuf, sizeof jmp_buf);
