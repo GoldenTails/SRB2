@@ -1398,6 +1398,7 @@ static void R_ProjectSprite(mobj_t *thing)
 #endif
 
 	INT32 x1, x2;
+	INT32 projx1, projx2;
 	boolean checkvisible = true;
 	boolean checkzvisible = true;
 	boolean checksides = true;
@@ -1453,10 +1454,7 @@ static void R_ProjectSprite(mobj_t *thing)
 	frustumclipping = false;
 
 	if (model)
-	{
 		checkvisible = false;
-		papersprite = false;
-	}
 #endif
 
 	// transform the origin point
@@ -1725,6 +1723,8 @@ static void R_ProjectSprite(mobj_t *thing)
 
 #ifdef POLYRENDERER
 	// Lactozilla: Just project a big ass sprite
+	projx1 = x1;
+	projx2 = x2;
 	if (model)
 	{
 		x1 = 0;
@@ -1871,6 +1871,8 @@ static void R_ProjectSprite(mobj_t *thing)
 
 	vis->x1 = x1 < portalclipstart ? portalclipstart : x1;
 	vis->x2 = x2 >= portalclipend ? portalclipend-1 : x2;
+	vis->projx1 = projx1 < portalclipstart ? portalclipstart : projx1;
+	vis->projx2 = projx2 >= portalclipend ? portalclipend-1 : projx2;
 	vis->clipleft = portalclipstart;
 	vis->clipright = portalclipend-1;
 
@@ -1897,7 +1899,7 @@ static void R_ProjectSprite(mobj_t *thing)
 		vis->xiscale = iscale;
 	}
 
-	if (vis->x1 > x1)
+	if (vis->projx1 > x1)
 	{
 		vis->startfrac += FixedDiv(vis->xiscale, this_scale)*(vis->x1-x1);
 		vis->scale += scalestep*(vis->x1 - x1);
@@ -2681,9 +2683,13 @@ static void R_DrawSprite(vissprite_t *spr)
 	if (!spr->model)
 		R_DrawVisSprite(spr);
 	else if (!RSP_RenderModel(spr))
+	{
+		spr->x1 = spr->projx1;
+		spr->x2 = spr->projx2;
 #endif
-	R_DrawVisSprite(spr);
+		R_DrawVisSprite(spr);
 #ifdef POLYRENDERER
+	}
 	rsp_mfloorclip = NULL;
 	rsp_mceilingclip = NULL;
 #endif

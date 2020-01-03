@@ -147,6 +147,7 @@ typedef struct vissprite_s
 #endif
 
 	INT32 x1, x2;
+	INT32 projx1, projx2;
 	INT32 clipleft, clipright;
 
 	fixed_t gx, gy; // for line side calculation
