@@ -530,7 +530,7 @@ md2_t *Model_IsAvailable(spritenum_t spritenum, skin_t *skin)
 
 	// Allocate texture data
 	if (!md2->texture)
-		md2->texture = Z_Calloc(sizeof(modeltexture_t), PU_STATIC, NULL);
+		md2->texture = Z_Calloc(sizeof(modeltexture_t), PU_MODEL, NULL);
 
 #ifdef HWRENDER
 	// Create mesh VBOs
