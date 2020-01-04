@@ -2672,28 +2672,33 @@ void R_InitDrawNodes(void)
 //
 // R_DrawSprite
 //
-//Fab : 26-04-98:
-// NOTE : uses con_clipviewtop, so that when console is on,
-//        don't draw the part of sprites hidden under the console
 static void R_DrawSprite(vissprite_t *spr)
 {
+#ifndef POLYRENDERER
 	mfloorclip = spr->clipbot;
 	mceilingclip = spr->cliptop;
-#ifdef POLYRENDERER
-	rsp_mfloorclip = mfloorclip;
-	rsp_mceilingclip = mceilingclip;
+	R_DrawVisSprite(spr);
+#else
+	rsp_mfloorclip = spr->clipbot;
+	rsp_mceilingclip = spr->cliptop;
 	rsp_portalclip[0] = spr->clipleft;
 	rsp_portalclip[1] = spr->clipright;
+
 	if (!spr->model)
+	{
+		mfloorclip = spr->clipbot;
+		mceilingclip = spr->cliptop;
 		R_DrawVisSprite(spr);
+	}
 	else if (!RSP_RenderModel(spr))
 	{
+		mfloorclip = spr->clipbot;
+		mceilingclip = spr->cliptop;
 		spr->x1 = spr->projx1;
 		spr->x2 = spr->projx2;
-#endif
 		R_DrawVisSprite(spr);
-#ifdef POLYRENDERER
 	}
+
 	rsp_mfloorclip = NULL;
 	rsp_mceilingclip = NULL;
 #endif

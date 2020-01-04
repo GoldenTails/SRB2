@@ -630,8 +630,11 @@ static void ST_drawDebugInfo(void)
 #ifdef POLYRENDERER
 	if (cv_debug & DBG_RENDER)
 	{
+#ifdef RSP_DEBUGGING
 		V_DrawDebugLine(va("Meshes drawn: %d", rsp_meshesdrawn));
 		V_DrawDebugLine(va("Triangles drawn: %d", rsp_trisdrawn));
+#endif
+		V_DrawDebugLine(va("Polygon renderer memory: %s KB", sizeu1(Z_TagUsage(PU_SOFTPOLY)>>10)));
 
 		height += h/2;
 	}

@@ -34,6 +34,7 @@
 #define _R_SOFTPOLY_H_
 
 #define RSP_CLIPTRIANGLES
+#define RSP_DEBUGGING
 
 #define FixedLerp(start, end, r) ( FixedMul(start, (FRACUNIT - (r))) + FixedMul(end, r) )
 #define FloatLerp(start, end, r) ( (start) * (1.0 - (r)) + (end) * (r) )
@@ -204,8 +205,10 @@ void RSP_DebugRender(INT32 model);
 void RSP_ClearDepthBuffer(void);
 
 // Debugging info
+#ifdef RSP_DEBUGGING
 extern INT32 rsp_meshesdrawn;
 extern INT32 rsp_trisdrawn;
+#endif
 
 // MASKING STUFF
 void RSP_StoreViewpoint(void);

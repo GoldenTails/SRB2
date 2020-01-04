@@ -282,6 +282,9 @@ void RSP_DrawTriangle(rsp_triangle_t *tri)
 			tri->vertices[1] = v3;
 			tri->vertices[2] = v2;
 			rsp_curtrifunc(tri, TRI_FLATBOTTOM);
+#ifdef RSP_DEBUGGING
+			rsp_trisdrawn++;
+#endif
 		}
 
 		if (!is_degenerate_triangle(v1, v3, v2))
@@ -290,6 +293,9 @@ void RSP_DrawTriangle(rsp_triangle_t *tri)
 			tri->vertices[1] = v3;
 			tri->vertices[2] = v2;
 			rsp_curtrifunc(tri, TRI_FLATTOP);
+#ifdef RSP_DEBUGGING
+			rsp_trisdrawn++;
+#endif
 		}
 	}
 }

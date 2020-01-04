@@ -615,10 +615,11 @@ boolean RSP_RenderModel(vissprite_t *spr)
 				}
 
 				RSP_TransformTriangle(&triangle);
-				rsp_trisdrawn++;
 			}
 
+#ifdef RSP_DEBUGGING
 			rsp_meshesdrawn++;
+#endif
 		}
 	}
 
