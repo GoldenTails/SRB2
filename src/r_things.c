@@ -1395,17 +1395,16 @@ static void R_ProjectSprite(mobj_t *thing)
 	fixed_t tx, tz;
 	fixed_t xscale, yscale, sortscale; //added : 02-02-98 : aaargll..if I were a math-guy!!!
 
-#ifdef POLYRENDERER
 	boolean model;
 	skin_t *skin;
 	modelinfo_t *md2;
-#endif
 
 	INT32 x1, x2;
 	INT32 projx1, projx2;
-	boolean checkvisible = true;
-	boolean checkzvisible = true;
-	boolean checksides = true;
+	boolean checkvisible = true; // Models turn this off.
+	boolean checkzvisible = true; // Models turn this off, with DONOTCULL.
+	boolean checksides = true; // Same as the last one.
+	boolean dontdrawsprite = false;
 
 	spritedef_t *sprdef;
 	spriteframe_t *sprframe;
@@ -1450,16 +1449,19 @@ static void R_ProjectSprite(mobj_t *thing)
 	INT32 rollangle = 0;
 #endif
 
-#ifdef POLYRENDERER
+	// Lactozilla: Polygon renderer
 	skin = (skin_t *)thing->skin;
 	md2 = Model_IsAvailable(thing->sprite, skin);
 
 	model = (cv_models.value && md2);
-	frustumclipping = false;
+	frustumclipping = false; // DONOTCULL turns this on.
 
 	if (model)
+	{
 		checkvisible = false;
-#endif
+		// MODELDEF stuff should be in here,
+		// but I didn't port it yet.
+	}
 
 	// transform the origin point
 	tr_x = thing->x - viewx;
@@ -1472,7 +1474,10 @@ static void R_ProjectSprite(mobj_t *thing)
 
 	// thing is behind view plane?
 	if (!papersprite && (tz < FixedMul(MINZ, this_scale))) // papersprite clipping is handled later
+	{
+		dontdrawsprite = true;
 		return;
+	}
 
 	gxt = -FixedMul(tr_x, viewsin);
 	gyt = FixedMul(tr_y, viewcos);
@@ -1480,7 +1485,10 @@ static void R_ProjectSprite(mobj_t *thing)
 
 	// too far off the side?
 	if (!papersprite && abs(tx) > tz<<2) // papersprite clipping is handled later
+	{
+		dontdrawsprite = true;
 		return;
+	}
 
 	// aspect ratio stuff
 	xscale = FixedDiv(projection, tz);
@@ -1631,7 +1639,13 @@ static void R_ProjectSprite(mobj_t *thing)
 		gyt = -FixedMul(tr_y, viewsin);
 		tz = gxt-gyt;
 		yscale = FixedDiv(projectiony, tz);
-		//if (yscale < 64) return; // Fix some funky visuals
+		/*if (yscale < 64)
+		{
+			dontdrawsprite = true;
+			// Fix some funky visuals
+			if (checkvisible)
+				return;
+		}*/
 
 		gxt = -FixedMul(tr_x, viewsin);
 		gyt = FixedMul(tr_y, viewcos);
@@ -1655,7 +1669,13 @@ static void R_ProjectSprite(mobj_t *thing)
 		gyt = -FixedMul(tr_y, viewsin);
 		tz2 = gxt-gyt;
 		yscale2 = FixedDiv(projectiony, tz2);
-		//if (yscale2 < 64) return; // ditto
+		/*if (yscale2 < 64)
+		{
+			dontdrawsprite = true;
+			// ditto
+			if (checkvisible)
+				return;
+		}*/
 
 		gxt = -FixedMul(tr_x, viewsin);
 		gyt = FixedMul(tr_y, viewcos);
@@ -1688,14 +1708,28 @@ static void R_ProjectSprite(mobj_t *thing)
 
 		// off the right side?
 		if (x1 > viewwidth)
-			return;
+		{
+			dontdrawsprite = true;
+			if (checkzvisible)
+				return;
+		}
 
 		// off the left side
 		if (x2 < 0)
-			return;
+		{
+			dontdrawsprite = true;
+			if (checkvisible)
+				return;
+		}
 
 		if ((range = x2 - x1) <= 0)
-			return;
+		{
+			dontdrawsprite = true;
+			if (checkvisible)
+				return;
+			else
+				range = 1;
+		}
 
 		range++; // fencepost problem
 
@@ -1714,15 +1748,23 @@ static void R_ProjectSprite(mobj_t *thing)
 		x1 = (centerxfrac + FixedMul(tx,xscale))>>FRACBITS;
 
 		// off the right side?
-		if (checkvisible && (x1 > viewwidth))
-			return;
+		if (x1 > viewwidth)
+		{
+			dontdrawsprite = true;
+			if (checkvisible)
+				return;
+		}
 
 		tx += offset2;
 		x2 = ((centerxfrac + FixedMul(tx,xscale))>>FRACBITS); x2--;
 
 		// off the left side
-		if (checkvisible && (x2 < 0))
-			return;
+		if (x2 < 0)
+		{
+			dontdrawsprite = true;
+			if (checkvisible)
+				return;
+		}
 	}
 
 #ifdef POLYRENDERER
@@ -1755,6 +1797,7 @@ static void R_ProjectSprite(mobj_t *thing)
 		// thing is behind view plane?
 		if (tz < FixedMul(MINZ, this_scale))
 		{
+			dontdrawsprite = true;
 			if (checkzvisible)
 				return;
 			else
@@ -1865,13 +1908,18 @@ static void R_ProjectSprite(mobj_t *thing)
 	vis->shear.offset = 0;
 
 	vis->mobj = thing; // Easy access! Tails 06-07-2002
-#ifdef POLYRENDERER
+
+	// Lactozilla: Polygon renderer
 	vis->spritenum = thing->sprite;
 	vis->skin = thing->skin;
 	vis->model = model;
 	if (model)
 		modelinview = true;
-#endif
+
+	// Obviously if the renderer decided to not draw the model
+	// you're gonna have to figure out if the sprite should HAVE
+	// been discarded before...
+	vis->dontdrawsprite = dontdrawsprite;
 
 	vis->x1 = x1 < portalclipstart ? portalclipstart : x1;
 	vis->x2 = x2 >= portalclipend ? portalclipend-1 : x2;
@@ -2671,6 +2719,7 @@ void R_InitDrawNodes(void)
 
 //
 // R_DrawSprite
+// Can also draw a model.
 //
 static void R_DrawSprite(vissprite_t *spr)
 {
@@ -2692,11 +2741,17 @@ static void R_DrawSprite(vissprite_t *spr)
 	}
 	else if (!RSP_RenderModel(spr))
 	{
-		mfloorclip = spr->clipbot;
-		mceilingclip = spr->cliptop;
-		spr->x1 = spr->projx1;
-		spr->x2 = spr->projx2;
-		R_DrawVisSprite(spr);
+		// The model didn't render, but the sprite also isn't
+		// supposed to render, maybe because it's too far
+		// off the screen, or it's behind the viewpoint...
+		if (!spr->dontdrawsprite)
+		{
+			mfloorclip = spr->clipbot;
+			mceilingclip = spr->cliptop;
+			spr->x1 = spr->projx1;
+			spr->x2 = spr->projx2;
+			R_DrawVisSprite(spr);
+		}
 	}
 
 	rsp_mfloorclip = NULL;
