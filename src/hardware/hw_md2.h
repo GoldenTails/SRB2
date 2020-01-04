@@ -21,7 +21,7 @@
 #pragma pack()
 #endif
 
-boolean HWR_DrawModel(md2_t *md2, gr_vissprite_t *spr);
+boolean HWR_DrawModel(modelinfo_t *md2, gr_vissprite_t *spr);
 
 #define PLAYERMODELPREFIX "PLAYER"
 

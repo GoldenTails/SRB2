@@ -1398,7 +1398,7 @@ static void R_ProjectSprite(mobj_t *thing)
 #ifdef POLYRENDERER
 	boolean model;
 	skin_t *skin;
-	md2_t *md2;
+	modelinfo_t *md2;
 #endif
 
 	INT32 x1, x2;

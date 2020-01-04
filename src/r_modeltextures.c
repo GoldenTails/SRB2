@@ -286,7 +286,7 @@ static RGBA_t *Model_PCXLoad(const char *filename, int *rwidth, int *rheight, in
 // Model_LoadTexture
 // Download a PNG or PCX texture for models.
 //
-boolean Model_LoadTexture(md2_t *model, INT32 skinnum)
+boolean Model_LoadTexture(modelinfo_t *model, INT32 skinnum)
 {
 	modeltexturedata_t *texture = NULL;
 	const char *filename = model->filename;
@@ -407,7 +407,7 @@ boolean Model_LoadTexture(md2_t *model, INT32 skinnum)
 // Model_LoadBlendTexture
 // Download a PNG or PCX texture for blending models.
 //
-boolean Model_LoadBlendTexture(md2_t *model)
+boolean Model_LoadBlendTexture(modelinfo_t *model)
 {
 	modeltexturedata_t *texture = NULL;
 	int w = 0, h = 0;

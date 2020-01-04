@@ -479,7 +479,7 @@ static void HWR_GetBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, INT
 // HWR_DrawModel
 //
 
-boolean HWR_DrawModel(md2_t *md2, gr_vissprite_t *spr)
+boolean HWR_DrawModel(modelinfo_t *md2, gr_vissprite_t *spr)
 {
 	FSurfaceInfo Surf;
 	INT32 frame = 0;

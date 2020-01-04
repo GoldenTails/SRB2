@@ -218,8 +218,8 @@ extern UINT32 rsp_maskdraw;
 
 // 3D models
 boolean RSP_RenderModel(vissprite_t *spr);
-void RSP_CreateModelTexture(md2_t *model, INT32 tcnum, INT32 skincolor);
-void RSP_FreeModelTexture(md2_t *model);
-void RSP_FreeModelBlendTexture(md2_t *model);
+void RSP_CreateModelTexture(modelinfo_t *model, INT32 tcnum, INT32 skincolor);
+void RSP_FreeModelTexture(modelinfo_t *model);
+void RSP_FreeModelBlendTexture(modelinfo_t *model);
 
 #endif

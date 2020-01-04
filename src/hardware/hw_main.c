@@ -5013,7 +5013,7 @@ static void HWR_DrawSprites(void)
 			else
 #endif
 			{
-				md2_t *model = Model_IsAvailable(spr->mobj->sprite, spr->mobj->skin);
+				modelinfo_t *model = Model_IsAvailable(spr->mobj->sprite, spr->mobj->skin);
 				if (cv_models.value && model)
 					HWR_DrawModel(model, spr);
 				else

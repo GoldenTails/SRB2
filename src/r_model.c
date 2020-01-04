@@ -36,8 +36,8 @@
 char modelsfile[64];
 char modelsfolder[64];
 
-md2_t md2_models[NUMSPRITES];
-md2_t md2_playermodels[MAXSKINS];
+modelinfo_t md2_models[NUMSPRITES];
+modelinfo_t md2_playermodels[MAXSKINS];
 
 static CV_PossibleValue_t modelinterpolation_cons_t[] = {{0, "Off"}, {1, "Sometimes"}, {2, "Always"}, {0, NULL}};
 #ifdef POLYRENDERER
@@ -214,7 +214,7 @@ void R_UnloadAllModels(void)
 {
 	size_t i;
 	INT32 s;
-	md2_t *md2;
+	modelinfo_t *md2;
 
 	for (s = 0; s < numskins; s++)
 	{
@@ -260,10 +260,10 @@ void R_ReloadAllModels(void)
 }
 
 //
-// R_ReloadModelInfo
-// Reloads model info.
+// R_ReloadModelSettings
+// Reloads model settings.
 //
-void R_ReloadModelInfo(void)
+void R_ReloadModelSettings(void)
 {
 	size_t i;
 	INT32 s;
@@ -453,7 +453,7 @@ void Model_Unload(model_t *model)
 //
 // Model_UnloadTextures
 //
-void Model_UnloadTextures(md2_t *model)
+void Model_UnloadTextures(modelinfo_t *model)
 {
 	if (model->texture)
 	{
@@ -496,10 +496,10 @@ void Model_UnloadTextures(md2_t *model)
 }
 
 // Returns a model, if available.
-md2_t *Model_IsAvailable(spritenum_t spritenum, skin_t *skin)
+modelinfo_t *Model_IsAvailable(spritenum_t spritenum, skin_t *skin)
 {
 	char filename[64];
-	md2_t *md2;
+	modelinfo_t *md2;
 
 	// invalid sprite number
 	if ((unsigned)spritenum >= NUMSPRITES || (unsigned)spritenum == SPR_NULL)
@@ -573,7 +573,7 @@ boolean Model_CanInterpolateSprite2(modelspr2frames_t *spr2frame)
 // For non-super players, tries each sprite2's immediate predecessor until it finds one with a number of frames or ends up at standing.
 // For super players, does the same as above - but tries the super equivalent for each sprite2 before the non-super version.
 //
-UINT8 Model_GetSprite2(md2_t *md2, skin_t *skin, UINT8 spr2, player_t *player)
+UINT8 Model_GetSprite2(modelinfo_t *md2, skin_t *skin, UINT8 spr2, player_t *player)
 {
 	UINT8 super = 0, i = 0;
 
@@ -730,7 +730,7 @@ void Model_LoadSprite2(model_t *model)
 					if (!memcmp(spr2names[spr2idx], name, 4))
 					{
 						if (!spr2frames)
-							spr2frames = (modelspr2frames_t*)Z_Calloc(sizeof(modelspr2frames_t)*NUMPLAYERSPRITES*2, PU_STATIC, NULL);
+							spr2frames = (modelspr2frames_t*)Z_Calloc(sizeof(modelspr2frames_t)*NUMPLAYERSPRITES*2, PU_MODEL, NULL);
 						if (super)
 							spr2idx |= FF_SPR2SUPER;
 						if (framechars[0])
@@ -781,7 +781,7 @@ void Model_GenerateVertexNormals(model_t *model)
 		for (j = 0; j < mesh->numFrames; j++)
 		{
 			mdlframe_t *frame = &mesh->frames[j];
-			int memTag = PU_STATIC;
+			int memTag = PU_MODEL;
 			float *newNormals = (float*)Z_Malloc(sizeof(float)*3*mesh->numTriangles*3, memTag, 0);
 			int k;
 			float *vertPtr = frame->vertices;
@@ -919,7 +919,7 @@ void Model_Optimize(model_t *model)
 			numMeshes++;
 	}
 
-	memTag = PU_STATIC;
+	memTag = PU_MODEL;
 	newMeshes = (mesh_t*)Z_Calloc(sizeof(mesh_t) * numMeshes, memTag, 0);
 
 	i = 0;

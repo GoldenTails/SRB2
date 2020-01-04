@@ -51,7 +51,7 @@ boolean RSP_RenderModel(vissprite_t *spr)
 	INT32 nextFrameIndex = -1;
 	INT32 mod;
 	UINT8 spr2 = 0;
-	md2_t *md2;
+	modelinfo_t *md2;
 	INT32 meshnum;
 
 	// Not funny id Software, didn't laugh.
@@ -697,7 +697,7 @@ static boolean BlendTranslations(UINT8 *px, RGBA_t *sourcepx, RGBA_t *blendpx, I
 	return false;
 }
 
-void RSP_CreateModelTexture(md2_t *model, INT32 tcnum, INT32 skincolor)
+void RSP_CreateModelTexture(modelinfo_t *model, INT32 tcnum, INT32 skincolor)
 {
 	modeltexturedata_t *texture = model->texture->base;
 	modeltexturedata_t *blendtexture = model->texture->blend;
@@ -852,7 +852,7 @@ void RSP_CreateModelTexture(md2_t *model, INT32 tcnum, INT32 skincolor)
 
 #undef SETBRIGHTNESS
 
-void RSP_FreeModelTexture(md2_t *model)
+void RSP_FreeModelTexture(modelinfo_t *model)
 {
 	modeltexturedata_t *texture = model->texture->base;
 	if (texture)
@@ -870,7 +870,7 @@ void RSP_FreeModelTexture(md2_t *model)
 	model->texture->rsp_tex.height = 1;
 }
 
-void RSP_FreeModelBlendTexture(md2_t *model)
+void RSP_FreeModelBlendTexture(modelinfo_t *model)
 {
 	modeltexturedata_t *blendtexture = model->texture->blend;
 	if (blendtexture)
