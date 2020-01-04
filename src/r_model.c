@@ -33,6 +33,9 @@
 #include "hardware/hw_drv.h"
 #endif
 
+char modelsfile[64];
+char modelsfolder[64];
+
 md2_t md2_models[NUMSPRITES];
 md2_t md2_playermodels[MAXSKINS];
 
@@ -57,47 +60,30 @@ static void CV_TextureMapping_OnChange(void)
 }
 #endif
 
-// Loads the model. That's it.
-model_t *R_LoadModel(const char *filename)
+//
+// R_Init3DModels
+//
+void R_Init3DModels(void)
 {
-	//Filename checking fixed ~Monster Iestyn and Golden
-	return Model_Load(va("%s"PATHSEP"%s", srb2home, filename), PU_STATIC);
-}
-
-// Reload model stuff.
-void R_ReloadModels(void)
-{
-	size_t i;
-	INT32 s;
-
-	for (s = 0; s < MAXSKINS; s++)
-	{
-		if (md2_playermodels[s].model)
-			Model_LoadSprite2(md2_playermodels[s].model);
-	}
-
-	for (i = 0; i < NUMSPRITES; i++)
-	{
-		if (md2_models[i].model)
-			Model_LoadInterpolationSettings(md2_models[i].model);
-	}
-}
-
-// Don't spam the console, or the OS with fopen requests!
-static boolean nomd2s = false;
-
-void R_InitModels(void)
-{
-	size_t i;
-	INT32 s;
-
-	CONS_Printf("R_InitModels()...\n");
-
 	CV_RegisterVar(&cv_modelinterpolation);
 	CV_RegisterVar(&cv_models);
 #ifdef POLYRENDERER
 	CV_RegisterVar(&cv_texturemapping);
 #endif
+
+	R_InitModelInfo();
+
+	strncpy(modelsfile, MODELSFILE, 64);
+	strncpy(modelsfolder, MODELSFOLDER, 64);
+}
+
+//
+// R_InitModelInfo
+//
+void R_InitModelInfo(void)
+{
+	size_t i;
+	INT32 s;
 
 	for (s = 0; s < MAXSKINS; s++)
 	{
@@ -120,27 +106,23 @@ void R_InitModels(void)
 	}
 }
 
+//
+// R_AddPlayerModel
+// Adds a model for a player.
+//
 void R_AddPlayerModel(int skin)
 {
 	FILE *f;
 	char name[18], filename[32];
 	float scale, offset;
 
-	if (nomd2s)
-		return;
-
 	// read the models.dat file
 	//Filename checking fixed ~Monster Iestyn and Golden
-	f = fopen(va("%s"PATHSEP"%s", srb2home, MODELSFILE), "rt");
-
+	f = fopen(va("%s"PATHSEP"%s", srb2home, modelsfile), "rt");
 	if (!f)
-	{
-		CONS_Printf("Error while loading "MODELSFILE"\n");
-		nomd2s = true;
 		return;
-	}
 
-	// Check for any model that match the names of player skins!
+	// Check for any models that match the names of player skins!
 	while (fscanf(f, "%19s %31s %f %f", name, filename, &scale, &offset) == 4)
 	{
 		if (stricmp(name, skins[skin].name) == 0)
@@ -154,13 +136,16 @@ void R_AddPlayerModel(int skin)
 		}
 	}
 
-	//CONS_Printf("Model for player skin %s not found\n", skins[skin].name);
 	md2_playermodels[skin].notfound = true;
 playermd2found:
 	fclose(f);
 }
 
-void R_AddSpriteModel(size_t spritenum) // For sprites that were added after startup
+//
+// R_AddSpriteModel
+// Adds a model for a sprite.
+//
+void R_AddSpriteModel(size_t spritenum)
 {
 	FILE *f;
 	// name[18] is used to check for names in the models.dat file that match with sprites or player skins
@@ -168,24 +153,13 @@ void R_AddSpriteModel(size_t spritenum) // For sprites that were added after sta
 	char name[18], filename[32];
 	float scale, offset;
 
-	if (nomd2s)
-		return;
-
-	if (spritenum == SPR_PLAY) // Handled already NEWMD2: Per sprite, per-skin check
-		return;
-
 	// Read the models.dat file
 	//Filename checking fixed ~Monster Iestyn and Golden
-	f = fopen(va("%s"PATHSEP"%s", srb2home, MODELSFILE), "rt");
-
+	f = fopen(va("%s"PATHSEP"%s", srb2home, modelsfile), "rt");
 	if (!f)
-	{
-		CONS_Printf("Error while loading "MODELSFILE"\n");
-		nomd2s = true;
 		return;
-	}
 
-	// Check for any MD2s that match the names of sprite names!
+	// Check for any models that match the names of sprite names!
 	while (fscanf(f, "%19s %31s %f %f", name, filename, &scale, &offset) == 4)
 	{
 		if (stricmp(name, sprnames[spritenum]) == 0)
@@ -198,10 +172,92 @@ void R_AddSpriteModel(size_t spritenum) // For sprites that were added after sta
 		}
 	}
 
-	//CONS_Printf("MD2 for sprite %s not found\n", sprnames[spritenum]);
 	md2_models[spritenum].notfound = true;
 spritemd2found:
 	fclose(f);
+}
+
+//
+// R_UnloadAllModels
+// Unload every sprite and skin model.
+//
+void R_UnloadAllModels(void)
+{
+	size_t i;
+	INT32 s;
+	md2_t *md2;
+
+	for (s = 0; s < numskins; s++)
+	{
+		md2 = &md2_playermodels[s];
+		if (md2->model)
+		{
+			Model_Unload(md2->model);
+			Model_UnloadTextures(md2);
+		}
+	}
+
+	for (i = 0; i < NUMSPRITES; i++)
+	{
+		md2 = &md2_models[i];
+		if (md2->model)
+		{
+			Model_Unload(md2->model);
+			Model_UnloadTextures(md2);
+		}
+	}
+}
+
+//
+// R_AddAllModels
+// Load every sprite and skin model.
+// Calls R_UnloadAllModels first.
+//
+void R_AddAllModels(void)
+{
+	size_t i;
+	INT32 s;
+
+	R_UnloadAllModels();
+	R_InitModelInfo();
+
+	for (s = 0; s < numskins; s++)
+		R_AddPlayerModel(s);
+
+	for (i = 0; i < NUMSPRITES; i++)
+		R_AddSpriteModel(i);
+}
+
+//
+// R_ReloadModelInfo
+// Reloads model info.
+//
+void R_ReloadModelInfo(void)
+{
+	size_t i;
+	INT32 s;
+
+	for (s = 0; s < MAXSKINS; s++)
+	{
+		if (md2_playermodels[s].model)
+			Model_LoadSprite2(md2_playermodels[s].model);
+	}
+
+	for (i = 0; i < NUMSPRITES; i++)
+	{
+		if (md2_models[i].model)
+			Model_LoadInterpolationSettings(md2_models[i].model);
+	}
+}
+
+//
+// R_LoadModel
+// Loads a model.
+//
+model_t *R_LoadModel(const char *filename)
+{
+	//Filename checking fixed ~Monster Iestyn and Golden
+	return Model_Load(va("%s"PATHSEP"%s", srb2home, filename), PU_STATIC);
 }
 
 //
@@ -287,10 +343,17 @@ model_t *Model_Load(const char *filename, int ztag)
 	return model;
 }
 
+//
+// Model_Unload
 // Wouldn't it be great if C just had destructors?
+//
 void Model_Unload(model_t *model)
 {
 	int i;
+
+	if (model == NULL)
+		return;
+
 	for (i = 0; i < model->numMeshes; i++)
 	{
 		mesh_t *mesh = &model->meshes[i];
@@ -356,6 +419,35 @@ void Model_Unload(model_t *model)
 	Z_Free(model);
 }
 
+//
+// Model_UnloadTextures
+//
+void Model_UnloadTextures(md2_t *model)
+{
+	if (model->texture)
+	{
+#ifdef HWRENDER
+		GLPatch_t *grpatch = NULL;
+		if (model->texture->grpatch)
+		{
+			grpatch = model->texture->grpatch;
+			if (grpatch)
+			{
+				Z_Free(grpatch->mipmap->grInfo.data);
+				if (grpatch->mipmap)
+					Z_Free(grpatch->mipmap);
+				Z_Free(grpatch);
+			}
+		}
+#endif
+#ifdef POLYRENDERER
+		RSP_FreeModelTexture(model);
+		RSP_FreeModelBlendTexture(model);
+#endif
+		Z_Free(model->texture);
+	}
+}
+
 // Returns a model, if available.
 md2_t *Model_IsAvailable(spritenum_t spritenum, skin_t *skin)
 {
@@ -379,7 +471,7 @@ md2_t *Model_IsAvailable(spritenum_t spritenum, skin_t *skin)
 
 	if (!md2->model)
 	{
-		sprintf(filename, MODELSFOLDER"/%s", md2->filename);
+		sprintf(filename, "%s/%s", modelsfolder, md2->filename);
 		md2->model = R_LoadModel(filename);
 
 		if (!md2->model)

@@ -1250,6 +1250,10 @@ void D_SRB2Main(void)
 	// Have to be done here before files are loaded
 	M_InitCharacterTables();
 
+	// Init 3D models
+	CONS_Printf("R_Init3DModels()...\n");
+	R_Init3DModels();
+
 	mainwads = 3; // doesn't include music.dta
 #ifdef USE_PATCH_DTA
 	mainwads++;
@@ -1282,9 +1286,6 @@ void D_SRB2Main(void)
 
 	CONS_Printf("I_StartupGraphics()...\n");
 	I_StartupGraphics();
-
-	// Init 3D models
-	R_InitModels();
 
 #ifdef HWRENDER
 	// Lactozilla: Add every hardware mode CVAR and CCMD.

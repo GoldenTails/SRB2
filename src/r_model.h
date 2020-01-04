@@ -15,6 +15,9 @@
 #include "doomstat.h"
 #include "r_things.h"
 
+extern char modelsfile[64];
+extern char modelsfolder[64];
+
 extern consvar_t cv_models;
 extern consvar_t cv_modelinterpolation;
 
@@ -153,15 +156,19 @@ extern md2_t md2_models[NUMSPRITES];
 extern md2_t md2_playermodels[MAXSKINS];
 
 // Model initialization
-void R_InitModels(void);
-void R_ReloadModels(void);
+void R_Init3DModels(void);
+void R_InitModelInfo(void);
+void R_ReloadModelInfo(void);
 void R_AddPlayerModel(INT32 skin);
 void R_AddSpriteModel(size_t spritenum);
-model_t *R_LoadModel(const char *filename);
+void R_UnloadAllModels(void);
+void R_AddAllModels(void);
 
 // Model loading and unloading
+model_t *R_LoadModel(const char *filename);
 model_t *Model_Load(const char *filename, int ztag);
 void Model_Unload(model_t *model);
+void Model_UnloadTextures(md2_t *model);
 
 // Model rendering
 md2_t *Model_IsAvailable(spritenum_t spritenum, skin_t *skin);
