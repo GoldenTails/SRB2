@@ -343,9 +343,6 @@ model_t *Model_Load(const char *filename, int ztag)
 		return NULL;
 	}
 
-	model->mdlFilename = (char*)Z_Malloc(strlen(filename)+1, ztag, NULL);
-	strcpy(model->mdlFilename, filename);
-
 	Model_Optimize(model);
 	Model_GeneratePolygonNormals(model, ztag);
 	Model_LoadSprite2(model);

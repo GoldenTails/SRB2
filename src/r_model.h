@@ -110,9 +110,6 @@ typedef struct model_s
 	int numTags;
 	tag_t *tags;
 
-	char *mdlFilename;
-	boolean unloaded;
-
 	char *framenames;
 	boolean interpolate[256];
 	modelspr2frames_t *spr2frames;
