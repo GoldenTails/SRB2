@@ -1634,7 +1634,7 @@ static void ST_drawFirstPersonHUD(void)
 
 	// Get the front angle patch for the frame
 	sprframe = &sprites[SPR_DRWN].spriteframes[airtime];
-	p = W_CachePatchNum(sprframe->lumppat[0], PU_CACHE);
+	p = W_CachePatchNum(sprframe->lumppat[0], PU_PATCH);
 
 	// Display the countdown drown numbers!
 	if (p && !F_GetPromptHideHud(60 - SHORT(p->topoffset)))

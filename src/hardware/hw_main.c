@@ -4084,7 +4084,7 @@ static void HWR_SplitSprite(gr_vissprite_t *spr)
 	if (hires)
 		this_scale = this_scale * FIXED_TO_FLOAT(((skin_t *)spr->mobj->skin)->highresscale);
 
-	gpatch = spr->gpatch; //W_CachePatchNum(spr->patchlumpnum, PU_CACHE);
+	gpatch = spr->gpatch;
 
 	// cache the patch in the graphics card memory
 	//12/12/99: Hurdler: same comment as above (for md2)
@@ -4356,7 +4356,7 @@ static void HWR_DrawSprite(gr_vissprite_t *spr)
 	//          sure to do it the right way. So actually, we keep normal sprite
 	//          in memory and we add the md2 model if it exists for that sprite
 
-	gpatch = spr->gpatch; //W_CachePatchNum(spr->patchlumpnum, PU_CACHE);
+	gpatch = spr->gpatch;
 
 #ifdef ALAM_LIGHTING
 	if (!(spr->mobj->flags2 & MF2_DEBRIS) && (spr->mobj->sprite != SPR_PLAY ||
@@ -4485,7 +4485,7 @@ static inline void HWR_DrawPrecipitationSprite(gr_vissprite_t *spr)
 		return;
 
 	// cache sprite graphics
-	gpatch = spr->gpatch; //W_CachePatchNum(spr->patchlumpnum, PU_CACHE);
+	gpatch = spr->gpatch;
 
 	// create the sprite billboard
 	//
@@ -5331,13 +5331,12 @@ static void HWR_ProjectSprite(mobj_t *thing)
 	vis->x2 = x2;
 	vis->tz = tz; // Keep tz for the simple sprite sorting that happens
 	vis->dispoffset = thing->info->dispoffset; // Monster Iestyn: 23/11/15: HARDWARE SUPPORT AT LAST
-	//vis->patchlumpnum = sprframe->lumppat[rot];
 #ifdef ROTSPRITE
 	if (rotsprite)
 		vis->gpatch = (GLPatch_t *)rotsprite;
 	else
 #endif
-		vis->gpatch = (GLPatch_t *)W_CachePatchNum(sprframe->lumppat[rot], PU_CACHE);
+		vis->gpatch = (GLPatch_t *)W_CachePatchNum(sprframe->lumppat[rot], PU_PATCH);
 	vis->flip = flip;
 	vis->mobj = thing;
 	vis->z1 = z1;
@@ -5472,8 +5471,7 @@ static void HWR_ProjectPrecipitationSprite(precipmobj_t *thing)
 	vis->z2 = z2;
 	vis->tz = tz;
 	vis->dispoffset = 0; // Monster Iestyn: 23/11/15: HARDWARE SUPPORT AT LAST
-	//vis->patchlumpnum = sprframe->lumppat[rot];
-	vis->gpatch = (GLPatch_t *)W_CachePatchNum(sprframe->lumppat[rot], PU_CACHE);
+	vis->gpatch = (GLPatch_t *)W_CachePatchNum(sprframe->lumppat[rot], PU_PATCH);
 	vis->flip = flip;
 	vis->mobj = (mobj_t *)thing;
 

@@ -609,8 +609,6 @@ static void D_Display(void)
 void D_CheckRendererState(void)
 {
 	// flush all patches from memory
-	// (also frees memory tagged with PU_CACHE)
-	// (which are not necessarily patches but I don't care)
 	if (needpatchflush)
 		Z_FlushCachedPatches();
 

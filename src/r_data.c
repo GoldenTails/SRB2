@@ -902,8 +902,6 @@ Rloadtextures (INT32 i, INT32 w)
 			patch->lump = texstart + j;
 			patch->flip = 0;
 
-			Z_Unlock(patchlump);
-
 			texturewidth[i] = texture->width;
 			textureheight[i] = texture->height << FRACBITS;
 			i++;

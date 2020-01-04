@@ -499,28 +499,22 @@ void Z_FreeTags(INT32 lowtag, INT32 hightag)
 // Utility functions
 // -----------------
 
-// for renderer switching, free a bunch of stuff
 boolean needpatchflush = false;
 boolean needpatchrecache = false;
 
-// flush all patches from memory
-// (also frees memory tagged with PU_CACHE)
-// (which are not necessarily patches but I don't care)
+// Purge every graphic from memory.
 void Z_FlushCachedPatches(void)
 {
 	CONS_Debug(DBG_RENDER, "Z_FlushCachedPatches()...\n");
-	Z_FreeTag(PU_CACHE);
 	Z_FreeTag(PU_PATCH);
 	Z_FreeTag(PU_HUDGFX);
-	Z_FreeTag(PU_HWRPATCHINFO);
-	Z_FreeTag(PU_HWRMODELTEXTURE);
 	Z_FreeTag(PU_HWRCACHE);
 	Z_FreeTag(PU_HWRCACHE_UNLOCKED);
-	Z_FreeTag(PU_HWRPATCHINFO_UNLOCKED);
 	Z_FreeTag(PU_HWRMODELTEXTURE_UNLOCKED);
+	needpatchflush = false;
 }
 
-// happens before a renderer switch
+// Happens before a renderer switch.
 void Z_PreparePatchFlush(void)
 {
 	CONS_Debug(DBG_RENDER, "Z_PreparePatchFlush()...\n");
@@ -818,15 +812,11 @@ static void Command_Memfree_f(void)
 		CONS_Printf(M_GetText("HW model textures : %7s KB\n"), sizeu1(Z_TagUsage(PU_HWRMODELTEXTURE)>>10));
 		CONS_Printf(M_GetText("HW Texture used   : %7d KB\n"), HWR_GetTextureUsed()>>10);
 	}
-	else
 #endif
-	if (rendermode == render_soft)
-	{
-		CONS_Printf(M_GetText("Patches           : %7s KB\n"), sizeu1(Z_TagUsage(PU_PATCH)>>10));
 #ifdef POLYRENDERER
+	if (rendermode == render_soft)
 		CONS_Printf(M_GetText("Polygon renderer  : %7s KB\n"), sizeu1(Z_TagUsage(PU_SOFTPOLY)>>10));
 #endif
-	}
 
 	CONS_Printf("\x82%s", M_GetText("System Memory Info\n"));
 	freebytes = I_GetFreeMem(&totalbytes);

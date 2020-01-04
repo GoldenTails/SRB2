@@ -1732,9 +1732,6 @@ void *W_CachePatchNumPwad(UINT16 wad, UINT16 lump, INT32 tag)
 	GLPatch_t *grPatch;
 #endif
 
-	if (needpatchflush)
-		W_FlushCachedPatches();
-
 	if (!TestValidLump(wad, lump))
 		return NULL;
 
@@ -1751,7 +1748,7 @@ void *W_CachePatchNumPwad(UINT16 wad, UINT16 lump, INT32 tag)
 
 	if (grPatch->mipmap->grInfo.data)
 	{
-		if (tag == PU_CACHE)
+		if (tag == PU_PATCH)
 			tag = PU_HWRCACHE;
 		Z_ChangeTag(grPatch->mipmap->grInfo.data, tag);
 	}
@@ -1783,11 +1780,9 @@ void W_UnlockCachedPatch(void *patch)
 	// The hardware code does its own memory management, as its patches
 	// have different lifetimes from software's.
 #ifdef HWRENDER
-	if (rendermode != render_soft && rendermode != render_none)
+	if (rendermode == render_opengl)
 		HWR_UnlockCachedPatch((GLPatch_t*)patch);
-	else
 #endif
-		Z_Unlock(patch);
 }
 
 void *W_CachePatchName(const char *name, INT32 tag)
