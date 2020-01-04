@@ -20,6 +20,7 @@ extern char modelsfolder[64];
 
 extern consvar_t cv_models;
 extern consvar_t cv_modelinterpolation;
+extern consvar_t cv_modelsfile;
 extern consvar_t cv_modelsfolder;
 
 #ifdef POLYRENDERER

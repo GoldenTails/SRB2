@@ -47,33 +47,35 @@ static CV_PossibleValue_t texturemapping_cons_t[] = {
 	{0, NULL}};
 #endif
 
+static void CV_ModelsFile_OnChange(void);
 static void CV_ModelsFolder_OnChange(void);
+
 #ifdef POLYRENDERER
 static void CV_TextureMapping_OnChange(void);
 #endif
 
 consvar_t cv_models = {"models", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_modelinterpolation = {"modelinterpolation", "Sometimes", CV_SAVE, modelinterpolation_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_modelsfile = {"modelsfile", "models.dat", CV_SAVE|CV_CALL, NULL, CV_ModelsFile_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_modelsfolder = {"modelsfolder", "models", CV_SAVE|CV_CALL, NULL, CV_ModelsFolder_OnChange, 0, NULL, NULL, 0, 0, NULL};
 #ifdef POLYRENDERER
 consvar_t cv_texturemapping = {"texturemapping", "Floating-Point", CV_SAVE|CV_CALL, texturemapping_cons_t, CV_TextureMapping_OnChange, 0, NULL, NULL, 0, 0, NULL};
 #endif
 
-static void CV_ModelsFolder_OnChange(void)
+static void CV_ModelsFile_OnChange(void)
 {
-	const char *folder = cv_modelsfolder.string;
-
-	// Write the new path names
-	strncpy(modelsfolder, folder, 64);
-	strncpy(modelsfile, folder, 64);
+	// Write the new filename
+	strncpy(modelsfile, cv_modelsfile.string, 64);
 	FIL_ForceExtension(modelsfile, ".dat");
 
-	// Check if .dat file exists
-	if (!FIL_FileExists(va("%s"PATHSEP"%s", srb2home, modelsfile)))
-	{
-		CONS_Alert(CONS_WARNING, M_GetText("File %s doesn't seem to exist\n"), modelsfile);
-		return;
-	}
+	// Reload every model
+	R_ReloadAllModels();
+}
+
+static void CV_ModelsFolder_OnChange(void)
+{
+	// Write the new folder name
+	strncpy(modelsfolder, cv_modelsfolder.string, 64);
 
 	// Reload every model
 	R_ReloadAllModels();
@@ -92,6 +94,7 @@ static void CV_TextureMapping_OnChange(void)
 void R_Init3DModels(void)
 {
 	CV_RegisterVar(&cv_modelsfolder);
+	CV_RegisterVar(&cv_modelsfile);
 	CV_RegisterVar(&cv_modelinterpolation);
 	CV_RegisterVar(&cv_models);
 #ifdef POLYRENDERER
@@ -248,6 +251,20 @@ void R_ReloadAllModels(void)
 {
 	size_t i;
 	INT32 s;
+
+	// Check if .dat file exists
+	if (!FIL_FileExists(va("%s"PATHSEP"%s", srb2home, modelsfile)))
+	{
+		CONS_Alert(CONS_WARNING, M_GetText("File %s doesn't seem to exist\n"), modelsfile);
+		return;
+	}
+
+	// Check if models folder exists
+	if (!FIL_FileExists(va("%s"PATHSEP"%s", srb2home, modelsfolder)))
+	{
+		CONS_Alert(CONS_WARNING, M_GetText("Folder %s doesn't seem to exist\n"), modelsfolder);
+		return;
+	}
 
 	R_UnloadAllModels();
 	R_InitModelInfo();
