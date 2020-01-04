@@ -808,13 +808,11 @@ static void Command_Memfree_f(void)
 		sizeu1(Z_TagsUsage(PU_PURGELEVEL, INT32_MAX)>>10));
 
 	CONS_Printf("\x82%s", M_GetText("Renderer Info\n"));
-	CONS_Printf(M_GetText("Patches           : %7s KB\n"), sizeu1(Z_TagUsage(PU_PATCH)>>10));
 	CONS_Printf(M_GetText("3D models         : %7s KB\n"), sizeu1(Z_TagUsage(PU_MODEL)>>10));
 #ifdef HWRENDER
 	if (rendermode == render_opengl)
 	{
 		CONS_Printf(M_GetText("Patch info headers: %7s KB\n"), sizeu1(Z_TagUsage(PU_HWRPATCHINFO)>>10));
-		CONS_Printf(M_GetText("Mipmap patches    : %7s KB\n"), sizeu1(Z_TagUsage(PU_HWRPATCHCOLMIPMAP)>>10));
 		CONS_Printf(M_GetText("HW Texture cache  : %7s KB\n"), sizeu1(Z_TagUsage(PU_HWRCACHE)>>10));
 		CONS_Printf(M_GetText("Plane polygons    : %7s KB\n"), sizeu1(Z_TagUsage(PU_HWRPLANE)>>10));
 		CONS_Printf(M_GetText("HW model textures : %7s KB\n"), sizeu1(Z_TagUsage(PU_HWRMODELTEXTURE)>>10));
@@ -822,10 +820,13 @@ static void Command_Memfree_f(void)
 	}
 	else
 #endif
-#ifdef POLYRENDERER
 	if (rendermode == render_soft)
+	{
+		CONS_Printf(M_GetText("Patches           : %7s KB\n"), sizeu1(Z_TagUsage(PU_PATCH)>>10));
+#ifdef POLYRENDERER
 		CONS_Printf(M_GetText("Polygon renderer  : %7s KB\n"), sizeu1(Z_TagUsage(PU_SOFTPOLY)>>10));
 #endif
+	}
 
 	CONS_Printf("\x82%s", M_GetText("System Memory Info\n"));
 	freebytes = I_GetFreeMem(&totalbytes);
