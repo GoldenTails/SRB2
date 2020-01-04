@@ -146,8 +146,8 @@ typedef struct
 	float           scale;
 	float           offset;
 	model_t         *model;
-	boolean         meshVBOs;
 	modeltexture_t  *texture;
+	boolean         meshVBOs;
 	boolean         notfound;
 	INT32           skin;
 	boolean         error;
