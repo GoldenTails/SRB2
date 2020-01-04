@@ -728,7 +728,7 @@ typedef struct
 	INT16 width;
 	INT16 height;
 	UINT32 lumpnum;
-	UINT8 *data;
+	UINT16 *data;
 } rsp_spritetexture_t;
 #endif
 

@@ -827,12 +827,12 @@ boolean R_PNGDimensions(UINT8 *png, INT16 *width, INT16 *height, size_t size)
 //
 // Generate a texture for the polygon renderer.
 //
-void R_GenerateSpriteTexture(patch_t *patch, UINT8 *buffer, INT32 x, INT32 y, INT32 maxwidth, INT32 maxheight, boolean flip, UINT8 *colormap, UINT8 *translation)
+void R_GenerateSpriteTexture(patch_t *patch, UINT16 *buffer, INT32 x, INT32 y, INT32 maxwidth, INT32 maxheight, boolean flip, UINT8 *colormap, UINT8 *translation)
 {
 	fixed_t col, ofs;
 	column_t *column;
-	UINT8 *desttop, *dest;
-	UINT8 *source, *deststop;
+	UINT16 *desttop, *dest, *deststop;
+	UINT8 *source;
 
 	if (x >= maxwidth)
 		return;
@@ -868,15 +868,17 @@ void R_GenerateSpriteTexture(patch_t *patch, UINT8 *buffer, INT32 x, INT32 y, IN
 			{
 				if (dest >= buffer && source[ofs] != TRANSPARENTPIXEL)
 				{
+					UINT16 mappx = 0xFF00;
 					UINT8 pixel = source[ofs];
 					if (colormap && translation)
-						*dest = colormap[translation[pixel]];
+						mappx |= colormap[translation[pixel]];
 					else if (colormap)
-						*dest = colormap[pixel];
+						mappx |= colormap[pixel];
 					else if (translation)
-						*dest = translation[pixel];
+						mappx |= translation[pixel];
 					else
-						*dest = pixel;
+						mappx |= pixel;
+					*dest = mappx;
 				}
 				dest += maxwidth;
 			}

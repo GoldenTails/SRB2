@@ -19,7 +19,7 @@ void (*rsp_fixedtrifunc)(rsp_triangle_t *tri, rsp_trimode_t type);
 void (*rsp_floattrifunc)(rsp_triangle_t *tri, rsp_trimode_t type);
 
 static UINT32 tex_width, tex_height;
-static UINT8 *tex_data;
+static UINT16 *tex_data;
 static UINT8 *tex_translation;
 static UINT8 *tex_colormap;
 static UINT8 *tex_transmap;
@@ -29,7 +29,7 @@ static inline void texspanloop(fixed_t y, fixed_t startXPrestep, fixed_t endXPre
 {
 	fixed_t x, r, z;
 	UINT16 u, v;
-	UINT8 pixel = 0;
+	UINT16 pixel = 0;
 	boolean depth_only = ((rsp_target.mode & (RENDERMODE_DEPTH|RENDERMODE_COLOR)) == RENDERMODE_DEPTH);
 	INT32 ix, clipleft, clipright;
 
@@ -74,8 +74,9 @@ static inline void texspanloop(fixed_t y, fixed_t startXPrestep, fixed_t endXPre
 			u %= tex_width;
 			v %= tex_height;
 			pixel = tex_data[(v * tex_width) + u];
-			if (pixel != TRANSPARENTPIXEL)
+			if (pixel & 0xFF00)
 			{
+				pixel &= 0x00FF;
 				if (tex_translation)
 					pixel = tex_translation[pixel];
 				if (tex_colormap)
@@ -204,7 +205,7 @@ static inline void texspanloop_fp(float y, float startXPrestep, float endXPreste
 {
 	float x, r, z, z2;
 	UINT16 u, v;
-	UINT8 pixel = 0;
+	UINT16 pixel = 0;
 	boolean depth_only = ((rsp_target.mode & (RENDERMODE_DEPTH|RENDERMODE_COLOR)) == RENDERMODE_DEPTH);
 	INT32 ix, clipleft, clipright;
 
@@ -250,8 +251,9 @@ static inline void texspanloop_fp(float y, float startXPrestep, float endXPreste
 			u %= tex_width;
 			v %= tex_height;
 			pixel = tex_data[(v * tex_width) + u];
-			if (pixel != TRANSPARENTPIXEL)
+			if (pixel & 0xFF00)
 			{
+				pixel &= 0x00FF;
 				if (tex_translation)
 					pixel = tex_translation[pixel];
 				if (tex_colormap)

@@ -2490,14 +2490,6 @@ UINT8 NearestPaletteColor(UINT8 r, UINT8 g, UINT8 b, RGBA_t *palette)
 	return (UINT8)bestcolor;
 }
 
-UINT8 NearestColorSafe(UINT8 r, UINT8 g, UINT8 b)
-{
-	UINT8 pixel = NearestColor(r, g, b);
-	if (pixel == TRANSPARENTPIXEL)
-		pixel = 140;
-	return pixel;
-}
-
 // Rounds off floating numbers and checks for 0 - 255 bounds
 static int RoundUp(double number)
 {

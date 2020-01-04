@@ -29,7 +29,6 @@ UINT32 ASTBlendPixel(RGBA_t background, RGBA_t foreground, int style, UINT8 alph
 UINT8 ASTBlendPixel_8bpp(UINT8 background, UINT8 foreground, int style, UINT8 alpha);
 
 UINT8 NearestColor(UINT8 r, UINT8 g, UINT8 b);
-UINT8 NearestColorSafe(UINT8 r, UINT8 g, UINT8 b);
 
 // moved here for r_sky.c (texpatch_t is used)
 

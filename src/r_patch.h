@@ -42,7 +42,7 @@ typedef struct
 {
 	INT16 width;
 	INT16 height;
-	UINT8 *data;
+	UINT16 *data;
 } rsp_texture_t;
 #endif
 
@@ -53,7 +53,7 @@ void R_PatchToFlat(patch_t *patch, UINT8 *flat);
 void R_PatchToMaskedFlat(patch_t *patch, UINT16 *raw, boolean flip);
 patch_t *R_FlatToPatch(UINT8 *raw, UINT16 width, UINT16 height, UINT16 leftoffset, UINT16 topoffset, size_t *destsize, boolean transparency);
 patch_t *R_MaskedFlatToPatch(UINT16 *raw, UINT16 width, UINT16 height, UINT16 leftoffset, UINT16 topoffset, size_t *destsize);
-void R_GenerateSpriteTexture(patch_t *patch, UINT8 *buffer, INT32 x, INT32 y, INT32 maxwidth, INT32 maxheight, boolean flip, UINT8 *colormap, UINT8 *translation);
+void R_GenerateSpriteTexture(patch_t *patch, UINT16 *buffer, INT32 x, INT32 y, INT32 maxwidth, INT32 maxheight, boolean flip, UINT8 *colormap, UINT8 *translation);
 
 // Portable Network Graphics
 boolean R_IsLumpPNG(const UINT8 *d, size_t s);
