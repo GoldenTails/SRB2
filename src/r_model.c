@@ -255,14 +255,14 @@ void R_ReloadAllModels(void)
 	// Check if .dat file exists
 	if (!FIL_FileExists(va("%s"PATHSEP"%s", srb2home, modelsfile)))
 	{
-		CONS_Alert(CONS_WARNING, M_GetText("File %s doesn't seem to exist\n"), modelsfile);
+		CONS_Alert(CONS_ERROR, M_GetText("Model info file \"%s\" doesn't exist\n"), modelsfile);
 		return;
 	}
 
 	// Check if models folder exists
 	if (!FIL_FileExists(va("%s"PATHSEP"%s", srb2home, modelsfolder)))
 	{
-		CONS_Alert(CONS_WARNING, M_GetText("Folder %s doesn't seem to exist\n"), modelsfolder);
+		CONS_Alert(CONS_ERROR, M_GetText("Model folder \"%s\" doesn't exist\n"), modelsfolder);
 		return;
 	}
 
@@ -330,7 +330,7 @@ model_t *Model_Load(const char *filename, int ztag)
 
 	if (!extension)
 	{
-		CONS_Printf("Model %s is lacking a file extension, unable to determine type!\n", filename);
+		CONS_Alert(CONS_ERROR, "Model \"%s\" is lacking a file extension, unable to determine type!\n", filename);
 		return NULL;
 	}
 
@@ -356,7 +356,7 @@ model_t *Model_Load(const char *filename, int ztag)
 	}
 	else
 	{
-		CONS_Printf("Unknown model format: %s\n", extension);
+		CONS_Alert(CONS_ERROR, "Unknown model format \"%s\"\n", extension);
 		return NULL;
 	}
 
