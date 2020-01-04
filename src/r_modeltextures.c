@@ -319,8 +319,7 @@ boolean Model_LoadTexture(md2_t *model, INT32 skinnum)
 		}
 		else
 		{
-			grpatch = Z_Calloc(sizeof *grpatch, PU_HWRPATCHINFO,
-							   &(model->texture->grpatch));
+			grpatch = Z_Calloc(sizeof *grpatch, PU_HWRPATCHINFO, &(model->texture->grpatch));
 			grpatch->mipmap = Z_Calloc(sizeof (GLMipmap_t), PU_HWRPATCHINFO, NULL);
 		}
 	}
@@ -445,8 +444,7 @@ boolean Model_LoadBlendTexture(md2_t *model)
 		}
 		else
 		{
-			grpatch = Z_Calloc(sizeof *grpatch, PU_HWRPATCHINFO,
-							   &(model->texture->blendgrpatch));
+			grpatch = Z_Calloc(sizeof *grpatch, PU_HWRPATCHINFO, &(model->texture->blendgrpatch));
 			grpatch->mipmap = Z_Calloc(sizeof (GLMipmap_t), PU_HWRPATCHINFO, NULL);
 		}
 	}

@@ -459,17 +459,27 @@ void Model_UnloadTextures(md2_t *model)
 	{
 #ifdef HWRENDER
 		GLPatch_t *grpatch = NULL;
-		if (model->texture->grpatch)
-		{
-			grpatch = model->texture->grpatch;
-			if (grpatch)
-			{
-				Z_Free(grpatch->mipmap->grInfo.data);
-				if (grpatch->mipmap)
-					Z_Free(grpatch->mipmap);
-				Z_Free(grpatch);
-			}
+
+		// Macro for freeing base and blend mipmaps
+		#define FREETEX(tex) \
+		{ \
+			if (model->texture->tex) \
+			{ \
+				grpatch = model->texture->tex; \
+				if (grpatch) \
+				{ \
+					Z_Free(grpatch->mipmap->grInfo.data); \
+					if (grpatch->mipmap) \
+						Z_Free(grpatch->mipmap); \
+					Z_Free(grpatch); \
+				} \
+			} \
 		}
+
+		FREETEX(grpatch)
+		FREETEX(blendgrpatch)
+
+		#undef FREETEX
 #endif
 
 #ifdef POLYRENDERER
