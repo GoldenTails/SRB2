@@ -20,6 +20,7 @@ extern char modelsfolder[64];
 
 extern consvar_t cv_models;
 extern consvar_t cv_modelinterpolation;
+extern consvar_t cv_modelsfolder;
 
 #ifdef POLYRENDERER
 extern consvar_t cv_texturemapping;
@@ -162,7 +163,7 @@ void R_ReloadModelInfo(void);
 void R_AddPlayerModel(INT32 skin);
 void R_AddSpriteModel(size_t spritenum);
 void R_UnloadAllModels(void);
-void R_AddAllModels(void);
+void R_ReloadAllModels(void);
 
 // Model loading and unloading
 model_t *R_LoadModel(const char *filename);

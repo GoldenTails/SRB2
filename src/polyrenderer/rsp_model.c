@@ -855,19 +855,19 @@ void RSP_CreateModelTexture(md2_t *model, INT32 tcnum, INT32 skincolor)
 void RSP_FreeModelTexture(md2_t *model)
 {
 	modeltexturedata_t *texture = model->texture->base;
-	model->texture->rsp_tex.width = 1;
-	model->texture->rsp_tex.height = 1;
-
 	if (texture)
 	{
 		if (texture->data)
 			Z_Free(texture->data);
 		texture->data = NULL;
 	}
+
+	// Free polyrenderer memory.
 	if (model->texture->rsp_tex.data)
 		Z_Free(model->texture->rsp_tex.data);
-
 	model->texture->rsp_tex.data = NULL;
+	model->texture->rsp_tex.width = 1;
+	model->texture->rsp_tex.height = 1;
 }
 
 void RSP_FreeModelBlendTexture(md2_t *model)

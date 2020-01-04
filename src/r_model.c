@@ -45,15 +45,41 @@ static CV_PossibleValue_t texturemapping_cons_t[] = {
 	{TEXMAP_FIXED, "Fixed-Point"},
 	{TEXMAP_FLOAT, "Floating-Point"},
 	{0, NULL}};
+#endif
+
+static void CV_ModelsFolder_OnChange(void);
+#ifdef POLYRENDERER
 static void CV_TextureMapping_OnChange(void);
 #endif
 
 consvar_t cv_models = {"models", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_modelinterpolation = {"modelinterpolation", "Sometimes", CV_SAVE, modelinterpolation_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
-
+consvar_t cv_modelsfolder = {"modelsfolder", "models", CV_SAVE|CV_CALL, NULL, CV_ModelsFolder_OnChange, 0, NULL, NULL, 0, 0, NULL};
 #ifdef POLYRENDERER
 consvar_t cv_texturemapping = {"texturemapping", "Floating-Point", CV_SAVE|CV_CALL, texturemapping_cons_t, CV_TextureMapping_OnChange, 0, NULL, NULL, 0, 0, NULL};
+#endif
 
+static void CV_ModelsFolder_OnChange(void)
+{
+	const char *folder = cv_modelsfolder.string;
+
+	// Write the new path names
+	strncpy(modelsfolder, folder, 64);
+	strncpy(modelsfile, folder, 64);
+	FIL_ForceExtension(modelsfile, ".dat");
+
+	// Check if .dat file exists
+	if (!FIL_FileExists(va("%s"PATHSEP"%s", srb2home, modelsfile)))
+	{
+		CONS_Alert(CONS_WARNING, M_GetText("File %s doesn't seem to exist\n"), modelsfile);
+		return;
+	}
+
+	// Reload every model
+	R_ReloadAllModels();
+}
+
+#ifdef POLYRENDERER
 static void CV_TextureMapping_OnChange(void)
 {
 	R_SetViewSize();
@@ -65,6 +91,7 @@ static void CV_TextureMapping_OnChange(void)
 //
 void R_Init3DModels(void)
 {
+	CV_RegisterVar(&cv_modelsfolder);
 	CV_RegisterVar(&cv_modelinterpolation);
 	CV_RegisterVar(&cv_models);
 #ifdef POLYRENDERER
@@ -192,8 +219,8 @@ void R_UnloadAllModels(void)
 		md2 = &md2_playermodels[s];
 		if (md2->model)
 		{
-			Model_Unload(md2->model);
 			Model_UnloadTextures(md2);
+			Model_Unload(md2->model);
 		}
 	}
 
@@ -202,18 +229,18 @@ void R_UnloadAllModels(void)
 		md2 = &md2_models[i];
 		if (md2->model)
 		{
-			Model_Unload(md2->model);
 			Model_UnloadTextures(md2);
+			Model_Unload(md2->model);
 		}
 	}
 }
 
 //
-// R_AddAllModels
-// Load every sprite and skin model.
+// R_ReloadAllModels
+// Reloads every sprite and skin model.
 // Calls R_UnloadAllModels first.
 //
-void R_AddAllModels(void)
+void R_ReloadAllModels(void)
 {
 	size_t i;
 	INT32 s;
@@ -440,10 +467,16 @@ void Model_UnloadTextures(md2_t *model)
 			}
 		}
 #endif
+
 #ifdef POLYRENDERER
 		RSP_FreeModelTexture(model);
 		RSP_FreeModelBlendTexture(model);
 #endif
+
+		if (model->texture->base)
+			Z_Free(model->texture->base);
+		if (model->texture->blend)
+			Z_Free(model->texture->blend);
 		Z_Free(model->texture);
 	}
 }
