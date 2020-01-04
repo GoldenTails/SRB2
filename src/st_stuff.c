@@ -628,7 +628,7 @@ static void ST_drawDebugInfo(void)
 	}
 
 #ifdef POLYRENDERER
-	if (cv_debug & DBG_RENDER)
+	if ((cv_debug & DBG_RENDER) && (rendermode == render_soft))
 	{
 #ifdef RSP_DEBUGGING
 		V_DrawDebugLine(va("Meshes drawn: %d", rsp_meshesdrawn));
