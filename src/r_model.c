@@ -288,7 +288,7 @@ void R_ReloadModelInfo(void)
 model_t *R_LoadModel(const char *filename)
 {
 	//Filename checking fixed ~Monster Iestyn and Golden
-	return Model_Load(va("%s"PATHSEP"%s", srb2home, filename), PU_STATIC);
+	return Model_Load(va("%s"PATHSEP"%s", srb2home, filename), PU_MODEL);
 }
 
 //

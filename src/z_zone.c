@@ -808,6 +808,7 @@ static void Command_Memfree_f(void)
 		sizeu1(Z_TagsUsage(PU_PURGELEVEL, INT32_MAX)>>10));
 
 	CONS_Printf("\x82%s", M_GetText("Renderer Info\n"));
+	CONS_Printf(M_GetText("3D models         : %7s KB\n"), sizeu1(Z_TagUsage(PU_MODEL)>>10));
 #ifdef HWRENDER
 	if (rendermode == render_opengl)
 	{
