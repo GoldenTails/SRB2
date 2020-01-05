@@ -122,6 +122,7 @@ typedef struct
 	INT16 height;
 	size_t size;
 	void *data;
+	boolean found;
 } modeltexturedata_t;
 
 typedef struct

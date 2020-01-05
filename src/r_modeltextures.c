@@ -92,7 +92,7 @@ static RGBA_t *Model_PNGLoad(const char *filename, int *rwidth, int *rheight, in
 	png_FILE = fopen(pngfilename, "rb");
 	if (!png_FILE)
 	{
-		CONS_Debug(DBG_RENDER, "Model_PNGLoad: Error on opening %s for loading\n", filename);
+		CONS_Debug(DBG_RENDER, "Model_PNGLoad: Error on opening \"%s\" for loading\n", filename);
 		return NULL;
 	}
 
@@ -226,16 +226,21 @@ static RGBA_t *Model_PCXLoad(const char *filename, int *rwidth, int *rheight, in
 	FIL_ForceExtension(pcxfilename, ".pcx");
 	file = fopen(pcxfilename, "rb");
 	if (!file)
+	{
+		CONS_Debug(DBG_RENDER, "Model_PCXLoad: Error on opening \"%s\" for loading\n", filename);
 		return NULL;
+	}
 
 	if (fread(&header, sizeof (PcxHeader), 1, file) != 1)
 	{
+		CONS_Debug(DBG_RENDER, "Model_PCXLoad: Invalid header in file \"%s\"\n", filename);
 		fclose(file);
 		return NULL;
 	}
 
 	if (header.bitsPerPixel != 8)
 	{
+		CONS_Debug(DBG_RENDER, "Model_PCXLoad: Unsupported bits per pixel value in file \"%s\"\n", filename);
 		fclose(file);
 		return NULL;
 	}
@@ -300,7 +305,10 @@ boolean Model_LoadTexture(modelinfo_t *model, INT32 skinnum)
 
 	// make new texture
 	if (!model->texture->base)
+	{
 		texture = Z_Calloc(sizeof *texture, PU_STATIC, &(model->texture->base));
+		texture->found = true;
+	}
 	else
 		texture = model->texture->base;
 
@@ -325,6 +333,10 @@ boolean Model_LoadTexture(modelinfo_t *model, INT32 skinnum)
 	}
 #endif
 
+	// We already failed trying to find the texture file, so don't do it again.
+	if (!texture->found)
+		return false;
+
 	// load texture
 	if (!texture->data)
 	{
@@ -335,7 +347,11 @@ boolean Model_LoadTexture(modelinfo_t *model, INT32 skinnum)
 		{
 			loadedimg = Model_PCXLoad(filename, &w, &h, &size);
 			if (!loadedimg)
+			{
+				// Not found? Return.
+				texture->found = false;
 				return false;
+			}
 		}
 
 		Z_Calloc(size, PU_STATIC, &texture->data);
@@ -425,7 +441,10 @@ boolean Model_LoadBlendTexture(modelinfo_t *model)
 
 	// make new texture
 	if (!model->texture->blend)
+	{
 		texture = Z_Calloc(sizeof *texture, PU_STATIC, &(model->texture->blend));
+		texture->found = true;
+	}
 	else
 		texture = model->texture->blend;
 
@@ -450,6 +469,10 @@ boolean Model_LoadBlendTexture(modelinfo_t *model)
 	}
 #endif
 
+	// We already failed trying to find the texture file, so don't do it again.
+	if (!texture->found)
+		return false;
+
 	// load texture
 	if (!texture->data)
 	{
@@ -461,6 +484,8 @@ boolean Model_LoadBlendTexture(modelinfo_t *model)
 			loadedimg = Model_PCXLoad(filename, &w, &h, &size);
 			if (!loadedimg)
 			{
+				// Not found? Return.
+				texture->found = false;
 				Z_Free(filename);
 				return false;
 			}
