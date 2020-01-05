@@ -450,7 +450,7 @@
     <ClCompile Include="..\r_sky.c" />
     <ClCompile Include="..\r_splats.c" />
     <ClCompile Include="..\r_things.c" />
-	<ClCompile Include="..\r_md2load.c" />
+    <ClCompile Include="..\r_md2load.c" />
     <ClCompile Include="..\r_md3load.c" />
     <ClCompile Include="..\r_model.c" />
     <ClCompile Include="..\r_modeltextures.c" />
