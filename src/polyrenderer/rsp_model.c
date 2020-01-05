@@ -94,7 +94,7 @@ boolean RSP_RenderModel(vissprite_t *spr)
 		float finalscale;
 		float pol = 0.0f;
 		INT32 skinnum = 0;
-		INT32 tc = 0;
+		INT32 tc = 0, textc = 0;
 
 		skincolors_t skincolor = SKINCOLOR_NONE;
 		UINT8 *translation = NULL;
@@ -127,7 +127,7 @@ boolean RSP_RenderModel(vissprite_t *spr)
 		// load normal texture
 		if (!md2->texture->rsp_tex.data)
 		{
-			if (mobj->skin && mobj->sprite == SPR_PLAY)
+			if (mobj->skin)
 				skinnum = (skin_t*)mobj->skin-skins;
 			Model_LoadTexture(md2, skinnum);
 			Model_LoadBlendTexture(md2);
@@ -161,14 +161,13 @@ boolean RSP_RenderModel(vissprite_t *spr)
 		}
 
 		// load translated texture
-		if (tc < 0)
-			tc = -tc;
-		if (tc && md2->texture->rsp_blendtex[tc][skincolor].data == NULL)
-			RSP_CreateModelTexture(md2, tc, skincolor);
+		textc = -tc;
+		if (textc && md2->texture->rsp_blendtex[textc][skincolor].data == NULL)
+			RSP_CreateModelTexture(md2, textc, skincolor);
 
 		// use corresponding texture for this model
-		if (md2->texture->rsp_blendtex[tc][skincolor].data != NULL)
-			texture = &md2->texture->rsp_blendtex[tc][skincolor];
+		if (md2->texture->rsp_blendtex[textc][skincolor].data != NULL)
+			texture = &md2->texture->rsp_blendtex[textc][skincolor];
 		else
 			texture = &md2->texture->rsp_tex;
 
@@ -288,6 +287,11 @@ boolean RSP_RenderModel(vissprite_t *spr)
 				// aight bro u have lost yuor cache privileges
 				Z_Free(source);
 			}
+
+			// Set the translation here because no blend texture was made
+			if (tc == TC_DEFAULT && (mobj->skin))
+				tc = skinnum;
+			translation = R_GetTranslationColormap(tc, mobj->color, GTC_CACHE);
 
 			sprtex.data = sprtexp->data;
 			texture = &sprtex;
