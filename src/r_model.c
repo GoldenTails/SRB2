@@ -11,14 +11,15 @@
 #include "doomtype.h"
 #include "doomstat.h"
 #include "d_main.h"
-#include "m_argv.h"
 #include "info.h"
-#include "z_zone.h"
+#include "i_video.h"
+#include "m_argv.h"
 #include "r_things.h"
 #include "r_model.h"
 #include "r_md2load.h"
 #include "r_md3load.h"
 #include "u_list.h"
+#include "z_zone.h"
 #include <string.h>
 
 #ifndef errno
