@@ -140,9 +140,7 @@ typedef struct vissprite_s
 	struct vissprite_s *linkdraw;
 
 	mobj_t *mobj; // for easy access
-	spritenum_t spritenum;
-	void *skin;
-	boolean model;
+	void *model;
 	boolean dontdrawsprite;
 
 	INT32 x1, x2;

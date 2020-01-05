@@ -104,7 +104,7 @@ boolean RSP_RenderModel(vissprite_t *spr)
 		RSP_RestoreViewpoint(); \
 }
 
-		md2 = Model_IsAvailable(spr->spritenum, (skin_t *)spr->skin);
+		md2 = (modelinfo_t *)spr->model;
 		if (!md2)
 		{
 			RESETVIEW

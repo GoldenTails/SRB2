@@ -1389,11 +1389,7 @@ static void R_ProjectSprite(mobj_t *thing)
 	fixed_t tx, tz;
 	fixed_t xscale, yscale, sortscale; //added : 02-02-98 : aaargll..if I were a math-guy!!!
 
-	boolean model;
-	skin_t *skin;
-#ifdef POLYRENDERER
-	modelinfo_t *md2;
-#endif
+	modelinfo_t *model = NULL;
 
 	INT32 x1, x2;
 	INT32 projx1, projx2;
@@ -1445,20 +1441,17 @@ static void R_ProjectSprite(mobj_t *thing)
 	INT32 rollangle = 0;
 #endif
 
-	model = false;
-	skin = thing->skin;
-
 #ifdef POLYRENDERER
 	// Lactozilla: Polygon renderer
-	md2 = Model_IsAvailable(thing->sprite, skin);
-	model = (polyrenderer && cv_models.value && md2);
-	frustumclipping = false; // DONOTCULL turns this on.
-
-	if (model)
+	if (polyrenderer && cv_models.value)
 	{
-		checkvisible = false;
-		// MODELDEF stuff should be in here,
-		// but I didn't port it yet.
+		model = Model_IsAvailable(thing->sprite, thing->skin);
+		if (model)
+		{
+			checkvisible = false;
+			// MODELDEF stuff should be in here,
+			// but I didn't port it yet.
+		}
 	}
 #endif
 
@@ -1908,10 +1901,6 @@ static void R_ProjectSprite(mobj_t *thing)
 	vis->shear.offset = 0;
 
 	vis->mobj = thing; // Easy access! Tails 06-07-2002
-
-	// Lactozilla: Polygon renderer
-	vis->spritenum = thing->sprite;
-	vis->skin = skin;
 	vis->model = model;
 
 #ifdef POLYRENDERER
@@ -2141,9 +2130,8 @@ static void R_ProjectPrecipitationSprite(precipmobj_t *thing)
 	vis->paperdistance = 0;
 	vis->shear.tan = 0;
 	vis->shear.offset = 0;
-	vis->model = false;
+	vis->model = NULL;
 	vis->dontdrawsprite = false;
-	vis->skin = NULL;
 
 	vis->x1 = x1 < portalclipstart ? portalclipstart : x1;
 	vis->x2 = x2 >= portalclipend ? portalclipend-1 : x2;
