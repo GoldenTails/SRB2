@@ -1771,7 +1771,7 @@ static void R_ProjectSprite(mobj_t *thing)
 	}
 #endif
 
-	if ((thing->flags2 & MF2_LINKDRAW) && thing->tracer) // toast 16/09/16 (SYMMETRY)
+	if ((!model) && (thing->flags2 & MF2_LINKDRAW) && thing->tracer) // toast 16/09/16 (SYMMETRY)
 	{
 		fixed_t linkscale;
 
