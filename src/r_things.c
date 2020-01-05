@@ -105,10 +105,15 @@ static void R_InstallSpriteLump(UINT16 wad,            // graphics patch
 #ifdef POLYRENDERER
 	{
 		lumpcache_t *lumpcache;
-		UINT8 rot = (rotation != 0) ? (rotation-1) : 0;
+		UINT8 rot;
 		patch_t *patch;
 		rsp_spritetexture_t *tex;
 		INT32 blockwidth, blockheight;
+
+		if (rotation == ROT_L || rotation == ROT_R)
+			rot = ((rotation == ROT_R) ? 4 : 0);
+		else
+			rot = (rotation != 0) ? (rotation-1) : 0;
 
 		if (wadfiles[wad]->patchcache)
 		{
