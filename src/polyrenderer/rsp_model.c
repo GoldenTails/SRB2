@@ -392,7 +392,7 @@ boolean RSP_RenderModel(vissprite_t *spr)
 			rotaxis_t rotaxis = ROTAXIS_Y;
 			float roll;
 			fixed_t froll;
-			float centerx, centery;
+			float modelcenterx, modelcentery;
 
 			rollangle = mobj->rollangle;
 			froll = AngleFixed(rollangle);
@@ -417,9 +417,9 @@ boolean RSP_RenderModel(vissprite_t *spr)
 			else // X
 				rollquaternion = RSP_QuaternionFromEuler(roll, 0.0f, 0.0f);
 
-			centerx = FIXED_TO_FLOAT(mobj->radius/2);
-			centery = FIXED_TO_FLOAT(mobj->height/2);
-			RSP_MakeVector4(rolltranslation, centerx, 0.0f, centery);
+			modelcenterx = FIXED_TO_FLOAT(mobj->radius/2);
+			modelcentery = FIXED_TO_FLOAT(mobj->height/2);
+			RSP_MakeVector4(rolltranslation, modelcenterx, 0.0f, modelcentery);
 		}
 #endif
 
