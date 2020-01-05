@@ -31,6 +31,8 @@ extern fixed_t fovtan; // field of view
 extern size_t validcount, linecount, loopcount, framecount;
 
 #ifdef POLYRENDERER
+extern boolean polyrenderer;
+extern boolean nopolyrenderer;
 extern boolean modelinview;
 extern boolean frustumclipping;
 #endif

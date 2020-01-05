@@ -11,6 +11,7 @@
 #include "doomtype.h"
 #include "doomstat.h"
 #include "d_main.h"
+#include "m_argv.h"
 #include "info.h"
 #include "z_zone.h"
 #include "r_things.h"
@@ -105,6 +106,14 @@ void R_Init3DModels(void)
 
 	strncpy(modelsfile, MODELSFILE, 64);
 	strncpy(modelsfolder, MODELSFOLDER, 64);
+
+#ifdef POLYRENDERER
+	if (M_CheckParm("-nopolyrenderer"))
+	{
+		polyrenderer = false;
+		nopolyrenderer = true;
+	}
+#endif
 }
 
 //

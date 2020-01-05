@@ -1458,8 +1458,8 @@ static void R_ProjectSprite(mobj_t *thing)
 	skin = (skin_t *)thing->skin;
 	md2 = Model_IsAvailable(thing->sprite, skin);
 
-	model = (cv_models.value && md2);
 #ifdef POLYRENDERER
+	model = (polyrenderer && cv_models.value && md2);
 	frustumclipping = false; // DONOTCULL turns this on.
 #endif
 
