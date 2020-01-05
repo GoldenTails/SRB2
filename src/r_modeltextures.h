@@ -16,7 +16,7 @@
 #include "doomtype.h"
 #include "r_model.h"
 
-boolean Model_LoadTexture(modelinfo_t *model, INT32 skinnum);
+boolean Model_LoadTexture(modelinfo_t *model);
 boolean Model_LoadBlendTexture(modelinfo_t *model);
 
 #endif

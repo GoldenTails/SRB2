@@ -578,7 +578,7 @@ boolean HWR_DrawModel(modelinfo_t *md2, gr_vissprite_t *spr)
 		gpatch = md2->texture->grpatch;
 		if (!gpatch || !gpatch->mipmap->grInfo.format || !gpatch->mipmap->downloaded)
 		{
-			if (Model_LoadTexture(md2, -1))
+			if (Model_LoadTexture(md2))
 			{
 				gpatch = md2->texture->grpatch; // Load it again, because it isn't loaded into gpatch after Model_LoadTexture...
 				HWD.pfnSetTexture(gpatch->mipmap);

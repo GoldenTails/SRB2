@@ -129,7 +129,7 @@ boolean RSP_RenderModel(vissprite_t *spr)
 		{
 			if (mobj->skin)
 				skinnum = (skin_t*)mobj->skin-skins;
-			Model_LoadTexture(md2, skinnum);
+			Model_LoadTexture(md2);
 			Model_LoadBlendTexture(md2);
 		}
 
