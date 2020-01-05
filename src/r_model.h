@@ -155,20 +155,24 @@ typedef struct
 extern modelinfo_t md2_models[NUMSPRITES];
 extern modelinfo_t md2_playermodels[MAXSKINS];
 
-// Model initialization
-void R_Init3DModels(void);
-void R_InitModelInfo(void);
-void R_ReloadModelSettings(void);
-void R_AddPlayerModel(INT32 skin);
-void R_AddSpriteModel(size_t spritenum);
-void R_UnloadAllModels(void);
-void R_ReloadAllModels(void);
+// Model info initialization
+void Model_Init(void);
+void Model_SetupInfo(void);
+void Model_ReloadSettings(void);
+
+void Model_AddSkin(INT32 skin);
+void Model_AddSprite(size_t spritenum);
+
+void Model_UnloadInfo(modelinfo_t *model);
+void Model_UnloadTextures(modelinfo_t *model);
+
+void Model_UnloadAll(void);
+void Model_ReloadAll(void);
 
 // Model loading and unloading
-model_t *R_LoadModel(const char *filename);
-model_t *Model_Load(const char *filename, int ztag);
+model_t *Model_LoadFile(const char *filename);
+model_t *Model_ReadFile(const char *filename, int ztag);
 void Model_Unload(model_t *model);
-void Model_UnloadTextures(modelinfo_t *model);
 
 // Model rendering
 modelinfo_t *Model_IsAvailable(spritenum_t spritenum, skin_t *skin);

@@ -1249,8 +1249,8 @@ void D_SRB2Main(void)
 	M_InitCharacterTables();
 
 	// Init 3D models
-	CONS_Printf("R_Init3DModels()...\n");
-	R_Init3DModels();
+	CONS_Printf("Model_Init()...\n");
+	Model_Init();
 
 	mainwads = 3; // doesn't include music.dta
 #ifdef USE_PATCH_DTA

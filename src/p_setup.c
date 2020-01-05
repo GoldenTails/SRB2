@@ -3942,7 +3942,7 @@ boolean P_AddWadFile(const char *wadfilename)
 		CONS_Printf(M_GetText("No maps added\n"));
 
 	R_LoadSpriteInfoLumps(wadnum, numlumps);
-	R_ReloadModelSettings();
+	Model_ReloadSettings();
 
 	// reload status bar (warning should have valid player!)
 	if (gamestate == GS_LEVEL)
