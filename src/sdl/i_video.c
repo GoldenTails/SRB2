@@ -1841,6 +1841,7 @@ void VID_StartupOpenGL(void)
 		HWD.pfnGetTextureUsed   = hwSym("GetTextureUsed",NULL);
 		HWD.pfnDrawModel        = hwSym("DrawModel",NULL);
 		HWD.pfnCreateModelVBOs  = hwSym("CreateModelVBOs",NULL);
+		HWD.pfnDeleteModelVBOs  = hwSym("DeleteModelVBOs",NULL);
 		HWD.pfnSetTransform     = hwSym("SetTransform",NULL);
 		HWD.pfnGetRenderVersion = hwSym("GetRenderVersion",NULL);
 		HWD.pfnPostImgRedraw    = hwSym("PostImgRedraw",NULL);

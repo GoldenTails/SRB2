@@ -90,6 +90,7 @@ void *hwSym(const char *funcName,void *handle)
 	GETFUNC(GetTextureUsed);
 	GETFUNC(DrawModel);
 	GETFUNC(CreateModelVBOs);
+	GETFUNC(DeleteModelVBOs);
 	GETFUNC(SetTransform);
 	GETFUNC(GetRenderVersion);
 	GETFUNC(PostImgRedraw);

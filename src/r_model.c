@@ -1095,32 +1095,12 @@ void Model_GeneratePolygonNormals(model_t *model, int ztag)
 
 void Model_DeleteVBOs(model_t *model)
 {
+#ifdef HWRENDER
+	// This just means VBOs get lost in GPU memory
+	// if you happen to not be in OpenGL. Oh well.
+	if (rendermode == render_opengl)
+		HWD.pfnDeleteModelVBOs(model);
+#else
 	(void)model;
-/*	for (int i = 0; i < model->numMeshes; i++)
-	{
-		mesh_t *mesh = &model->meshes[i];
-
-		if (mesh->frames)
-		{
-			for (int j = 0; j < mesh->numFrames; j++)
-			{
-				mdlframe_t *frame = &mesh->frames[j];
-				if (!frame->vboID)
-					continue;
-				bglDeleteBuffers(1, &frame->vboID);
-				frame->vboID = 0;
-			}
-		}
-		else if (mesh->tinyframes)
-		{
-			for (int j = 0; j < mesh->numFrames; j++)
-			{
-				tinyframe_t *frame = &mesh->tinyframes[j];
-				if (!frame->vboID)
-					continue;
-				bglDeleteBuffers(1, &frame->vboID);
-				frame->vboID = 0;
-			}
-		}
-	}*/
+#endif
 }
