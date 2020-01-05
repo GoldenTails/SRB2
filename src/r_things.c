@@ -108,7 +108,6 @@ static void R_InstallSpriteLump(UINT16 wad,            // graphics patch
 		UINT8 rot;
 		patch_t *patch;
 		rsp_spritetexture_t *tex;
-		INT32 blockwidth, blockheight;
 
 		if (rotation == ROT_L || rotation == ROT_R)
 			rot = ((rotation == ROT_R) ? 4 : 0);
@@ -126,20 +125,10 @@ static void R_InstallSpriteLump(UINT16 wad,            // graphics patch
 			if (R_CheckIfPatch(lumppat))
 			{
 				patch = (patch_t *)W_CacheLumpNumPwad(wad, lump, PU_STATIC);
-
-				// size up to nearest power of 2
-				blockwidth = 1;
-				blockheight = 1;
-				while (blockwidth < SHORT(patch->width))
-					blockwidth <<= 1;
-				while (blockheight < SHORT(patch->height))
-					blockheight <<= 1;
-
-				tex->width = blockwidth;
-				tex->height = blockheight;
+				tex->width = SHORT(patch->width);
+				tex->height = SHORT(patch->height);
 				tex->lumpnum = lumppat;
 				tex->data = NULL;
-
 				Z_Free(patch);
 			}
 			else
