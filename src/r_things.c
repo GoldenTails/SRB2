@@ -1443,7 +1443,7 @@ static void R_ProjectSprite(mobj_t *thing)
 
 #ifdef POLYRENDERER
 	// Lactozilla: Polygon renderer
-	if (polyrenderer)
+	if (polyrenderer && (cv_models.value))
 	{
 		model = Model_IsAvailable(thing->sprite, thing->skin);
 		if (model)

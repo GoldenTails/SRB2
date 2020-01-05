@@ -49,6 +49,7 @@ static CV_PossibleValue_t texturemapping_cons_t[] = {
 	{0, NULL}};
 #endif
 
+static void CV_Models_OnChange(void);
 static void CV_ModelsFile_OnChange(void);
 static void CV_ModelsFolder_OnChange(void);
 
@@ -56,13 +57,21 @@ static void CV_ModelsFolder_OnChange(void);
 static void CV_TextureMapping_OnChange(void);
 #endif
 
-consvar_t cv_models = {"models", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_models = {"models", "Off", CV_CALL|CV_SAVE|CV_NOINIT, CV_OnOff, CV_Models_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_modelinterpolation = {"modelinterpolation", "Sometimes", CV_SAVE, modelinterpolation_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_modelsfile = {"modelsfile", "models.dat", CV_SAVE|CV_CALL, NULL, CV_ModelsFile_OnChange, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_modelsfolder = {"modelsfolder", "models", CV_SAVE|CV_CALL, NULL, CV_ModelsFolder_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_modelsfile = {"modelsfile", "models.dat", CV_CALL|CV_SAVE, NULL, CV_ModelsFile_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_modelsfolder = {"modelsfolder", "models", CV_CALL|CV_SAVE, NULL, CV_ModelsFolder_OnChange, 0, NULL, NULL, 0, 0, NULL};
 #ifdef POLYRENDERER
 consvar_t cv_texturemapping = {"texturemapping", "Floating-Point", CV_SAVE|CV_CALL, texturemapping_cons_t, CV_TextureMapping_OnChange, 0, NULL, NULL, 0, 0, NULL};
 #endif
+
+static void CV_Models_OnChange(void)
+{
+#ifdef POLYRENDERER
+	if (rendermode == render_soft)
+		R_SetViewSize();
+#endif
+}
 
 static void CV_ModelsFile_OnChange(void)
 {

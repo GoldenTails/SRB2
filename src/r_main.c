@@ -1429,7 +1429,7 @@ void R_RenderPlayerView(player_t *player)
 	curdrawsegs = ds_p;
 
 #ifdef POLYRENDERER
-	polyrenderer = ((!nopolyrenderer) && cv_models.value);
+	polyrenderer = (!nopolyrenderer);
 	modelinview = false;
 	frustumclipping = false;
 	if (polyrenderer)
