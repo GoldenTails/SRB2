@@ -768,7 +768,7 @@ void RSP_CreateModelTexture(modelinfo_t *model, INT32 tcnum, INT32 skincolor)
 		ttex->height = texture->height;
 		ttex->data = Z_Calloc(size * sizeof(UINT16), PU_SOFTPOLY, NULL);
 
-		blendcolor = V_GetColor(0); // initialize
+		blendcolor = V_GetMasterColor(0); // initialize
 		if (skincolor != SKINCOLOR_NONE)
 			memcpy(&translation, &Color_Index[skincolor - 1], 16);
 
@@ -805,15 +805,15 @@ void RSP_CreateModelTexture(modelinfo_t *model, INT32 tcnum, INT32 skincolor)
 					secondi = firsti+1;
 					mul = ((UINT8)(255-brightness) % 16);
 
-					blendcolor = V_GetColor(translation[firsti]);
+					blendcolor = V_GetMasterColor(translation[firsti]);
 
 					if (mul > 0 // If it's 0, then we only need the first color.
 						&& translation[firsti] != translation[secondi]) // Some colors have duplicate colors in a row, so let's just save the process
 					{
 						if (secondi == 16) // blend to black
-							nextcolor = V_GetColor(31);
+							nextcolor = V_GetMasterColor(31);
 						else
-							nextcolor = V_GetColor(translation[secondi]);
+							nextcolor = V_GetMasterColor(translation[secondi]);
 
 						// Find difference between points
 						r = (UINT32)(nextcolor.s.red - blendcolor.s.red);
