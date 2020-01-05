@@ -1909,8 +1909,10 @@ static void R_ProjectSprite(mobj_t *thing)
 	vis->spritenum = thing->sprite;
 	vis->skin = thing->skin;
 	vis->model = model;
+#ifdef POLYRENDERER
 	if (model)
 		modelinview = true;
+#endif
 
 	// Obviously if the renderer decided to not draw the model
 	// you're gonna have to figure out if the sprite should HAVE
