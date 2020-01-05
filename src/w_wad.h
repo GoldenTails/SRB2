@@ -102,10 +102,23 @@ virtlump_t* vres_Find(const virtres_t*, const char*);
 
 #define lumpcache_t void *
 
+// Lactozilla
+// A file's patch cache is like its lump cache,
+// but for graphics that are converted to a specific format,
+// commonly a PNG to a Doom GFX conversion.
 typedef struct
 {
+	// A Doom graphic or a PNG.
+	// Converted by W_CachePatchNumPwad.
 	lumpcache_t *lumps;
+	// In the software polygon renderer,
+	// those are 16-bit raw graphics, palette-based.
+	// The upper byte is used to store the pixel's alpha value,
+	// and the lower byte is a palette index.
 	lumpcache_t *software;
+	// Graphics converted to the hardware renderer's native format.
+	// In OpenGL, those can be in RGBA, or be palette-based.
+	// They are then uploaded to the GPU.
 	lumpcache_t *hardware;
 } patchcache_t;
 
