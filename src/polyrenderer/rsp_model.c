@@ -251,8 +251,7 @@ boolean RSP_RenderModel(vissprite_t *spr)
 			if (!sprtexp->data)
 			{
 				patch_t *source;
-				size_t size;
-				INT32 i;
+				size_t size, i;
 
 				// uuhhh.....
 				if (!sprtexp->lumpnum)
