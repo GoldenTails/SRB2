@@ -122,10 +122,6 @@ typedef struct
 	lumpcache_t *hardware;
 } patchcache_t;
 
-#ifdef HWRENDER
-#include "m_aatree.h"
-#endif
-
 // Resource type of the WAD. Yeah, I know this sounds dumb, but I'll leave it like this until I clean up the code further.
 typedef enum restype
 {

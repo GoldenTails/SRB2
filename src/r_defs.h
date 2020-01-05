@@ -24,10 +24,6 @@
 
 #include "screen.h" // MAXVIDWIDTH, MAXVIDHEIGHT
 
-#ifdef HWRENDER
-#include "m_aatree.h"
-#endif
-
 //
 // ClipWallSegment
 // Clips the given range of columns
