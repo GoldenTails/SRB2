@@ -1773,15 +1773,12 @@ static void R_ProjectSprite(mobj_t *thing)
 
 	if ((thing->flags2 & MF2_LINKDRAW) && thing->tracer) // toast 16/09/16 (SYMMETRY)
 	{
-		mobj_t *tracer = thing->tracer;
-#ifndef POLYRENDERER
 		fixed_t linkscale;
-#endif
-		if (! R_ThingVisible(tracer))
-			return;
 
-#ifndef POLYRENDERER
-		thing = tracer;
+		thing = thing->tracer;
+
+		if (! R_ThingVisible(thing))
+			return;
 
 		tr_x = thing->x - viewx;
 		tr_y = thing->y - viewy;
@@ -1798,8 +1795,10 @@ static void R_ProjectSprite(mobj_t *thing)
 			dispoffset *= -1; // if it's physically behind, make sure it's ordered behind (if dispoffset > 0)
 
 		sortscale = linkscale; // now make sure it's linked
-		cut = SC_LINKDRAW;
-#endif
+		if (!model)
+			cut = SC_LINKDRAW;
+		else
+			thing = oldthing; // restore mobj
 	}
 
 	// PORTAL SPRITE CLIPPING
