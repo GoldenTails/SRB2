@@ -312,6 +312,7 @@ void SCR_Startup(void)
 
 	V_Init();
 	CV_RegisterVar(&cv_ticrate);
+	CV_RegisterVar(&cv_thinfps);
 	CV_RegisterVar(&cv_constextsize);
 
 	V_SetPalette(0);
@@ -528,10 +529,17 @@ void SCR_DisplayTicRate(void)
 	if (totaltics <= TICRATE/2) ticcntcolor = V_REDMAP;
 	else if (totaltics == TICRATE) ticcntcolor = V_GREENMAP;
 
-	V_DrawString(vid.width-(72*vid.dupx), h,
-		V_YELLOWMAP|V_NOSCALESTART|V_USERHUDTRANS, "FPS:");
-	V_DrawString(vid.width-(40*vid.dupx), h,
-		ticcntcolor|V_NOSCALESTART|V_USERHUDTRANS, va("%02d/%02u", totaltics, TICRATE));
+	if (cv_thinfps.value) {
+		V_DrawThinString(vid.width-(44*vid.dupx), h,
+			V_YELLOWMAP|V_NOSCALESTART|V_USERHUDTRANS, "FPS:");
+		V_DrawThinString(vid.width-(24*vid.dupx), h,
+			ticcntcolor|V_NOSCALESTART|V_USERHUDTRANS, va("%02d/%02u", totaltics, TICRATE));
+	} else {
+		V_DrawString(vid.width-(72*vid.dupx), h,
+			V_YELLOWMAP|V_NOSCALESTART|V_USERHUDTRANS, "FPS:");
+		V_DrawString(vid.width-(40*vid.dupx), h,
+			ticcntcolor|V_NOSCALESTART|V_USERHUDTRANS, va("%02d/%02u", totaltics, TICRATE));
+	}
 
 	lasttic = ontic;
 }

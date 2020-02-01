@@ -43,6 +43,7 @@ UINT8 *screens[5];
 // screens[4] = fade screen end, postimage tempoarary buffer
 
 consvar_t cv_ticrate = {"showfps", "No", 0, CV_YesNo, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_thinfps = {"thinfps", "No", CV_SAVE, CV_YesNo, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 static void CV_palette_OnChange(void);
 
