@@ -227,6 +227,8 @@ static inline void texspanloop_fp(float y, float startXPrestep, float endXPreste
 	float zleft, zright;
 	float invzleft = 0.0f, invzright = 0.0f;
 	float zstep = 0.0f, invzstep;
+	float fu = 0.0f, fv = 0.0f;
+	float ustep = 0.0f, vstep = 0.0f;
 
 	// avoid a crash here
 	if (!rsp_curpixelfunc)
@@ -254,6 +256,14 @@ static inline void texspanloop_fp(float y, float startXPrestep, float endXPreste
 	if (!depth_only)
 		invzstep = (invzright - invzleft) * invLineLength;
 
+	if (!depth_only)
+	{
+		fu = startU;
+		fv = startV;
+		ustep = (endU - fu) * invLineLength;
+		vstep = (endV - fv) * invLineLength;
+	}
+
 	for (x = startXPrestep; x <= endXPrestep; x++)
 	{
 		ix = FLOAT_TO_FIXED(x)>>FRACBITS;
@@ -272,8 +282,8 @@ static inline void texspanloop_fp(float y, float startXPrestep, float endXPreste
 
 		if (!depth_only)
 		{
-			u = (FLOAT_TO_FIXED(invzleft * FloatLerp(startU, endU, z))>>FRACBITS) % tex_width;
-			v = (FLOAT_TO_FIXED(invzleft * FloatLerp(startV, endV, z))>>FRACBITS) % tex_height;
+			u = (FLOAT_TO_FIXED(invzleft * fu)>>FRACBITS) % tex_width;
+			v = (FLOAT_TO_FIXED(invzleft * fv)>>FRACBITS) % tex_height;
 			pixel = tex_data[(v * tex_width) + u];
 			if (pixel & 0xFF00)
 			{
@@ -295,6 +305,8 @@ pxdone:
 		{
 			invzleft += invzstep;
 			z += invLineLength;
+			fu += ustep;
+			fv += vstep;
 		}
 	}
 }
