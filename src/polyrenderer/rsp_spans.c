@@ -31,7 +31,7 @@ static inline void texspanloop(fixed_t y, fixed_t startXPrestep, fixed_t endXPre
 	UINT16 u, v;
 	UINT16 pixel = 0;
 	boolean depth_only = ((rsp_target.mode & (RENDERMODE_DEPTH|RENDERMODE_COLOR)) == RENDERMODE_DEPTH);
-	INT32 ix, clipleft, clipright;
+	INT32 ix;
 
 	// avoid a crash here
 	if (!rsp_curpixelfunc)
@@ -42,17 +42,7 @@ static inline void texspanloop(fixed_t y, fixed_t startXPrestep, fixed_t endXPre
 	if (rsp_target.aiming)
 		rsp_ypix += SOFTWARE_AIMING;
 
-	clipleft = rsp_portalclip[0];
-	clipright = rsp_portalclip[1];
-
-	if (startXPrestep < (clipleft<<FRACBITS))
-		startXPrestep += (clipleft<<FRACBITS);
-	if (startXPrestep < 0)
-		startXPrestep = 0;
-	if (endXPrestep > (clipright<<FRACBITS))
-		endXPrestep = (clipright<<FRACBITS);
-	if (endXPrestep >= (viewwidth<<FRACBITS))
-		endXPrestep = (viewwidth-1)<<FRACBITS;
+	r = FixedMul((startXPrestep - startX), invLineLength);
 
 	for (x = startXPrestep; x <= endXPrestep; x += FRACUNIT)
 	{
@@ -62,8 +52,9 @@ static inline void texspanloop(fixed_t y, fixed_t startXPrestep, fixed_t endXPre
 			if (rsp_ypix >= rsp_mfloorclip[ix]) continue;
 			if (rsp_ypix <= rsp_mceilingclip[ix]) continue;
 		}
+
 		// interpolate 1/z for each pixel in the scanline
-		r = FixedMul((x - startX), invLineLength);
+		r += invLineLength;
 		rsp_xpix = ix;
 
 		{
@@ -186,6 +177,20 @@ void RSP_TexturedMappedTriangle(rsp_triangle_t *triangle, rsp_trimode_t type)
 		// skip zero-length lines
 		if (lineLength > 0)
 		{
+			INT32 clipleft = rsp_portalclip[0];
+			INT32 clipright = rsp_portalclip[1];
+			fixed_t sxp = startXPrestep;
+			fixed_t exp = endXPrestep;
+
+			if (sxp < (clipleft<<FRACBITS))
+				sxp += (clipleft<<FRACBITS);
+			if (sxp < 0)
+				sxp = 0;
+			if (exp > (clipright<<FRACBITS))
+				exp = (clipright<<FRACBITS);
+			if (exp >= (viewwidth<<FRACBITS))
+				exp = (viewwidth-1)<<FRACBITS;
+
 			r1 = FixedMul((v0y - y), invY02);
 			startInvZ = FixedLerp(invZ0, invZ2, r1);
 			endInvZ = FixedLerp(invZ0, invZ1, r1);
@@ -196,7 +201,7 @@ void RSP_TexturedMappedTriangle(rsp_triangle_t *triangle, rsp_trimode_t type)
 			endV = FixedMul(texH<<FRACBITS, FixedLerp(FixedMul(v0v, invZ0), FixedMul(v1v, invZ1), r1));
 
 			invLineLength = FixedDiv(FRACUNIT, lineLength);
-			texspanloop(y, startXPrestep, endXPrestep, startX, startInvZ, endInvZ, startU, endU, startV, endV, invLineLength);
+			texspanloop(y, sxp, exp, startX, startInvZ, endInvZ, startU, endU, startV, endV, invLineLength);
 		}
 
 		startX += dxLeft;
@@ -212,11 +217,11 @@ void RSP_TexturedMappedTriangle(rsp_triangle_t *triangle, rsp_trimode_t type)
 // Floating-point texture mapping
 static inline void texspanloop_fp(float y, float startXPrestep, float endXPrestep, float startX, float startInvZ, float endInvZ, float startU, float endU, float startV, float endV, float invLineLength)
 {
-	float x, r, z, z2;
+	float x, r, z;
 	UINT16 u, v;
 	UINT16 pixel = 0;
 	boolean depth_only = ((rsp_target.mode & (RENDERMODE_DEPTH|RENDERMODE_COLOR)) == RENDERMODE_DEPTH);
-	INT32 ix, clipleft, clipright;
+	INT32 ix;
 
 	// avoid a crash here
 	if (!rsp_curpixelfunc)
@@ -227,34 +232,22 @@ static inline void texspanloop_fp(float y, float startXPrestep, float endXPreste
 	if (rsp_target.aiming)
 		rsp_ypix += SOFTWARE_AIMING;
 
-	clipleft = rsp_portalclip[0];
-	clipright = rsp_portalclip[1];
-
-	if (startXPrestep < clipleft)
-		startXPrestep += clipleft;
-	if (startXPrestep < 0.0f)
-		startXPrestep = 0.0f;
-	if (endXPrestep > clipright)
-		endXPrestep = (float)clipright;
-	if (endXPrestep > viewwidth-1)
-		endXPrestep = (float)viewwidth-1;
+	r = ((startXPrestep - startX) * invLineLength);
 
 	for (x = startXPrestep; x <= endXPrestep; x++)
 	{
 		ix = FLOAT_TO_FIXED(x)>>FRACBITS;
 		if (rsp_mfloorclip && rsp_mceilingclip)
 		{
-			if (rsp_ypix >= rsp_mfloorclip[ix]) continue;
-			if (rsp_ypix <= rsp_mceilingclip[ix]) continue;
+			if (rsp_ypix >= rsp_mfloorclip[ix]) goto pxdone;
+			if (rsp_ypix <= rsp_mceilingclip[ix]) goto pxdone;
 		}
-		// interpolate 1/z for each pixel in the scanline
-		r = ((x - startX) * invLineLength);
 		rsp_xpix = ix;
-		z2 = FloatLerp(startInvZ, endInvZ, r);
-		z = 1.0f / z2;
 
+		// interpolate 1/z for each pixel in the scanline
 		{
 			float lerpz = FloatLerp(startInvZ, endInvZ, r);
+			z = 1.0f / lerpz;
 #ifdef RSP_FLOATBUFFER
 			rsp_zpix = lerpz;
 #else
@@ -282,6 +275,9 @@ static inline void texspanloop_fp(float y, float startXPrestep, float endXPreste
 		}
 		else
 			rsp_curpixelfunc();
+
+pxdone:
+		r += invLineLength;
 	}
 }
 
@@ -372,6 +368,20 @@ void RSP_TexturedMappedTriangleFP(rsp_triangle_t *triangle, rsp_trimode_t type)
 		// skip zero-length lines
 		if (lineLength > 0)
 		{
+			INT32 clipleft = rsp_portalclip[0];
+			INT32 clipright = rsp_portalclip[1];
+			float sxp = startXPrestep;
+			float exp = endXPrestep;
+
+			if (sxp < clipleft)
+				sxp += clipleft;
+			if (sxp < 0.0f)
+				sxp = 0.0f;
+			if (exp > clipright)
+				exp = (float)clipright;
+			if (exp > viewwidth-1)
+				exp = (float)viewwidth-1;
+
 			r1 = (v0y - y) * invY02;
 			startInvZ = FloatLerp(invZ0, invZ2, r1);
 			endInvZ = FloatLerp(invZ0, invZ1, r1);
@@ -382,7 +392,7 @@ void RSP_TexturedMappedTriangleFP(rsp_triangle_t *triangle, rsp_trimode_t type)
 			endV = texH * FloatLerp((v0v * invZ0), (v1v * invZ1), r1);
 
 			invLineLength = 1.0f / lineLength;
-			texspanloop_fp(y, startXPrestep, endXPrestep, startX, startInvZ, endInvZ, startU, endU, startV, endV, invLineLength);
+			texspanloop_fp(y, sxp, exp, startX, startInvZ, endInvZ, startU, endU, startV, endV, invLineLength);
 		}
 
 		startX += dxLeft;
