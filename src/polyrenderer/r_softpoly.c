@@ -51,10 +51,10 @@ void RSP_Viewport(INT32 width, INT32 height)
 	rsp_target.fov = fov;
 	fov *= (M_PI / 180.f);
 
-	// make fixed-point depth buffer
+	// make depth buffer
 	if (rsp_target.depthbuffer)
 		Z_Free(rsp_target.depthbuffer);
-	rsp_target.depthbuffer = (fixed_t *)Z_Malloc(sizeof(fixed_t) * (rsp_target.width * rsp_target.height), PU_SOFTPOLY, NULL);
+	rsp_target.depthbuffer = (fixed_t *)Z_Malloc(sizeof(depthbuffer_t) * (rsp_target.width * rsp_target.height), PU_SOFTPOLY, NULL);
 
 	// renderer modes
 	rsp_target.mode = (RENDERMODE_COLOR|RENDERMODE_DEPTH);
@@ -189,5 +189,5 @@ void RSP_RestoreSpriteViewpoint(vissprite_t *spr)
 // clear the depth buffer
 void RSP_ClearDepthBuffer(void)
 {
-	memset(rsp_target.depthbuffer, 0, sizeof(fixed_t) * rsp_target.width * rsp_target.height);
+	memset(rsp_target.depthbuffer, 0, sizeof(depthbuffer_t) * rsp_target.width * rsp_target.height);
 }

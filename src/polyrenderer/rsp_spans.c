@@ -65,8 +65,17 @@ static inline void texspanloop(fixed_t y, fixed_t startXPrestep, fixed_t endXPre
 		// interpolate 1/z for each pixel in the scanline
 		r = FixedMul((x - startX), invLineLength);
 		rsp_xpix = ix;
-		rsp_zpix = FixedLerp(startInvZ, endInvZ, r);
-		z = FixedDiv(FRACUNIT, rsp_zpix);
+
+		{
+			fixed_t lerpz = FixedLerp(startInvZ, endInvZ, r);
+			z = FixedDiv(FRACUNIT, lerpz);
+#ifdef RSP_FLOATBUFFER
+			rsp_zpix = FIXED_TO_FLOAT(lerpz);
+#else
+			rsp_zpix = lerpz;
+#endif
+		}
+
 		if (!depth_only)
 		{
 			u = FixedMul(z, FixedLerp(startU, endU, r))>>FRACBITS;
@@ -243,7 +252,16 @@ static inline void texspanloop_fp(float y, float startXPrestep, float endXPreste
 		rsp_xpix = ix;
 		z2 = FloatLerp(startInvZ, endInvZ, r);
 		z = 1.0f / z2;
-		rsp_zpix = FLOAT_TO_FIXED(FloatLerp(startInvZ, endInvZ, r));
+
+		{
+			float lerpz = FloatLerp(startInvZ, endInvZ, r);
+#ifdef RSP_FLOATBUFFER
+			rsp_zpix = lerpz;
+#else
+			rsp_zpix = FLOAT_TO_FIXED(lerpz);
+#endif
+		}
+
 		if (!depth_only)
 		{
 			u = FLOAT_TO_FIXED(z * FloatLerp(startU, endU, r))>>FRACBITS;
