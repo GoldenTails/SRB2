@@ -1120,6 +1120,9 @@ static const char *credits[] = {
 	"\1Sonic Robo Blast II",
 	"\1Credits",
 	"",
+	"\1Producer",
+	"Rob Tisdell",
+	"",
 	"\1Game Design",
 	"Ben \"Mystic\" Geyer",
 	"\"SSNTails\"",
@@ -1165,6 +1168,7 @@ static const char *credits[] = {
 	"Tasos \"tatokis\" Sahanidis", // Corrected C FixedMul, making 64-bit builds netplay compatible
 	"Wessel \"sphere\" Smit",
 	"Ben \"Cue\" Woodford",
+	"Ikaro \"Tatsuru\" Vinhas",
 	// Git contributors with 5+ approved merges of substantive quality,
 	// or contributors with at least one groundbreaking merge, may be named.
 	// Everyone else is acknowledged under "Special Thanks > SRB2 Community Contributors".
@@ -1233,6 +1237,7 @@ static const char *credits[] = {
 	"Thomas \"Shadow Hog\" Igoe",
 	"Alexander \"DrTapeworm\" Moench-Ford",
 	"\"Kaito Sinclaire\"",
+	"Anna \"QueenDelta\" Sandlin",
 	"Wessel \"sphere\" Smit",
 	"\"Spazzo\"",
 	"\"SSNTails\"",
@@ -1256,7 +1261,7 @@ static const char *credits[] = {
 	"Cody \"SRB2 Playah\" Koester",
 	"Skye \"OmegaVelocity\" Meredith",
 	"Stephen \"HEDGESMFG\" Moellering",
-	"Nick \"ST218\" Molina",
+	"Rosalie \"ST218\" Molina",
 	"Samuel \"Prime 2.0\" Peters",
 	"Colin \"Sonict\" Pfaff",
 	"Bill \"Tets\" Reed",
@@ -2547,7 +2552,7 @@ void F_StartTitleScreen(void)
 			camera.x = startpos->x << FRACBITS;
 			camera.y = startpos->y << FRACBITS;
 			camera.subsector = R_PointInSubsector(camera.x, camera.y);
-			camera.z = camera.subsector->sector->floorheight + ((startpos->options >> ZSHIFT) << FRACBITS);
+			camera.z = camera.subsector->sector->floorheight + (startpos->z << FRACBITS);
 			camera.angle = (startpos->angle % 360)*ANG1;
 			camera.aiming = 0;
 		}

@@ -81,6 +81,8 @@ typedef enum
 	MN_OP_P2JOYSTICK,
 	MN_OP_P2CAMERA,
 
+	MN_OP_PLAYSTYLE,
+
 	MN_OP_VIDEO,
 	MN_OP_VIDEOMODE,
 	MN_OP_COLOR,
@@ -375,6 +377,7 @@ typedef struct
 	UINT8 col[2];
 	char notes[441];
 } gtdesc_t;
+extern gtdesc_t gametypedesc[NUMGAMETYPES];
 
 // mode descriptions for video mode menu
 typedef struct

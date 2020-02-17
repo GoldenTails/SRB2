@@ -130,6 +130,9 @@ extern FILE *logstream;
 extern char logfilename[1024];
 #endif
 
+/* A mod name to further distinguish versions. */
+#define SRB2APPLICATION "SRB2"
+
 //#define DEVELOP // Disable this for release builds to remove excessive cheat commands and enable MD5 checking and stuff, all in one go. :3
 #ifdef DEVELOP
 #define VERSION    0 // Game version
@@ -140,9 +143,9 @@ extern char logfilename[1024];
 // we use comprevision and compbranch instead.
 #else
 #define VERSION    202 // Game version
-#define SUBVERSION 0  // more precise version number
-#define VERSIONSTRING "v2.2.0"
-#define VERSIONSTRINGW L"v2.2.0"
+#define SUBVERSION 1  // more precise version number
+#define VERSIONSTRING "v2.2.1"
+#define VERSIONSTRINGW L"v2.2.1"
 // Hey! If you change this, add 1 to the MODVERSION below!
 // Otherwise we can't force updates!
 #endif
@@ -207,7 +210,7 @@ extern char logfilename[1024];
 // it's only for detection of the version the player is using so the MS can alert them of an update.
 // Only set it higher, not lower, obviously.
 // Note that we use this to help keep internal testing in check; this is why v2.2.0 is not version "1".
-#define MODVERSION 40
+#define MODVERSION 41
 
 // To version config.cfg, MAJOREXECVERSION is set equal to MODVERSION automatically.
 // Increment MINOREXECVERSION whenever a config change is needed that does not correspond
@@ -461,6 +464,8 @@ extern void *(*M_Memcpy)(void* dest, const void* src, size_t n) FUNCNONNULL;
 char *va(const char *format, ...) FUNCPRINTF;
 char *M_GetToken(const char *inputString);
 void M_UnGetToken(void);
+UINT32 M_GetTokenPos(void);
+void M_SetTokenPos(UINT32 newPos);
 char *sizeu1(size_t num);
 char *sizeu2(size_t num);
 char *sizeu3(size_t num);
@@ -631,7 +636,7 @@ extern const char *compdate, *comptime, *comprevision, *compbranch;
 
 /// Sprite rotation
 #define ROTSPRITE
-#define ROTANGLES 24	// Needs to be a divisor of 360 (45, 60, 90, 120...)
+#define ROTANGLES 72 // Needs to be a divisor of 360 (45, 60, 90, 120...)
 #define ROTANGDIFF (360 / ROTANGLES)
 
 /// PNG support

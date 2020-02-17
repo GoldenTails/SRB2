@@ -654,7 +654,7 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 			M_GetText("Illegal say command received from %s while muted\n") : M_GetText("Illegal csay command received from non-admin %s\n"),
 			player_names[playernum]);
 		if (server)
-			SendKick(playernum, KICK_MSG_CON_FAIL);
+			SendKick(playernum, KICK_MSG_CON_FAIL | KICK_MSG_KEEP_BODY);
 		return;
 	}
 
@@ -668,7 +668,7 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 			{
 				CONS_Alert(CONS_WARNING, M_GetText("Illegal say command received from %s containing invalid characters\n"), player_names[playernum]);
 				if (server)
-					SendKick(playernum, KICK_MSG_CON_FAIL);
+					SendKick(playernum, KICK_MSG_CON_FAIL | KICK_MSG_KEEP_BODY);
 				return;
 			}
 		}
@@ -2058,7 +2058,7 @@ static void HU_drawGametype(void)
 {
 	const char *strvalue = NULL;
 
-	if (gametype < 0 || gametype >= NUMGAMETYPES)
+	if (gametype < 0 || gametype >= gametypecount)
 		return; // not a valid gametype???
 
 	strvalue = Gametype_Names[gametype];
@@ -2189,10 +2189,14 @@ void HU_Drawer(void)
 		return;
 
 	// draw the crosshair, not when viewing demos nor with chasecam
-	if (!automapactive && cv_crosshair.value && !demoplayback && !camera.chase && !players[displayplayer].spectator)
+	if (!automapactive && cv_crosshair.value && !demoplayback &&
+		(!camera.chase || ticcmd_ztargetfocus[0])
+	&& !players[displayplayer].spectator)
 		HU_DrawCrosshair();
 
-	if (!automapactive && cv_crosshair2.value && !demoplayback && !camera2.chase && !players[secondarydisplayplayer].spectator)
+	if (!automapactive && cv_crosshair2.value && !demoplayback &&
+		(!camera2.chase || ticcmd_ztargetfocus[1])
+	&& !players[secondarydisplayplayer].spectator)
 		HU_DrawCrosshair2();
 
 	// draw desynch text
@@ -2366,7 +2370,7 @@ void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, I
 
 	for (i = 0; i < scorelines; i++)
 	{
-		if (players[tab[i].num].spectator && gametype != GT_COOP)
+		if (players[tab[i].num].spectator && gametyperankings[gametype] != GT_COOP)
 			continue; //ignore them.
 
 		greycheck = greycheckdef;
@@ -2374,7 +2378,7 @@ void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, I
 
 		if (!splitscreen) // don't draw it on splitscreen,
 		{
-			if (!(tab[i].num == serverplayer))
+			if (!(tab[i].num == serverplayer || players[tab[i].num].quittime))
 				HU_drawPing(x+ 253, y, playerpingtable[tab[i].num], false, 0);
 			//else
 			//	V_DrawSmallString(x+ 246, y+4, V_YELLOWMAP, "SERVER");
@@ -2429,7 +2433,7 @@ void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, I
 			}
 		}
 
-		if (G_GametypeUsesLives() && !(gametype == GT_COOP && (cv_cooplives.value == 0 || cv_cooplives.value == 3)) && (players[tab[i].num].lives != INFLIVES)) //show lives
+		if (G_GametypeUsesLives() && !(G_GametypeUsesCoopLives() && (cv_cooplives.value == 0 || cv_cooplives.value == 3)) && (players[tab[i].num].lives != INFLIVES)) //show lives
 			V_DrawRightAlignedString(x, y+4, V_ALLOWLOWERCASE|(greycheck ? V_60TRANS : 0), va("%dx", players[tab[i].num].lives));
 		else if (G_TagGametype() && players[tab[i].num].pflags & PF_TAGIT)
 		{
@@ -2442,7 +2446,7 @@ void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, I
 		if (players[tab[i].num].exiting || (players[tab[i].num].pflags & PF_FINISHED))
 			V_DrawSmallScaledPatch(x - SHORT(exiticon->width)/2 - 1, y-3, 0, exiticon);
 
-		if (gametype == GT_RACE)
+		if (gametyperankings[gametype] == GT_RACE)
 		{
 			if (circuitmap)
 			{
@@ -2536,7 +2540,7 @@ static void HU_Draw32TeamTabRankings(playersort_t *tab, INT32 whiteplayer)
 		             | (greycheck ? 0 : V_TRANSLUCENT)
 		             | V_ALLOWLOWERCASE, name);
 
-		if (gametype == GT_CTF)
+		if (gametyperules & GTR_TEAMFLAGS)
 		{
 			if (players[tab[i].num].gotflag & GF_REDFLAG) // Red
 				V_DrawFixedPatch((x-10)*FRACUNIT, (y)*FRACUNIT, FRACUNIT/4, 0, rflagico, 0);
@@ -2573,7 +2577,7 @@ static void HU_Draw32TeamTabRankings(playersort_t *tab, INT32 whiteplayer)
 		V_DrawRightAlignedThinString(x+128, y, ((players[tab[i].num].spectator || players[tab[i].num].playerstate == PST_DEAD) ? 0 : V_TRANSLUCENT), va("%u", tab[i].count));
 		if (!splitscreen)
 		{
-			if (!(tab[i].num == serverplayer))
+			if (!(tab[i].num == serverplayer || players[tab[i].num].quittime))
 				HU_drawPing(x+ 135, y+1, playerpingtable[tab[i].num], true, 0);
 		//else
 			//V_DrawSmallString(x+ 129, y+4, V_YELLOWMAP, "HOST");
@@ -2664,7 +2668,7 @@ void HU_DrawTeamTabRankings(playersort_t *tab, INT32 whiteplayer)
 		             | (greycheck ? V_TRANSLUCENT : 0)
 		             | V_ALLOWLOWERCASE, name);
 
-		if (gametype == GT_CTF)
+		if (gametyperules & GTR_TEAMFLAGS)
 		{
 			if (players[tab[i].num].gotflag & GF_REDFLAG) // Red
 				V_DrawSmallScaledPatch(x-28, y-4, 0, rflagico);
@@ -2697,7 +2701,7 @@ void HU_DrawTeamTabRankings(playersort_t *tab, INT32 whiteplayer)
 		V_DrawRightAlignedThinString(x+100, y, (greycheck ? V_TRANSLUCENT : 0), va("%u", tab[i].count));
 		if (!splitscreen)
 		{
-			if (!(tab[i].num == serverplayer))
+			if (!(tab[i].num == serverplayer || players[tab[i].num].quittime))
 				HU_drawPing(x+ 113, y, playerpingtable[tab[i].num], false, 0);
 		//else
 		//	V_DrawSmallString(x+ 94, y+4, V_YELLOWMAP, "SERVER");
@@ -2721,14 +2725,14 @@ void HU_DrawDualTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scoreline
 
 	for (i = 0; i < scorelines; i++)
 	{
-		if (players[tab[i].num].spectator && gametype != GT_COOP)
+		if (players[tab[i].num].spectator && gametyperankings[gametype] != GT_COOP)
 			continue; //ignore them.
 
 		greycheck = greycheckdef;
 		supercheck = supercheckdef;
 
 		strlcpy(name, tab[i].name, 7);
-		if (!(tab[i].num == serverplayer))
+		if (!(tab[i].num == serverplayer || players[tab[i].num].quittime))
 			HU_drawPing(x+ 113, y, playerpingtable[tab[i].num], false, 0);
 		//else
 		//	V_DrawSmallString(x+ 94, y+4, V_YELLOWMAP, "SERVER");
@@ -2738,7 +2742,7 @@ void HU_DrawDualTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scoreline
 		             | (greycheck ? V_TRANSLUCENT : 0)
 		             | V_ALLOWLOWERCASE, name);
 
-		if (G_GametypeUsesLives() && !(gametype == GT_COOP && (cv_cooplives.value == 0 || cv_cooplives.value == 3)) && (players[tab[i].num].lives != INFLIVES)) //show lives
+		if (G_GametypeUsesLives() && !(G_GametypeUsesCoopLives() && (cv_cooplives.value == 0 || cv_cooplives.value == 3)) && (players[tab[i].num].lives != INFLIVES)) //show lives
 			V_DrawRightAlignedString(x, y+4, V_ALLOWLOWERCASE, va("%dx", players[tab[i].num].lives));
 		else if (G_TagGametype() && players[tab[i].num].pflags & PF_TAGIT)
 			V_DrawSmallScaledPatch(x-28, y-4, 0, tagico);
@@ -2787,7 +2791,7 @@ void HU_DrawDualTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scoreline
 		}
 
 		// All data drawn with thin string for space.
-		if (gametype == GT_RACE)
+		if (gametyperankings[gametype] == GT_RACE)
 		{
 			if (circuitmap)
 			{
@@ -2827,7 +2831,7 @@ static void HU_Draw32TabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scor
 
 	for (i = 0; i < scorelines; i++)
 	{
-		if (players[tab[i].num].spectator && gametype != GT_COOP)
+		if (players[tab[i].num].spectator && gametyperankings[gametype] != GT_COOP)
 			continue; //ignore them.
 
 		greycheck = greycheckdef;
@@ -2836,7 +2840,7 @@ static void HU_Draw32TabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scor
 		strlcpy(name, tab[i].name, 7);
 		if (!splitscreen) // don't draw it on splitscreen,
 		{
-			if (!(tab[i].num == serverplayer))
+			if (!(tab[i].num == serverplayer || players[tab[i].num].quittime))
 				HU_drawPing(x+ 135, y+1, playerpingtable[tab[i].num], true, 0);
 		//else
 		//	V_DrawSmallString(x+ 129, y+4, V_YELLOWMAP, "HOST");
@@ -2897,7 +2901,7 @@ static void HU_Draw32TabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scor
 		}
 
 		// All data drawn with thin string for space.
-		if (gametype == GT_RACE)
+		if (gametyperankings[gametype] == GT_RACE)
 		{
 			if (circuitmap)
 			{
@@ -3021,21 +3025,21 @@ static void HU_DrawRankings(void)
 	// draw the current gametype in the lower right
 	HU_drawGametype();
 
-	if (gametype != GT_RACE && gametype != GT_COMPETITION && gametype != GT_COOP)
+	if (gametyperules & (GTR_TIMELIMIT|GTR_POINTLIMIT))
 	{
-		if (cv_timelimit.value && timelimitintics > 0)
+		if ((gametyperules & GTR_TIMELIMIT) && cv_timelimit.value && timelimitintics > 0)
 		{
 			V_DrawCenteredString(64, 8, 0, "TIME");
 			V_DrawCenteredString(64, 16, 0, va("%i:%02i", G_TicsToMinutes(stplyr->realtime, true), G_TicsToSeconds(stplyr->realtime)));
 		}
 
-		if (cv_pointlimit.value > 0)
+		if ((gametyperules & GTR_POINTLIMIT) && cv_pointlimit.value > 0)
 		{
 			V_DrawCenteredString(256, 8, 0, "POINT LIMIT");
 			V_DrawCenteredString(256, 16, 0, va("%d", cv_pointlimit.value));
 		}
 	}
-	else if (gametype == GT_COOP)
+	else if (gametyperankings[gametype] == GT_COOP)
 	{
 		INT32 totalscore = 0;
 		for (i = 0; i < MAXPLAYERS; i++)
@@ -3069,7 +3073,7 @@ static void HU_DrawRankings(void)
 		tab[i].num = -1;
 		tab[i].name = 0;
 
-		if (gametype == GT_RACE && !circuitmap)
+		if (gametyperankings[gametype] == GT_RACE && !circuitmap)
 			tab[i].count = INT32_MAX;
 	}
 
@@ -3078,7 +3082,7 @@ static void HU_DrawRankings(void)
 		if (!playeringame[j])
 			continue;
 
-		if (gametype != GT_COOP && players[j].spectator)
+		if (!G_PlatformGametype() && players[j].spectator)
 			continue;
 
 		for (i = 0; i < MAXPLAYERS; i++)
@@ -3086,10 +3090,10 @@ static void HU_DrawRankings(void)
 			if (!playeringame[i])
 				continue;
 
-			if (gametype != GT_COOP && players[i].spectator)
+			if (!G_PlatformGametype() && players[i].spectator)
 				continue;
 
-			if (gametype == GT_RACE)
+			if (gametyperankings[gametype] == GT_RACE)
 			{
 				if (circuitmap)
 				{
@@ -3112,7 +3116,7 @@ static void HU_DrawRankings(void)
 					}
 				}
 			}
-			else if (gametype == GT_COMPETITION)
+			else if (gametyperankings[gametype] == GT_COMPETITION)
 			{
 				// todo put something more fitting for the gametype here, such as current
 				// number of categories led
