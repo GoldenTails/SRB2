@@ -217,11 +217,16 @@ void RSP_TexturedMappedTriangle(rsp_triangle_t *triangle, rsp_trimode_t type)
 // Floating-point texture mapping
 static inline void texspanloop_fp(float y, float startXPrestep, float endXPrestep, float startX, float startInvZ, float endInvZ, float startU, float endU, float startV, float endV, float invLineLength)
 {
-	float x, r, z;
+	float x, z;
 	UINT16 u, v;
 	UINT16 pixel = 0;
 	boolean depth_only = ((rsp_target.mode & (RENDERMODE_DEPTH|RENDERMODE_COLOR)) == RENDERMODE_DEPTH);
 	INT32 ix;
+
+	// z step interpolation
+	float zleft, zright;
+	float invzleft = 0.0f, invzright = 0.0f;
+	float zstep = 0.0f, invzstep;
 
 	// avoid a crash here
 	if (!rsp_curpixelfunc)
@@ -232,7 +237,22 @@ static inline void texspanloop_fp(float y, float startXPrestep, float endXPreste
 	if (rsp_target.aiming)
 		rsp_ypix += SOFTWARE_AIMING;
 
-	r = ((startXPrestep - startX) * invLineLength);
+	// right
+	z = ((endXPrestep - startX) * invLineLength);
+	zright = FloatLerp(startInvZ, endInvZ, z);
+	if (!depth_only)
+		invzright = (1.0f / zright);
+
+	// left
+	z = ((startXPrestep - startX) * invLineLength);
+	zleft = FloatLerp(startInvZ, endInvZ, z);
+	if (!depth_only)
+		invzleft = (1.0f / zleft);
+
+	// stepping
+	zstep = (zright - zleft) * invLineLength;
+	if (!depth_only)
+		invzstep = (invzright - invzleft) * invLineLength;
 
 	for (x = startXPrestep; x <= endXPrestep; x++)
 	{
@@ -242,25 +262,18 @@ static inline void texspanloop_fp(float y, float startXPrestep, float endXPreste
 			if (rsp_ypix >= rsp_mfloorclip[ix]) goto pxdone;
 			if (rsp_ypix <= rsp_mceilingclip[ix]) goto pxdone;
 		}
-		rsp_xpix = ix;
 
-		// interpolate 1/z for each pixel in the scanline
-		{
-			float lerpz = FloatLerp(startInvZ, endInvZ, r);
-			z = 1.0f / lerpz;
+		rsp_xpix = ix;
 #ifdef RSP_FLOATBUFFER
-			rsp_zpix = lerpz;
+		rsp_zpix = zleft;
 #else
-			rsp_zpix = FLOAT_TO_FIXED(lerpz);
+		rsp_zpix = FLOAT_TO_FIXED(lerpz);
 #endif
-		}
 
 		if (!depth_only)
 		{
-			u = FLOAT_TO_FIXED(z * FloatLerp(startU, endU, r))>>FRACBITS;
-			v = FLOAT_TO_FIXED(z * FloatLerp(startV, endV, r))>>FRACBITS;
-			u %= tex_width;
-			v %= tex_height;
+			u = (FLOAT_TO_FIXED(invzleft * FloatLerp(startU, endU, z))>>FRACBITS) % tex_width;
+			v = (FLOAT_TO_FIXED(invzleft * FloatLerp(startV, endV, z))>>FRACBITS) % tex_height;
 			pixel = tex_data[(v * tex_width) + u];
 			if (pixel & 0xFF00)
 			{
@@ -277,7 +290,12 @@ static inline void texspanloop_fp(float y, float startXPrestep, float endXPreste
 			rsp_curpixelfunc();
 
 pxdone:
-		r += invLineLength;
+		zleft += zstep;
+		if (!depth_only)
+		{
+			invzleft += invzstep;
+			z += invLineLength;
+		}
 	}
 }
 
