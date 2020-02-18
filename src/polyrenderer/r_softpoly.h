@@ -36,6 +36,7 @@
 #define RSP_CLIPTRIANGLES
 #define RSP_DEBUGGING
 #define RSP_FLOATBUFFER
+#define RSP_SPANSTEPPING
 
 #define FixedLerp(start, end, r) ( FixedMul(start, (FRACUNIT - (r))) + FixedMul(end, r) )
 #define FloatLerp(start, end, r) ( (start) * (1.0 - (r)) + (end) * (r) )
