@@ -182,10 +182,6 @@ void RSP_DrawTranslucentPixel(void);
 
 // triangle drawer functions
 extern void (*rsp_curtrifunc)(rsp_triangle_t *tri, rsp_trimode_t type);
-extern void (*rsp_fixedtrifunc)(rsp_triangle_t *tri, rsp_trimode_t type);
-extern void (*rsp_floattrifunc)(rsp_triangle_t *tri, rsp_trimode_t type);
-
-void RSP_TexturedMappedTriangle(rsp_triangle_t *tri, rsp_trimode_t type);
 void RSP_TexturedMappedTriangleFP(rsp_triangle_t *tri, rsp_trimode_t type);
 
 typedef struct

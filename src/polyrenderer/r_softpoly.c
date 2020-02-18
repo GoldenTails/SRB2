@@ -29,10 +29,6 @@ void RSP_Init(void)
 	rsp_basepixelfunc = RSP_DrawPixel;
 	rsp_transpixelfunc = RSP_DrawTranslucentPixel;
 
-	// set triangle functions
-	rsp_fixedtrifunc = RSP_TexturedMappedTriangle;
-	rsp_floattrifunc = RSP_TexturedMappedTriangleFP;
-
 	// run other initialisation code
 	RSP_SetDrawerFunctions();
 }
@@ -111,12 +107,7 @@ void RSP_SetDrawerFunctions(void)
 	rsp_curpixelfunc = rsp_basepixelfunc;
 
 	// also set triangle drawer
-	if (cv_texturemapping.value == TEXMAP_FIXED)
-		rsp_curtrifunc = rsp_fixedtrifunc;
-	else if (cv_texturemapping.value == TEXMAP_FLOAT)
-		rsp_curtrifunc = rsp_floattrifunc;
-	else
-		rsp_curtrifunc = NULL;
+	rsp_curtrifunc = RSP_TexturedMappedTriangleFP;
 }
 
 // on frame start
