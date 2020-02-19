@@ -87,9 +87,6 @@ static inline void texspanloop_fp(float y, float startXPrestep, float endXPreste
 		}
 		startXPrestep = (float)clipleft;
 	}
-
-	if (endXPrestep > clipright)
-		endXPrestep = (float)clipright;
 #else
 	clipleft = rsp_portalclip[0];
 	clipright = rsp_portalclip[1];
@@ -98,15 +95,11 @@ static inline void texspanloop_fp(float y, float startXPrestep, float endXPreste
 		startXPrestep += clipleft;
 	if (startXPrestep < 0.0f)
 		startXPrestep = 0.0f;
-	if (endXPrestep > clipright)
-		endXPrestep = (float)clipright;
-	if (endXPrestep > viewwidth-1)
-		endXPrestep = (float)viewwidth-1;
 #endif
 
 	ix = FixedInt(FLOAT_TO_FIXED(startXPrestep));
 
-	for (x = startXPrestep; x <= endXPrestep; x++)
+	for (x = startXPrestep; x <= endXPrestep && ix <= clipright; x++)
 	{
 		if (rsp_mfloorclip && rsp_mceilingclip)
 		{
