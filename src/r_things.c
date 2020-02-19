@@ -2503,11 +2503,8 @@ static void R_CreateDrawNodes(maskcount_t* mask, drawnode_t* head, boolean temps
 
 	for (rover = vsprsortedhead.prev; rover != &vsprsortedhead; rover = rover->prev)
 	{
-		if (!rover->model)
-		{
-			if (rover->szt > vid.height || rover->sz < 0)
-				continue;
-		}
+		if (rover->szt > vid.height || rover->sz < 0)
+			continue;
 
 		sintersect = (rover->projx1 + rover->projx2) / 2;
 

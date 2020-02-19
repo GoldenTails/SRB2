@@ -62,6 +62,10 @@ boolean RSP_RenderModel(vissprite_t *spr)
 	if (!mobj)
 		return false;
 
+	// Moment of truth. Is the model VISIBLE?
+	if (spr->x2 <= spr->x1)
+		return true;
+
 	// load sprite viewpoint
 	if (rsp_maskdraw)
 		RSP_RestoreSpriteViewpoint(spr);
