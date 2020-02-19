@@ -104,23 +104,14 @@ static inline void texspanloop_fp(float y, float startXPrestep, float endXPreste
 		endXPrestep = (float)viewwidth-1;
 #endif
 
+	ix = FixedInt(FLOAT_TO_FIXED(startXPrestep));
+
 	for (x = startXPrestep; x <= endXPrestep; x++)
 	{
-		ix = FLOAT_TO_FIXED(x)>>FRACBITS;
 		if (rsp_mfloorclip && rsp_mceilingclip)
 		{
-			if (rsp_ypix >= rsp_mfloorclip[ix])
-#ifdef RSP_SPANSTEPPING
-				goto pxdone;
-#else
-				continue;
-#endif
-			if (rsp_ypix <= rsp_mceilingclip[ix])
-#ifdef RSP_SPANSTEPPING
-				goto pxdone;
-#else
-				continue;
-#endif
+			if (rsp_ypix >= rsp_mfloorclip[ix]) goto pxdone;
+			if (rsp_ypix <= rsp_mceilingclip[ix]) goto pxdone;
 		}
 
 #ifdef RSP_SPANSTEPPING
@@ -166,8 +157,9 @@ static inline void texspanloop_fp(float y, float startXPrestep, float endXPreste
 		else
 			rsp_curpixelfunc();
 
-#ifdef RSP_SPANSTEPPING
 pxdone:
+		ix++;
+#ifdef RSP_SPANSTEPPING
 		zleft += zstep;
 		if (!depth_only)
 		{
