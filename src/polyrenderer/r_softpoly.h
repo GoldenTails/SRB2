@@ -148,7 +148,7 @@ typedef struct
 	rsp_cullmode_t cullmode;
 	boolean aiming;
 
-	fixed_t *depthbuffer;
+	float *depthbuffer;
 } rendertarget_t;
 
 void RSP_TransformTriangle(rsp_triangle_t *tri);
