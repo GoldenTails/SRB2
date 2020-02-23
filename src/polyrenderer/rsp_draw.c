@@ -19,7 +19,7 @@ void (*rsp_transpixelfunc)(void);
 INT16 rsp_xpix = -1;
 INT16 rsp_ypix = -1;
 UINT8 rsp_cpix = 0;
-depthbuffer_t rsp_zpix;
+float rsp_zpix;
 UINT8 *rsp_tpix = NULL;
 
 INT32 rsp_viewwindowx = 0, rsp_viewwindowy = 0;
@@ -28,7 +28,7 @@ void RSP_DrawPixel(void)
 {
 	INT16 xpix = 0, ypix = 0;
 	UINT8 *dest;
-	depthbuffer_t *depth;
+	float *depth;
 	boolean depth_only = ((rsp_target.mode & (RENDERMODE_DEPTH|RENDERMODE_COLOR)) == RENDERMODE_DEPTH);
 	UINT8 pixel = rsp_cpix;
 
@@ -54,7 +54,7 @@ void RSP_DrawTranslucentPixel(void)
 {
 	INT16 xpix = 0, ypix = 0;
 	UINT8 *dest;
-	depthbuffer_t *depth;
+	float *depth;
 	UINT8 pixel = rsp_cpix;
 
 	if (!rsp_tpix)

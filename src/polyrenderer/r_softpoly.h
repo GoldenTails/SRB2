@@ -35,17 +35,10 @@
 
 #define RSP_CLIPTRIANGLES
 #define RSP_DEBUGGING
-#define RSP_FLOATBUFFER
 #define RSP_SPANSTEPPING
 
 #define FixedLerp(start, end, r) ( FixedMul(start, (FRACUNIT - (r))) + FixedMul(end, r) )
 #define FloatLerp(start, end, r) ( (start) * (1.0 - (r)) + (end) * (r) )
-
-#ifdef RSP_FLOATBUFFER
-typedef float depthbuffer_t;
-#else
-typedef fixed_t depthbuffer_t;
-#endif
 
 typedef struct
 {
@@ -171,7 +164,7 @@ extern void (*rsp_transpixelfunc)(void);
 extern INT16 rsp_xpix;
 extern INT16 rsp_ypix;
 extern UINT8 rsp_cpix;
-extern depthbuffer_t rsp_zpix;
+extern float rsp_zpix;
 extern UINT8 *rsp_tpix;
 
 extern INT32 rsp_viewwindowx, rsp_viewwindowy;

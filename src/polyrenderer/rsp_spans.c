@@ -109,18 +109,14 @@ static inline void texspanloop_fp(float y, float startXPrestep, float endXPreste
 
 #ifdef RSP_SPANSTEPPING
 		rsp_xpix = ix;
-#ifdef RSP_FLOATBUFFER
 		rsp_zpix = zleft;
-#else
-		rsp_zpix = FLOAT_TO_FIXED(zleft);
-#endif
 #else
 		// interpolate 1/z for each pixel in the scanline
 		r = ((x - startX) * invLineLength);
 		rsp_xpix = ix;
 		z2 = FloatLerp(startInvZ, endInvZ, r);
 		z = 1.0f / z2;
-		rsp_zpix = FLOAT_TO_FIXED(FloatLerp(startInvZ, endInvZ, r));
+		rsp_zpix = FloatLerp(startInvZ, endInvZ, r);
 #endif
 
 		if (!depth_only)
