@@ -255,7 +255,7 @@ boolean RSP_RenderModel(vissprite_t *spr)
 			if (!sprtexp->data)
 			{
 				patch_t *source;
-				size_t size, i;
+				size_t size;
 
 				// uuhhh.....
 				if (!sprtexp->lumpnum)
@@ -277,11 +277,7 @@ boolean RSP_RenderModel(vissprite_t *spr)
 
 				// make the buffer
 				size = (sprtexp->width * sprtexp->height);
-				sprtexp->data = Z_Malloc(size * sizeof(UINT16), PU_SOFTPOLY, NULL);
-
-				// can't memset here
-				for (i = 0; i < size; i++)
-					sprtexp->data[i] = 0xFF00;
+				sprtexp->data = Z_Calloc(size * sizeof(UINT16), PU_SOFTPOLY, NULL);
 
 				// generate the texture, then clear lumpnum
 				R_GenerateSpriteTexture(source, sprtexp->data, 0, 0, sprtexp->width, sprtexp->height, flip, NULL, NULL);
