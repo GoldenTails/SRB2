@@ -36,7 +36,9 @@ void RSP_Init(void)
 // make the viewport, after resolution change
 void RSP_Viewport(INT32 width, INT32 height)
 {
-	float fov = 90.0f;
+	fixed_t fzoom = R_GetViewMorphZoom();
+	float zoom = FIXED_TO_FLOAT(fzoom);
+	float fov = FIXED_TO_FLOAT(cv_fov.value);
 
 	// viewport width and height
 	rsp_target.width = width;
