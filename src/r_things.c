@@ -1372,6 +1372,7 @@ static void R_ProjectDropShadow(mobj_t *thing, vissprite_t *vis, fixed_t scale, 
 
 	shadow->transmap = transtables + (trans<<FF_TRANSSHIFT);
 	shadow->colormap = scalelight[0][0]; // full dark!
+	shadow->model = NULL;
 
 	objectsdrawn++;
 }
