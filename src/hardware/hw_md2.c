@@ -563,8 +563,6 @@ boolean HWR_DrawModel(modelinfo_t *md2, gr_vissprite_t *spr)
 			sprinfo = &spriteinfo[spr->mobj->sprite];
 		}
 
-		sprframe = &sprdef->spriteframes[spr->mobj->frame & FF_FRAMEMASK];
-
 		if (spr->mobj->flags2 & MF2_SHADOW)
 			Surf.FlatColor.s.alpha = 0x40;
 		else if (spr->mobj->frame & FF_TRANSMASK)
@@ -713,11 +711,6 @@ boolean HWR_DrawModel(modelinfo_t *md2, gr_vissprite_t *spr)
 			p.z = FIXED_TO_FLOAT(spr->mobj->z + spr->mobj->height);
 		else
 			p.z = FIXED_TO_FLOAT(spr->mobj->z);
-
-		if (spr->mobj->skin && spr->mobj->sprite == SPR_PLAY)
-			sprdef = &((skin_t *)spr->mobj->skin)->sprites[spr->mobj->sprite2];
-		else
-			sprdef = &sprites[spr->mobj->sprite];
 
 		sprframe = &sprdef->spriteframes[spr->mobj->frame & FF_FRAMEMASK];
 
