@@ -124,7 +124,7 @@ static void R_InstallSpriteLump(UINT16 wad,            // graphics patch
 
 			if (R_CheckIfPatch(lumppat))
 			{
-				patch = (patch_t *)W_CacheLumpNumPwad(wad, lump, PU_STATIC);
+				patch = (patch_t *)W_CachePatchNumPwad(wad, lump, PU_STATIC);
 				tex->width = SHORT(patch->width);
 				tex->height = SHORT(patch->height);
 				tex->lumpnum = lumppat;
