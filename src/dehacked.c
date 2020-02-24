@@ -9261,6 +9261,7 @@ static const char *const MENUTYPES_LIST[] = {
 	"OP_VIDEO",
 	"OP_VIDEOMODE",
 	"OP_COLOR",
+	"OP_MODELS",
 	"OP_OPENGL",
 	"OP_OPENGL_LIGHTING",
 	"OP_OPENGL_FOG",

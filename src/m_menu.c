@@ -315,6 +315,7 @@ static void M_ChangeControl(INT32 choice);
 // Video & Sound
 static void M_VideoOptions(INT32 choice);
 menu_t OP_VideoOptionsDef, OP_VideoModeDef, OP_ColorOptionsDef;
+menu_t OP_ModelOptionsDef;
 #ifdef HWRENDER
 static void M_OpenGLOptionsMenu(void);
 menu_t OP_OpenGLOptionsDef, OP_OpenGLFogDef;
@@ -1354,9 +1355,10 @@ static menuitem_t OP_VideoOptionsMenu[] =
 	{IT_STRING | IT_CVAR, NULL, "Clear Before Redraw",       &cv_homremoval,      195},
 	{IT_STRING | IT_CVAR, NULL, "Show \"FOCUS LOST\"",       &cv_showfocuslost,   200},
 
-#ifdef HWRENDER
 	{IT_HEADER, NULL, "Renderer", NULL, 208},
-	{IT_CALL | IT_STRING, NULL, "OpenGL Options...",         M_OpenGLOptionsMenu, 214},
+	{IT_SUBMENU | IT_STRING, NULL, "3D Model Options...",       &OP_ModelOptionsDef, 214},
+#ifdef HWRENDER
+	{IT_CALL    | IT_STRING, NULL, "OpenGL Options...",         M_OpenGLOptionsMenu, 219},
 #endif
 };
 
@@ -1404,6 +1406,13 @@ static menuitem_t OP_ColorOptionsMenu[] =
 	{IT_STRING | IT_CVAR | IT_CV_SLIDER, NULL, "Hue",          &cv_mhue,        140},
 	{IT_STRING | IT_CVAR | IT_CV_SLIDER, NULL, "Saturation",   &cv_msaturation, 145},
 	{IT_STRING | IT_CVAR | IT_CV_SLIDER, NULL, "Brightness",   &cv_mgamma,      150},
+};
+
+static menuitem_t OP_ModelOptionsMenu[3] =
+{
+	{IT_HEADER, NULL, "3D Models", NULL, 0},
+	{IT_STRING|IT_CVAR,         NULL, "Models",              &cv_models,             12},
+	{IT_STRING|IT_CVAR,         NULL, "Model interpolation", &cv_modelinterpolation, 22},
 };
 
 #ifdef HWRENDER
@@ -2176,6 +2185,10 @@ menu_t OP_MonitorToggleDef =
 	0,
 	NULL
 };
+
+menu_t OP_ModelOptionsDef = DEFAULTMENUSTYLE(
+	MN_OP_MAIN + (MN_OP_VIDEO << 6) + (MN_OP_MODELS << 12),
+	"M_VIDEO", OP_ModelOptionsMenu, &OP_VideoOptionsDef, 30, 30);
 
 #ifdef HWRENDER
 static void M_OpenGLOptionsMenu(void)
