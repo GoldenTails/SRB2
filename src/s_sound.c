@@ -57,6 +57,7 @@ static void Command_Tunes_f(void);
 static void Command_RestartAudio_f(void);
 
 // Sound system toggles
+static void GameMusic_OnChange(void);
 static void GameMIDIMusic_OnChange(void);
 static void GameSounds_OnChange(void);
 static void GameDigiMusic_OnChange(void);
@@ -125,6 +126,7 @@ static CV_PossibleValue_t cons_1upsound_t[] = {
 consvar_t cv_1upsound = {"1upsound", "Jingle", CV_SAVE, cons_1upsound_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 // Sound system toggles, saved into the config
+consvar_t cv_gamemusic = {"music", "On", CV_SAVE|CV_CALL|CV_NOINIT, CV_OnOff, GameMusic_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_gamedigimusic = {"digimusic", "On", CV_SAVE|CV_CALL|CV_NOINIT, CV_OnOff, GameDigiMusic_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_gamemidimusic = {"midimusic", "On", CV_SAVE|CV_CALL|CV_NOINIT, CV_OnOff, GameMIDIMusic_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_gamesounds = {"sounds", "On", CV_SAVE|CV_CALL|CV_NOINIT, CV_OnOff, GameSounds_OnChange, 0, NULL, NULL, 0, 0, NULL};
@@ -298,6 +300,7 @@ void S_RegisterSoundStuff(void)
 	CV_RegisterVar(&cv_playsoundsifunfocused);
 	CV_RegisterVar(&cv_playmusicifunfocused);
 	CV_RegisterVar(&cv_gamesounds);
+	CV_RegisterVar(&cv_gamemusic);
 	CV_RegisterVar(&cv_gamedigimusic);
 	CV_RegisterVar(&cv_gamemidimusic);
 #ifdef HAVE_OPENMPT
@@ -1813,7 +1816,7 @@ boolean S_MIDIMusicDisabled(void)
 
 boolean S_MusicDisabled(void)
 {
-	return (midi_disabled && digital_disabled);
+	return (midi_disabled && digital_disabled) || digital_disabled;
 }
 
 boolean S_MusicPlaying(void)
@@ -2632,6 +2635,34 @@ void GameSounds_OnChange(void)
 	}
 }
 
+void GameMusic_OnChange(void)
+{
+	if (M_CheckParm("-nomusic") || M_CheckParm("-noaudio"))
+		return;
+	else if (M_CheckParm("-nodigmusic"))
+		return;
+
+	if (music_disabled)
+	{
+		music_disabled = false;
+		I_StartupSound(); // will return early if initialised
+		I_InitMusic();
+		S_StopMusic();
+		if (Playing())
+			P_RestoreMusic(&players[consoleplayer]);
+		else
+			S_ChangeMusicInternal("_clear", false);
+	}
+	else
+	{
+		music_disabled = true;
+		S_StopMusic();
+	}
+
+	//GameDigiMusic_OnChange();
+	//GameMIDIMusic_OnChange();
+}
+
 void GameDigiMusic_OnChange(void)
 {
 	if (M_CheckParm("-nomusic") || M_CheckParm("-noaudio"))
@@ -2641,6 +2672,9 @@ void GameDigiMusic_OnChange(void)
 
 	if (digital_disabled)
 	{
+		if (cv_gamemusic.value)
+			music_disabled = false;
+
 		digital_disabled = false;
 		I_StartupSound(); // will return early if initialised
 		I_InitMusic();
@@ -2655,8 +2689,10 @@ void GameDigiMusic_OnChange(void)
 		digital_disabled = true;
 		if (S_MusicType() != MU_MID)
 		{
-			if (midi_disabled)
+			if (midi_disabled) {
 				S_StopMusic();
+				music_disabled = true;
+			}
 			else
 			{
 				char mmusic[7];
@@ -2684,6 +2720,9 @@ void GameMIDIMusic_OnChange(void)
 
 	if (midi_disabled)
 	{
+		if (cv_gamemusic.value)
+			music_disabled = false;
+
 		midi_disabled = false;
 		I_StartupSound(); // will return early if initialised
 		I_InitMusic();
@@ -2697,8 +2736,10 @@ void GameMIDIMusic_OnChange(void)
 		midi_disabled = true;
 		if (S_MusicType() == MU_MID || S_MusicType() == MU_MID_EX)
 		{
-			if (digital_disabled)
+			if (digital_disabled) {
 				S_StopMusic();
+				music_disabled = true;
+			}
 			else
 			{
 				char mmusic[7];

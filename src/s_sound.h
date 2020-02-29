@@ -43,6 +43,7 @@ extern consvar_t cv_1upsound;
 		: cv_resetmusic.value) \
 	)
 
+extern consvar_t cv_gamemusic;
 extern consvar_t cv_gamedigimusic;
 extern consvar_t cv_gamemidimusic;
 extern consvar_t cv_gamesounds;

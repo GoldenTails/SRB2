@@ -118,6 +118,7 @@ INT32 postimgparam2;
 // These variables are in effect
 // whether the respective sound system is disabled
 // or they're init'ed, but the player just toggled them
+boolean music_disabled = false;
 boolean midi_disabled = false;
 boolean sound_disabled = false;
 boolean digital_disabled = false;
@@ -1327,11 +1328,13 @@ void D_SRB2Main(void)
 	if (dedicated)
 	{
 		sound_disabled = true;
+		music_disabled = true;
 		midi_disabled = digital_disabled = true;
 	}
 	if (M_CheckParm("-noaudio")) // combines -nosound and -nomusic
 	{
 		sound_disabled = true;
+		music_disabled = true;
 		digital_disabled = true;
 		midi_disabled = true;
 	}
@@ -1341,6 +1344,7 @@ void D_SRB2Main(void)
 			sound_disabled = true;
 		if (M_CheckParm("-nomusic")) // combines -nomidimusic and -nodigmusic
 		{
+			music_disabled = true;
 			digital_disabled = true;
 			midi_disabled = true;
 		}
@@ -1352,7 +1356,7 @@ void D_SRB2Main(void)
 				digital_disabled = true; // WARNING: DOS version initmusic in I_StartupSound
 		}
 	}
-	if (!( sound_disabled && digital_disabled
+	if (!( sound_disabled && music_disabled && digital_disabled
 #ifndef NO_MIDI
 				&& midi_disabled
 #endif
