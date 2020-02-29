@@ -4687,7 +4687,13 @@ static void M_DrawPauseMenu(void)
 		char emblem_text[3][20];
 		INT32 i;
 
-		M_DrawTextBox(27, 16, 32, 6);
+		//M_DrawTextBox(152, 0, 198, 6);
+		//V_DrawFadeFill(32, 21, 262, 54, 0, 152, 5);
+
+		V_DrawFadeFill(152, 0, 168, 200, 0, 152, 5);
+
+		//curfadevalue = 0;
+		M_SetMenuCurFadeValue(0);
 
 		// Draw any and all emblems at the top.
 		M_DrawMapEmblems(gamemap, 272, 28);
