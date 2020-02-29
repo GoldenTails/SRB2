@@ -1356,11 +1356,11 @@ void D_SRB2Main(void)
 				digital_disabled = true; // WARNING: DOS version initmusic in I_StartupSound
 		}
 	}
-	if (!( sound_disabled && music_disabled && digital_disabled
+	if (!( sound_disabled && ((digital_disabled
 #ifndef NO_MIDI
 				&& midi_disabled
 #endif
-	 ))
+	 ) || music_disabled)))
 	{
 		CONS_Printf("S_InitSfxChannels(): Setting up sound channels.\n");
 		I_StartupSound();

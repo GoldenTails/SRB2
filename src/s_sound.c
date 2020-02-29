@@ -1816,7 +1816,7 @@ boolean S_MIDIMusicDisabled(void)
 
 boolean S_MusicDisabled(void)
 {
-	return (midi_disabled && digital_disabled) || digital_disabled;
+	return music_disabled || (midi_disabled && digital_disabled);
 }
 
 boolean S_MusicPlaying(void)
@@ -2672,9 +2672,6 @@ void GameDigiMusic_OnChange(void)
 
 	if (digital_disabled)
 	{
-		if (cv_gamemusic.value)
-			music_disabled = false;
-
 		digital_disabled = false;
 		I_StartupSound(); // will return early if initialised
 		I_InitMusic();
@@ -2691,7 +2688,6 @@ void GameDigiMusic_OnChange(void)
 		{
 			if (midi_disabled) {
 				S_StopMusic();
-				music_disabled = true;
 			}
 			else
 			{
@@ -2720,9 +2716,6 @@ void GameMIDIMusic_OnChange(void)
 
 	if (midi_disabled)
 	{
-		if (cv_gamemusic.value)
-			music_disabled = false;
-
 		midi_disabled = false;
 		I_StartupSound(); // will return early if initialised
 		I_InitMusic();
@@ -2738,7 +2731,6 @@ void GameMIDIMusic_OnChange(void)
 		{
 			if (digital_disabled) {
 				S_StopMusic();
-				music_disabled = true;
 			}
 			else
 			{
