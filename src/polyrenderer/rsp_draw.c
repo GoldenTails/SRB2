@@ -28,16 +28,19 @@ void RSP_DrawPixel(void)
 {
 	INT16 xpix = 0, ypix = 0;
 	UINT8 *dest;
-	float *depth;
+	float *depth = NULL;
 	boolean depth_only = ((rsp_target.mode & (RENDERMODE_DEPTH|RENDERMODE_COLOR)) == RENDERMODE_DEPTH);
 	UINT8 pixel = rsp_cpix;
 
 	if (rsp_xpix >= rsp_target.width || rsp_xpix < 0 || rsp_ypix >= rsp_target.height || rsp_ypix < 0)
 		return;
 
-	depth = rsp_target.depthbuffer + (rsp_xpix + rsp_ypix * rsp_target.width);
-	if (*depth >= rsp_zpix)
-		return;
+	if (rsp_target.mode & RENDERMODE_DEPTH)
+	{
+		depth = rsp_target.depthbuffer + (rsp_xpix + rsp_ypix * rsp_target.width);
+		if (*depth >= rsp_zpix)
+			return;
+	}
 
 	xpix = (rsp_xpix + rsp_viewwindowx);
 	ypix = (rsp_ypix + rsp_viewwindowy);
@@ -45,7 +48,8 @@ void RSP_DrawPixel(void)
 		return;
 
 	dest = screens[0] + (ypix * vid.width) + xpix;
-	*depth = rsp_zpix;
+	if (rsp_target.mode & RENDERMODE_DEPTH)
+		*depth = rsp_zpix;
 	if (!depth_only)
 		*dest = pixel;
 }
@@ -54,7 +58,8 @@ void RSP_DrawTranslucentPixel(void)
 {
 	INT16 xpix = 0, ypix = 0;
 	UINT8 *dest;
-	float *depth;
+	float *depth = NULL;
+	boolean depth_only = ((rsp_target.mode & (RENDERMODE_DEPTH|RENDERMODE_COLOR)) == RENDERMODE_DEPTH);
 	UINT8 pixel = rsp_cpix;
 
 	if (!rsp_tpix)
@@ -63,16 +68,23 @@ void RSP_DrawTranslucentPixel(void)
 	if (rsp_xpix >= rsp_target.width || rsp_xpix < 0 || rsp_ypix >= rsp_target.height || rsp_ypix < 0)
 		return;
 
-	depth = rsp_target.depthbuffer + (rsp_xpix + rsp_ypix * rsp_target.width);
-	if (*depth >= rsp_zpix)
-		return;
+	if (rsp_target.mode & RENDERMODE_DEPTH)
+	{
+		depth = rsp_target.depthbuffer + (rsp_xpix + rsp_ypix * rsp_target.width);
+		if (*depth >= rsp_zpix)
+			return;
+	}
 
 	xpix = (rsp_xpix + rsp_viewwindowx);
 	ypix = (rsp_ypix + rsp_viewwindowy);
 	if (ypix >= vid.width || ypix < 0 || ypix >= vid.height || ypix < 0)
 		return;
 
-	dest = screens[0] + (ypix * vid.width) + xpix;
-	*dest = *(rsp_tpix + ((UINT8)pixel<<8) + *dest);
-	*depth = rsp_zpix;
+	if (!depth_only)
+	{
+		dest = screens[0] + (ypix * vid.width) + xpix;
+		*dest = *(rsp_tpix + ((UINT8)pixel<<8) + *dest);
+	}
+	if (rsp_target.mode & RENDERMODE_DEPTH)
+		*depth = rsp_zpix;
 }
