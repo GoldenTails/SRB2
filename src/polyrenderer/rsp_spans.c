@@ -51,7 +51,7 @@ static inline void texspanloop_fp(float y, float startXPrestep, float endXPreste
 		I_Error("texspanloop_fp: no pixel drawer set!");
 
 	rsp_tpix = tex_transmap;
-	rsp_ypix = FLOAT_TO_FIXED(y)>>FRACBITS;
+	rsp_ypix = FixedInt(FixedRound(FLOAT_TO_FIXED(y)));
 	if (rsp_target.aiming)
 		rsp_ypix += SOFTWARE_AIMING;
 
@@ -97,7 +97,7 @@ static inline void texspanloop_fp(float y, float startXPrestep, float endXPreste
 		startXPrestep = 0.0f;
 #endif
 
-	ix = FixedInt(FLOAT_TO_FIXED(startXPrestep));
+	ix = FixedInt(FixedRound(FLOAT_TO_FIXED(startXPrestep)));
 
 	for (x = startXPrestep; x <= endXPrestep && ix <= clipright; x++)
 	{
