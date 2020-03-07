@@ -629,7 +629,6 @@ boolean RSP_RenderModel(vissprite_t *spr)
 #undef FIXTRIANGLE
 #undef RESETVIEW
 
-	RSP_ClearDepthBuffer();
 	return true;
 }
 
