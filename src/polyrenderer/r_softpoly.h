@@ -33,7 +33,7 @@
 #ifndef _R_SOFTPOLY_H_
 #define _R_SOFTPOLY_H_
 
-#define RSP_CLIPTRIANGLES
+//#define RSP_CLIPTRIANGLES
 #define RSP_DEBUGGING
 #define RSP_SPANSTEPPING
 
