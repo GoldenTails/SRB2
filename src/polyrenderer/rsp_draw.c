@@ -85,6 +85,4 @@ void RSP_DrawTranslucentPixel(void)
 		dest = screens[0] + (ypix * vid.width) + xpix;
 		*dest = *(rsp_tpix + ((UINT8)pixel<<8) + *dest);
 	}
-	if (rsp_target.mode & RENDERMODE_DEPTH)
-		*depth = rsp_zpix;
 }
