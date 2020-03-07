@@ -146,6 +146,16 @@ static inline void texspanloop_fp(float y, float startXPrestep, float endXPreste
 		else
 			rsp_curpixelfunc();
 
+#ifdef RSP_DEBUGGING
+		if (cv_rspdebugdepth.value && (rsp_target.mode & RENDERMODE_DEPTH))
+		{
+			UINT8 *dest = screens[0] + (rsp_xpix + rsp_ypix * rsp_target.width);
+			float *depth = rsp_target.depthbuffer + (rsp_xpix + rsp_ypix * rsp_target.width);
+			float light = light = (2.0f / (*depth)) / 128.0f;
+			*dest = (UINT8)(light > 31.0f ? 31.0f : light);
+		}
+#endif
+
 pxdone:
 		ix++;
 #ifdef RSP_SPANSTEPPING

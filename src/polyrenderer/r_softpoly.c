@@ -20,6 +20,8 @@ fpmatrix16_t *rsp_projectionmatrix = NULL;
 #ifdef RSP_DEBUGGING
 INT32 rsp_meshesdrawn = 0;
 INT32 rsp_trisdrawn = 0;
+
+consvar_t cv_rspdebugdepth = {"rsp_debugdepth", "Off", 0, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 #endif
 
 // init the polygon renderer
@@ -31,6 +33,10 @@ void RSP_Init(void)
 
 	// run other initialisation code
 	RSP_SetDrawerFunctions();
+
+#ifdef RSP_DEBUGGING
+	CV_RegisterVar(&cv_rspdebugdepth);
+#endif
 }
 
 // make the viewport, after resolution change

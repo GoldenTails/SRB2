@@ -205,6 +205,8 @@ void RSP_ClearDepthBuffer(void);
 #ifdef RSP_DEBUGGING
 extern INT32 rsp_meshesdrawn;
 extern INT32 rsp_trisdrawn;
+
+extern consvar_t cv_rspdebugdepth;
 #endif
 
 // MASKING STUFF
