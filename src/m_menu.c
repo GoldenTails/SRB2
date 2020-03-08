@@ -172,6 +172,8 @@ static INT32 vidm_column_size;
 static tic_t recatkdrawtimer = 0;
 static tic_t ntsatkdrawtimer = 0;
 
+static tic_t pausescroll = 0; // lmao hack ~Golden
+
 static tic_t charseltimer = 0;
 static fixed_t char_scroll = 0;
 #define charscrollamt 128*FRACUNIT
@@ -358,6 +360,7 @@ static void M_DrawAddons(void);
 static void M_DrawChecklist(void);
 static void M_DrawSoundTest(void);
 static void M_DrawEmblemHints(void);
+static void M_DrawScoreTimeRingsEmblems(void);
 static void M_DrawPauseMenu(void);
 static void M_DrawServerMenu(void);
 static void M_DrawLevelPlatterMenu(void);
@@ -1701,9 +1704,9 @@ menu_t MISC_AddonsDef =
 	NULL
 };
 
-menu_t MAPauseDef = PAUSEMENUSTYLE(MAPauseMenu, 40, 72);
-menu_t SPauseDef = PAUSEMENUSTYLE(SPauseMenu, 40, 72);
-menu_t MPauseDef = PAUSEMENUSTYLE(MPauseMenu, 40, 72);
+menu_t MAPauseDef = PAUSEMENUSTYLE(MAPauseMenu, 32, 72);
+menu_t SPauseDef = PAUSEMENUSTYLE(SPauseMenu, 32, 72);
+menu_t MPauseDef = PAUSEMENUSTYLE(MPauseMenu, 32, 72);
 
 // Misc Main Menu
 menu_t MISC_ScrambleTeamDef = DEFAULTMENUSTYLE(MN_SPECIAL, NULL, MISC_ScrambleTeamMenu, &MPauseDef, 27, 40);
@@ -3876,6 +3879,8 @@ void M_Ticker(void)
 	if (--skullAnimCounter <= 0)
 		skullAnimCounter = 8;
 
+	pausescroll++; // hack ~Golden
+
 	//added : 30-01-98 : test mode for five seconds
 	if (vidm_testingmode > 0)
 	{
@@ -4679,152 +4684,166 @@ static void M_DrawGenericScrollMenu(void)
 		W_CachePatchName("M_CURSOR", PU_PATCH));
 }
 
-static void M_DrawPauseMenu(void)
+static void M_DrawScoreTimeRingsEmblems(void)
 {
-	if (!netgame && !multiplayer && (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION))
+	emblem_t *emblem_detail[3] = {NULL, NULL, NULL};
+	char emblem_text[3][20];
+	INT32 i;
+	// Set up the detail boxes.
 	{
-		emblem_t *emblem_detail[3] = {NULL, NULL, NULL};
-		char emblem_text[3][20];
-		INT32 i;
-
-		//M_DrawTextBox(152, 0, 198, 6);
-		//V_DrawFadeFill(32, 21, 262, 54, 0, 152, 5);
-
-		V_DrawFadeFill(152, 0, 168, 200, 0, 152, 5);
-
-		//curfadevalue = 0;
-		M_SetMenuCurFadeValue(0);
-
-		// Draw any and all emblems at the top.
-		M_DrawMapEmblems(gamemap, 272, 28);
-
-		if (mapheaderinfo[gamemap-1]->actnum != 0)
-			V_DrawString(40, 28, V_YELLOWMAP, va("%s %d", mapheaderinfo[gamemap-1]->lvlttl, mapheaderinfo[gamemap-1]->actnum));
-		else
-			V_DrawString(40, 28, V_YELLOWMAP, mapheaderinfo[gamemap-1]->lvlttl);
-
-		// Set up the detail boxes.
+		emblem_t *emblem = M_GetLevelEmblems(gamemap);
+		while (emblem)
 		{
-			emblem_t *emblem = M_GetLevelEmblems(gamemap);
-			while (emblem)
-			{
-				INT32 emblemslot;
-				char targettext[9], currenttext[9];
-
-				switch (emblem->type)
-				{
-					case ET_SCORE:
-						snprintf(targettext, 9, "%d", emblem->var);
-						snprintf(currenttext, 9, "%u", G_GetBestScore(gamemap));
-
-						targettext[8] = 0;
-						currenttext[8] = 0;
-
-						emblemslot = 0;
-						break;
-					case ET_TIME:
-						emblemslot = emblem->var; // dumb hack
-						snprintf(targettext, 9, "%i:%02i.%02i",
-							G_TicsToMinutes((tic_t)emblemslot, false),
-							G_TicsToSeconds((tic_t)emblemslot),
-							G_TicsToCentiseconds((tic_t)emblemslot));
-
-						emblemslot = (INT32)G_GetBestTime(gamemap); // dumb hack pt ii
-						if ((tic_t)emblemslot == UINT32_MAX)
-							snprintf(currenttext, 9, "-:--.--");
-						else
-							snprintf(currenttext, 9, "%i:%02i.%02i",
-								G_TicsToMinutes((tic_t)emblemslot, false),
-								G_TicsToSeconds((tic_t)emblemslot),
-								G_TicsToCentiseconds((tic_t)emblemslot));
-
-						targettext[8] = 0;
-						currenttext[8] = 0;
-
-						emblemslot = 1;
-						break;
-					case ET_RINGS:
-						snprintf(targettext, 9, "%d", emblem->var);
-						snprintf(currenttext, 9, "%u", G_GetBestRings(gamemap));
-
-						targettext[8] = 0;
-						currenttext[8] = 0;
-
-						emblemslot = 2;
-						break;
-					case ET_NGRADE:
-						snprintf(targettext, 9, "%u", P_GetScoreForGrade(gamemap, 0, emblem->var));
-						snprintf(currenttext, 9, "%u", G_GetBestNightsScore(gamemap, 0));
-
-						targettext[8] = 0;
-						currenttext[8] = 0;
-
-						emblemslot = 1;
-						break;
-					case ET_NTIME:
-						emblemslot = emblem->var; // dumb hack pt iii
-						snprintf(targettext, 9, "%i:%02i.%02i",
-							G_TicsToMinutes((tic_t)emblemslot, false),
-							G_TicsToSeconds((tic_t)emblemslot),
-							G_TicsToCentiseconds((tic_t)emblemslot));
-
-						emblemslot = (INT32)G_GetBestNightsTime(gamemap, 0); // dumb hack pt iv
-						if ((tic_t)emblemslot == UINT32_MAX)
-							snprintf(currenttext, 9, "-:--.--");
-						else
-							snprintf(currenttext, 9, "%i:%02i.%02i",
-								G_TicsToMinutes((tic_t)emblemslot, false),
-								G_TicsToSeconds((tic_t)emblemslot),
-								G_TicsToCentiseconds((tic_t)emblemslot));
-
-						targettext[8] = 0;
-						currenttext[8] = 0;
-
-						emblemslot = 2;
-						break;
-					default:
-						goto bademblem;
-				}
-				if (emblem_detail[emblemslot])
-					goto bademblem;
-
-				emblem_detail[emblemslot] = emblem;
-				snprintf(emblem_text[emblemslot], 20, "%8s /%8s", currenttext, targettext);
-				emblem_text[emblemslot][19] = 0;
-
-				bademblem:
-				emblem = M_GetLevelEmblems(-1);
-			}
-		}
-		for (i = 0; i < 3; ++i)
-		{
-			emblem_t *emblem = emblem_detail[i];
-			if (!emblem)
-				continue;
-
-			if (emblem->collected)
-				V_DrawSmallMappedPatch(40, 44 + (i*8), 0, W_CachePatchName(M_GetEmblemPatch(emblem, false), PU_PATCH),
-				                       R_GetTranslationColormap(TC_DEFAULT, M_GetEmblemColor(emblem), GTC_CACHE));
-			else
-				V_DrawSmallScaledPatch(40, 44 + (i*8), 0, W_CachePatchName("NEEDIT", PU_PATCH));
+			INT32 emblemslot;
+			char targettext[9], currenttext[9];
 
 			switch (emblem->type)
 			{
 				case ET_SCORE:
-				case ET_NGRADE:
-					V_DrawString(56, 44 + (i*8), V_YELLOWMAP, "SCORE:");
+					snprintf(targettext, 9, "%d", emblem->var);
+					snprintf(currenttext, 9, "%u", G_GetBestScore(gamemap));
+
+					targettext[8] = 0;
+					currenttext[8] = 0;
+
+					emblemslot = 0;
 					break;
 				case ET_TIME:
-				case ET_NTIME:
-					V_DrawString(56, 44 + (i*8), V_YELLOWMAP, "TIME:");
+					emblemslot = emblem->var; // dumb hack
+					snprintf(targettext, 9, "%i:%02i.%02i",
+						G_TicsToMinutes((tic_t)emblemslot, false),
+						G_TicsToSeconds((tic_t)emblemslot),
+						G_TicsToCentiseconds((tic_t)emblemslot));
+
+					emblemslot = (INT32)G_GetBestTime(gamemap); // dumb hack pt ii
+					if ((tic_t)emblemslot == UINT32_MAX)
+						snprintf(currenttext, 9, "-:--.--");
+					else
+						snprintf(currenttext, 9, "%i:%02i.%02i",
+							G_TicsToMinutes((tic_t)emblemslot, false),
+							G_TicsToSeconds((tic_t)emblemslot),
+							G_TicsToCentiseconds((tic_t)emblemslot));
+
+					targettext[8] = 0;
+					currenttext[8] = 0;
+
+					emblemslot = 1;
 					break;
 				case ET_RINGS:
-					V_DrawString(56, 44 + (i*8), V_YELLOWMAP, "RINGS:");
+					snprintf(targettext, 9, "%d", emblem->var);
+					snprintf(currenttext, 9, "%u", G_GetBestRings(gamemap));
+
+					targettext[8] = 0;
+					currenttext[8] = 0;
+
+					emblemslot = 2;
 					break;
+				case ET_NGRADE:
+					snprintf(targettext, 9, "%u", P_GetScoreForGrade(gamemap, 0, emblem->var));
+					snprintf(currenttext, 9, "%u", G_GetBestNightsScore(gamemap, 0));
+
+					targettext[8] = 0;
+					currenttext[8] = 0;
+
+					emblemslot = 1;
+					break;
+				case ET_NTIME:
+					emblemslot = emblem->var; // dumb hack pt iii
+					snprintf(targettext, 9, "%i:%02i.%02i",
+						G_TicsToMinutes((tic_t)emblemslot, false),
+						G_TicsToSeconds((tic_t)emblemslot),
+						G_TicsToCentiseconds((tic_t)emblemslot));
+
+					emblemslot = (INT32)G_GetBestNightsTime(gamemap, 0); // dumb hack pt iv
+					if ((tic_t)emblemslot == UINT32_MAX)
+						snprintf(currenttext, 9, "-:--.--");
+					else
+						snprintf(currenttext, 9, "%i:%02i.%02i",
+							G_TicsToMinutes((tic_t)emblemslot, false),
+							G_TicsToSeconds((tic_t)emblemslot),
+							G_TicsToCentiseconds((tic_t)emblemslot));
+
+					targettext[8] = 0;
+					currenttext[8] = 0;
+
+					emblemslot = 2;
+					break;
+				default:
+					goto bademblem;
 			}
-			V_DrawRightAlignedString(284, 44 + (i*8), V_MONOSPACE, emblem_text[i]);
+			if (emblem_detail[emblemslot])
+				goto bademblem;
+
+			emblem_detail[emblemslot] = emblem;
+			snprintf(emblem_text[emblemslot], 20, "%8s /%8s", currenttext, targettext);
+			emblem_text[emblemslot][19] = 0;
+
+			bademblem:
+			emblem = M_GetLevelEmblems(-1);
 		}
 	}
+	for (i = 0; i < 3; ++i)
+	{
+		emblem_t *emblem = emblem_detail[i];
+		if (!emblem)
+			continue;
+
+		if (emblem->collected)
+			V_DrawSmallMappedPatch(40, 44 + (i*8), 0, W_CachePatchName(M_GetEmblemPatch(emblem, false), PU_PATCH),
+			                       R_GetTranslationColormap(TC_DEFAULT, M_GetEmblemColor(emblem), GTC_CACHE));
+		else
+			V_DrawSmallScaledPatch(40, 44 + (i*8), 0, W_CachePatchName("NEEDIT", PU_PATCH));
+
+		switch (emblem->type)
+		{
+			case ET_SCORE:
+			case ET_NGRADE:
+				V_DrawString(56, 44 + (i*8), V_YELLOWMAP, "SCORE:");
+				break;
+			case ET_TIME:
+			case ET_NTIME:
+				V_DrawString(56, 44 + (i*8), V_YELLOWMAP, "TIME:");
+				break;
+			case ET_RINGS:
+				V_DrawString(56, 44 + (i*8), V_YELLOWMAP, "RINGS:");
+				break;
+		}
+		V_DrawRightAlignedString(284, 44 + (i*8), V_MONOSPACE, emblem_text[i]);
+	}
+}
+
+static void M_DrawPauseMenu(void)
+{
+	if (!netgame && !multiplayer && (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION))
+	{
+		patch_t *zigzag = W_CachePatchName("PAUSEZIG", PU_PATCH);
+		patch_t *pause = W_CachePatchName("M_PAUSE", PU_PATCH);
+
+		// Draw the blue part
+		V_DrawFadeFill(0, 0, 160, 200, 0, Color_Index[players[consoleplayer].skincolor - 1][5], 5);
+
+		for (int y = -zigzag->height; y < BASEVIDHEIGHT + zigzag->height; y += zigzag->height)
+		{
+			V_DrawScaledPatch(152, y - (pausescroll % zigzag->height), 0, zigzag);
+		}
+
+		V_DrawScaledPatch(80 - pause->width/2, 8, 0, pause);
+
+		Z_Free(zigzag);
+		Z_Free(pause);
+
+		// Draw any and all emblems at the top.
+		M_DrawMapEmblems(gamemap, 24, 40);
+
+		V_DrawCenteredString(80, 28, V_YELLOWMAP, mapheaderinfo[gamemap-1]->lvlttl);
+
+		if (mapheaderinfo[gamemap-1]->actnum != 0)
+			V_DrawCenteredString(80, 36, V_YELLOWMAP, va("ZONE ACT %d", mapheaderinfo[gamemap-1]->actnum));
+		else
+			V_DrawCenteredString(80, 36, V_YELLOWMAP, "ZONE");
+	}
+
+	//M_DrawScoreTimeRingsEmblems();
 
 	M_DrawGenericMenu();
 }
