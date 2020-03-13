@@ -15,6 +15,7 @@
 #include "p_local.h"
 #include "p_setup.h" // So we can have P_SetupLevelSky
 #include "p_slopes.h" // P_GetSlopeZAt
+#include "p_maputl.h" // P_PathTraverse
 #include "z_zone.h"
 #include "r_main.h"
 #include "r_draw.h"
@@ -1724,6 +1725,19 @@ static int lib_pDoSpring(lua_State *L)
 	if (!spring || !object)
 		return LUA_ErrInvalid(L, "mobj_t");
 	lua_pushboolean(L, P_DoSpring(spring, object));
+	return 1;
+}
+
+static int lib_pPathTraverse(lua_State *L)
+{
+	fixed_t px2 = luaL_checkfixed(L, 1);
+	fixed_t py2 = luaL_checkfixed(L, 2);
+	fixed_t px1 = luaL_checkfixed(L, 3);
+	fixed_t py1 = luaL_checkfixed(L, 4);
+	INT32 flags = (INT32)luaL_checkinteger(L, 5);
+	NOHUD
+	INLEVEL
+	lua_pushboolean(L, P_PathTraverse(px2, py2, px1, py1, flags, PTR_SlideTraverse));
 	return 1;
 }
 
@@ -3561,6 +3575,7 @@ static luaL_Reg lib[] = {
 	{"P_RadiusAttack",lib_pRadiusAttack},
 	{"P_FloorzAtPos",lib_pFloorzAtPos},
 	{"P_DoSpring",lib_pDoSpring},
+	{"P_PathTraverse",lib_pPathTraverse},
 
 	// p_inter
 	{"P_RemoveShield",lib_pRemoveShield},

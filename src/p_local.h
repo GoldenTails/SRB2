@@ -430,6 +430,9 @@ boolean PIT_PushableMoved(mobj_t *thing);
 
 boolean P_DoSpring(mobj_t *spring, mobj_t *object);
 
+boolean PTR_SlideTraverse(intercept_t *in);
+boolean PTR_SlideCameraTraverse(intercept_t *in);
+
 //
 // P_SETUP
 //

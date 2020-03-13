@@ -3165,7 +3165,7 @@ static void P_HitBounceLine(line_t *ld)
 //
 // PTR_SlideCameraTraverse
 //
-static boolean PTR_SlideCameraTraverse(intercept_t *in)
+boolean PTR_SlideCameraTraverse(intercept_t *in)
 {
 	line_t *li;
 
@@ -3431,7 +3431,7 @@ static void PTR_GlideClimbTraverse(line_t *li)
 	}
 }
 
-static boolean PTR_SlideTraverse(intercept_t *in)
+boolean PTR_SlideTraverse(intercept_t *in)
 {
 	line_t *li;
 

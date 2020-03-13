@@ -37,6 +37,7 @@
 #include "lua_script.h"
 #include "lua_hook.h"
 #include "d_clisrv.h"
+#include "p_maputl.h"
 
 #include "m_cond.h"
 
@@ -10083,6 +10084,11 @@ struct {
 	{"MA_RUNNING",MA_RUNNING},
 	{"MA_NOCUTSCENES",MA_NOCUTSCENES},
 	{"MA_INGAME",MA_INGAME},
+
+	// path traverser constants
+	{"PT_ADDLINES",PT_ADDLINES},
+	{"PT_ADDTHINGS",PT_ADDTHINGS},
+	{"PT_EARLYOUT",PT_EARLYOUT},
 
 	{NULL,0}
 };
