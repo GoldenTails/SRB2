@@ -4312,6 +4312,9 @@ static void M_DrawGenericMenu(void)
 					}
 					y += STRINGHEIGHT;
 					break;
+			case IT_THINSTRING:
+				V_DrawThinString(x, y, 0, currentMenu->menuitems[i].text);
+				break;
 			case IT_STRING2:
 				V_DrawString(x, y, 0, currentMenu->menuitems[i].text);
 				/* FALLTHRU */
@@ -4524,6 +4527,9 @@ static void M_DrawGenericScrollMenu(void)
 				// unsupported
 				break;
 			case IT_NOTHING:
+				break;
+			case IT_THINSTRING:
+				V_DrawThinString(x, y, 0, currentMenu->menuitems[i].text);
 				break;
 			case IT_STRING:
 			case IT_WHITESTRING:
@@ -4842,6 +4848,9 @@ static void M_DrawCenteredMenu(void)
 					}
 					y += STRINGHEIGHT;
 					break;
+			case IT_THINSTRING:
+				V_DrawThinString(x, y, 0, currentMenu->menuitems[i].text);
+				break;
 			case IT_STRING2:
 				V_DrawCenteredString(x, y, 0, currentMenu->menuitems[i].text);
 				/* FALLTHRU */
@@ -10663,7 +10672,7 @@ static void M_RoomMenu(INT32 choice)
 		{
 			MP_RoomMenu[i+1].text = room_list[i].name;
 			roomIds[i] = room_list[i].id;
-			MP_RoomMenu[i+1].status = IT_STRING|IT_CALL;
+			MP_RoomMenu[i+1].status = IT_THINSTRING|IT_CALL;
 		}
 	}
 
@@ -12352,6 +12361,9 @@ static void M_DrawColorMenu(void)
 				// unsupported
 				break;
 			case IT_NOTHING:
+				break;
+			case IT_THINSTRING:
+				V_DrawThinString(x, y, 0, currentMenu->menuitems[i].text);
 				break;
 			case IT_STRING:
 			case IT_WHITESTRING:
