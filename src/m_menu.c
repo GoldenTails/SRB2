@@ -301,6 +301,11 @@ menu_t OP_P1ControlsDef, OP_P2ControlsDef, OP_MouseOptionsDef;
 menu_t OP_Mouse2OptionsDef, OP_Joystick1Def, OP_Joystick2Def;
 menu_t OP_CameraOptionsDef, OP_Camera2OptionsDef;
 menu_t OP_PlaystyleDef;
+
+#ifdef TOUCHINPUTS
+menu_t OP_TouchOptionsDef;
+#endif
+
 static void M_VideoModeMenu(INT32 choice);
 static void M_Setup1PControlsMenu(INT32 choice);
 static void M_Setup2PControlsMenu(INT32 choice);
@@ -1055,10 +1060,7 @@ static menuitem_t OP_P1ControlsMenu[] =
 	{IT_CALL    | IT_STRING, NULL, "Play Style...", M_Setup1PPlaystyleMenu, 80},
 
 #ifdef TOUCHINPUTS
-	{IT_STRING  | IT_CVAR, NULL, "Tiny controls",       &cv_dpadtiny,          100},
-	{IT_STRING  | IT_CVAR, NULL, "Use d-pad in menus",  &cv_menudpad,          110},
-	{IT_STRING  | IT_CVAR, NULL, "Allow menu gestures", &cv_menuallowgestures, 120},
-	{IT_STRING  | IT_CVAR, NULL, "Force menu gestures", &cv_menugestures,      130},
+	{IT_SUBMENU | IT_STRING, NULL, "Touch Screen Options...", &OP_TouchOptionsDef, 100},
 #endif
 };
 
@@ -1196,6 +1198,23 @@ static menuitem_t OP_Mouse2OptionsMenu[] =
 	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
 	                      NULL, "Mouse Y Sensitivity",    &cv_mouseysens2,      80},
 };
+
+#ifdef TOUCHINPUTS
+static menuitem_t OP_TouchOptionsMenu[] =
+{
+	{IT_STRING | IT_CVAR, NULL, "Tiny controls",          &cv_dpadtiny,       10},
+	{IT_STRING | IT_CVAR, NULL, "Camera movement",        &cv_touchcamera,    20},
+	{IT_STRING | IT_CVAR, NULL, "Use d-pad in menus",     &cv_menudpad,       30},
+
+	{IT_STRING | IT_CVAR, NULL, "First-Person Vert-Look", &cv_alwaysfreelook, 50},
+	{IT_STRING | IT_CVAR, NULL, "Third-Person Vert-Look", &cv_chasefreelook,  60},
+
+	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
+	                      NULL, "Touch X Sensitivity",    &cv_touchsens,      80},
+	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
+	                      NULL, "Touch Y Sensitivity",    &cv_touchysens,     90},
+};
+#endif
 
 static menuitem_t OP_CameraOptionsMenu[] =
 {
@@ -2065,6 +2084,12 @@ menu_t OP_JoystickSetDef =
 	0,
 	NULL
 };
+
+#ifdef TOUCHINPUTS
+menu_t OP_TouchOptionsDef = DEFAULTMENUSTYLE(
+	MN_OP_MAIN + (MN_OP_P1CONTROLS << 6) + (MN_OP_TOUCHSCREEN << 12),
+	"M_CONTRO", OP_TouchOptionsMenu, &OP_P1ControlsDef, 35, 30);
+#endif
 
 menu_t OP_CameraOptionsDef = {
 	MN_OP_MAIN + (MN_OP_P1CONTROLS << 6) + (MN_OP_P1CAMERA << 12),
@@ -3096,7 +3121,21 @@ static boolean M_ChangeStringCvar(INT32 choice)
 				CV_Set(cv, buf);
 			}
 			return true;
+#ifdef TOUCHINPUTS
+		case KEY_ENTER:
+			// Handle the on-screen keyboard
+			{
+				INT32 handled = M_HandleTouchScreenKeyboard(cv->zstring, MAXSTRINGLENGTH);
+				if (handled == -1) // closed
+					CV_Set(cv, cv->zstring);
+			}
+			return true;
+#endif
 		default:
+#ifdef TOUCHINPUTS
+			if (I_KeyboardOnScreen())
+				return true;
+#endif
 			if (choice >= 32 && choice <= 127)
 			{
 				len = strlen(cv->string);
@@ -3310,11 +3349,10 @@ boolean M_Responder(event_t *ev)
 			INT32 x = ev->data1;
 			INT32 y = ev->data2;
 			INT32 finger = ev->data3;
-			boolean handled = false;
+			boolean button = false;
 
 			// Check for any buttons first
-			boolean touchmotion = (ev->type == ev_touchmotion);
-			if (!touchmotion) // Ignore motion events
+			if (ev->type != ev_touchmotion) // Ignore motion events
 			{
 				INT32 i;
 				for (i = 0; i < NUMKEYS; i++)
@@ -3332,80 +3370,48 @@ boolean M_Responder(event_t *ev)
 					// Check if your finger touches this button.
 					if (G_FingerTouchesButton(x, y, butt))
 					{
-						handled = true;
 						ch = i;
+						button = true;
 						break;
 					}
 				}
 			}
 
-			if (touchmotion && touch_menu_gestures && (joywait < I_GetTime()) && (!handled))
+			// Handle screen regions
+			if (ev->type == ev_touchdown && (!button) && (!touch_dpad_menu))
 			{
-				INT32 xthreshold = 8 * vid.dupx;
-				INT32 ythreshold = 8 * vid.dupy;
-				INT32 dx = (x - touchfingers[finger].x);
-				INT32 dy = (y - touchfingers[finger].y);
+				// 1/4 of the screen
+				INT32 sides = (vid.width / 4);
 
-				// up / down
-				dy *= M_InvertVerticalGesture();
-				if (dy < -ythreshold)
-					ch = KEY_UPARROW;
-				else if (dy > ythreshold)
-					ch = KEY_DOWNARROW;
-
-				// left / right
-				dx *= M_InvertHorizontalGesture();
-				if (dx < -xthreshold)
-					ch = KEY_LEFTARROW;
-				else if (dx > xthreshold)
-					ch = KEY_RIGHTARROW;
-
-				touchfingers[finger].down = 2;
-				touchfingers[finger].x = x;
-				touchfingers[finger].y = y;
-				joywait = I_GetTime() + NEWTICRATE/7;
-			}
-			else if (ev->type == ev_touchdown && (!handled)) // handles the lack of gestures
-			{
-				touchfingers[finger].down = 1;
-				touchfingers[finger].x = x;
-				touchfingers[finger].y = y;
-
-				// Handle screen regions
-				if (!touch_menu_gestures && (!touch_dpad_menu))
+				// Handle horizontal input
+				if (x < sides || x >= (vid.width - sides))
 				{
-					INT32 sides = (vid.width / 4);
-
-					// Handle horizontal input
-					if (x < sides || x >= (vid.width - sides))
-					{
-						if (x >= (vid.width / 2))
-							touchfingers[finger].input = KEY_RIGHTARROW;
-						else
-							touchfingers[finger].input = KEY_LEFTARROW;
-					}
+					if (x >= (vid.width / 2))
+						touchfingers[finger].u.keyinput = KEY_RIGHTARROW;
 					else
-					{
-						// Handle vertical input
-						if (y >= (vid.height / 2))
-							touchfingers[finger].input = KEY_DOWNARROW;
-						else
-							touchfingers[finger].input = KEY_UPARROW;
-					}
+						touchfingers[finger].u.keyinput = KEY_LEFTARROW;
 				}
+				else
+				{
+					// Handle vertical input
+					if (y >= (vid.height / 2))
+						touchfingers[finger].u.keyinput = KEY_DOWNARROW;
+					else
+						touchfingers[finger].u.keyinput = KEY_UPARROW;
+				}
+
+				// finger down
+				touchfingers[finger].type.menu = true;
+				touchfingers[finger].x = x;
+				touchfingers[finger].y = y;
 			}
 		}
 		else if (ev->type == ev_touchup)
 		{
 			INT32 finger = ev->data3;
-			if (touchfingers[finger].down == 1)
-			{
-				if (touch_menu_gestures)
-					ch = KEY_ENTER;
-				else
-					ch = touchfingers[finger].input;
-			}
-			touchfingers[finger].down = 0;
+			if (touchfingers[finger].type.menu)
+				ch = touchfingers[finger].u.keyinput;
+			touchfingers[finger].type.menu = false;
 		}
 #endif
 		else if (ev->type == ev_keyup) // Preserve event for other responders
@@ -3837,25 +3843,44 @@ void M_StartControlPanel(void)
 	}
 
 	CON_ToggleOff(); // move away console
+
 #ifdef TOUCHINPUTS
-	M_UpdateTouchNavigation(); // update touch screen navigation
+	// update touch screen navigation
+	M_UpdateTouchScreenNavigation();
+
+	// if the keyboard is still open for some reason??
+	if (I_KeyboardOnScreen())
+		I_CloseScreenKeyboard();
 #endif
 }
 
-//
-// M_UpdateTouchNavigation
-//
 #ifdef TOUCHINPUTS
-void M_UpdateTouchNavigation(void)
+//
+// M_UpdateTouchScreenNavigation
+//
+void M_UpdateTouchScreenNavigation(void)
 {
-	G_UpdateTouchSettings();
+	memset(touchfingers, 0x00, sizeof(touchfinger_t) * NUMTOUCHFINGERS); // clear all fingers
+	memset(gamekeydown, 0x00, sizeof (gamekeydown)); // clear all keys
+	G_UpdateTouchControls();
+}
 
-	// Menu forces gestures
-	if (M_ForceGestures())
-		touch_menu_gestures = true;
-
-	G_UpdateMenuTouchNavigation();
-	G_DefineTouchControls();
+//
+// M_HandleTouchScreenKeyboard
+//
+INT32 M_HandleTouchScreenKeyboard(char *buffer, size_t length)
+{
+	if (!I_KeyboardOnScreen())
+	{
+		I_RaiseScreenKeyboard(buffer, length);
+		return 1;
+	}
+	else
+	{
+		I_CloseScreenKeyboard();
+		return -1;
+	}
+	return 0;
 }
 #endif
 
@@ -3879,6 +3904,12 @@ void M_ClearMenus(boolean callexitmenufunc)
 	hidetitlemap = false;
 
 	I_UpdateMouseGrab();
+
+#ifdef TOUCHINPUTS
+	// if the keyboard is still open for some reason??
+	if (I_KeyboardOnScreen())
+		I_CloseScreenKeyboard();
+#endif
 }
 
 void M_EndModeAttackRun(void)
@@ -3925,7 +3956,12 @@ void M_SetupNextMenu(menu_t *menudef)
 	}
 
 #ifdef TOUCHINPUTS
-	M_UpdateTouchNavigation();
+	// update touch screen navigation
+	M_UpdateTouchScreenNavigation();
+
+	// if the keyboard is still open for some reason??
+	if (I_KeyboardOnScreen())
+		I_CloseScreenKeyboard();
 #endif
 
 	hidetitlemap = false;
@@ -3936,30 +3972,6 @@ boolean M_MouseNeeded(void)
 {
 	return (currentMenu == &MessageDef && currentMenu->prevMenu == &OP_ChangeControlsDef);
 }
-
-// Yeah, me too
-#ifdef TOUCHINPUTS
-boolean M_ForceGestures(void)
-{
-	if (!touch_menu_allowgestures)
-		return false;
-	return ((currentMenu == &SP_LoadDef) || (currentMenu == &SP_PlayerDef));
-}
-
-INT32 M_InvertHorizontalGesture(void)
-{
-	if (currentMenu == &SP_LoadDef)
-		return -1;
-	return 1;
-}
-
-INT32 M_InvertVerticalGesture(void)
-{
-	if (currentMenu == &SP_PlayerDef)
-		return -1;
-	return 1;
-}
-#endif
 
 //
 // M_Ticker
@@ -11392,6 +11404,12 @@ static void M_HandleSetupMultiPlayer(INT32 choice)
 			break;
 
 		case KEY_ENTER:
+#ifdef TOUCHINPUTS
+			// Handle the on-screen keyboard
+			if (itemOn == 0)
+				M_HandleTouchScreenKeyboard(setupm_name, MAXPLAYERNAME);
+			else
+#endif
 			if (itemOn == 3
 			&& (R_SkinAvailable(setupm_cvdefaultskin->string) != setupm_fakeskin
 			|| setupm_cvdefaultcolor->value != setupm_fakecolor))
@@ -11444,7 +11462,6 @@ static void M_HandleSetupMultiPlayer(INT32 choice)
 				}
 			}
 			break;
-			break;
 
 		case KEY_DEL:
 			if (itemOn == 0 && (l = strlen(setupm_name))!=0)
@@ -11455,6 +11472,10 @@ static void M_HandleSetupMultiPlayer(INT32 choice)
 			break;
 
 		default:
+#ifdef TOUCHINPUTS
+			if (I_KeyboardOnScreen())
+				break;
+#endif
 			if (itemOn != 0 || choice < 32 || choice > 127)
 				break;
 			S_StartSound(NULL,sfx_menu1); // Tails

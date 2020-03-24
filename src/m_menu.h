@@ -82,6 +82,8 @@ typedef enum
 	MN_OP_P2JOYSTICK,
 	MN_OP_P2CAMERA,
 
+	MN_OP_TOUCHSCREEN,
+
 	MN_OP_PLAYSTYLE,
 
 	MN_OP_VIDEO,
@@ -326,12 +328,9 @@ void M_ClearMenus(boolean callexitmenufunc);
 // Maybe this goes here????? Who knows.
 boolean M_MouseNeeded(void);
 
-// What about this?
 #ifdef TOUCHINPUTS
-void M_UpdateTouchNavigation(void);
-boolean M_ForceGestures(void);
-INT32 M_InvertHorizontalGesture(void);
-INT32 M_InvertVerticalGesture(void);
+void M_UpdateTouchScreenNavigation(void);
+INT32 M_HandleTouchScreenKeyboard(char *buffer, size_t length);
 #endif
 
 extern menu_t *currentMenu;
