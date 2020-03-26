@@ -122,8 +122,28 @@ extern INT32 mouse2x, mouse2y, mlook2y;
 
 extern INT32 joyxmove[JOYAXISSET], joyymove[JOYAXISSET], joy2xmove[JOYAXISSET], joy2ymove[JOYAXISSET];
 
+typedef enum
+{
+	AXISNONE = 0,
+	AXISTURN,
+	AXISMOVE,
+	AXISLOOK,
+	AXISSTRAFE,
+
+	AXISDIGITAL, // axes below this use digital deadzone
+
+	AXISJUMP,
+	AXISSPIN,
+	AXISFIRE,
+	AXISFIRENORMAL,
+} axis_input_e;
+
 // current state of the keys: true if pushed
 extern UINT8 gamekeydown[NUMINPUTS];
+
+boolean G_InGameInput(void);
+boolean G_HandlePauseKey(boolean ispausebreak);
+boolean G_HandleSpyMode(void);
 
 // Lactozilla: Touch input buttons
 #ifdef TOUCHINPUTS
@@ -133,6 +153,7 @@ extern UINT8 gamekeydown[NUMINPUTS];
 typedef struct
 {
 	INT32 x, y;
+	float pressure;
 	union {
 		INT32 gamecontrol;
 		INT32 keyinput;
@@ -140,6 +161,7 @@ typedef struct
 	union {
 		boolean menu;
 		INT32 mouse;
+		INT32 joystick;
 	} type;
 } touchfinger_t;
 extern touchfinger_t touchfingers[NUMTOUCHFINGERS];
@@ -149,8 +171,9 @@ typedef struct
 {
 	INT32 x, y;
 	INT32 w, h;
-	INT32 pressed; // touch navigation
+	tic_t pressed; // touch navigation
 	boolean dpad; // d-pad key
+	boolean hidden; // hidden key?
 } touchconfig_t;
 
 // Screen buttons
@@ -159,20 +182,39 @@ extern touchconfig_t touchnavigation[NUMKEYS]; // Menu inputs
 
 // Input variables
 extern INT32 touch_dpad_x, touch_dpad_y, touch_dpad_w, touch_dpad_h;
-extern INT32 touchnav_dpad_x, touchnav_dpad_y, touchnav_dpad_w, touchnav_dpad_h;
+
+// Touch movement style
+typedef enum
+{
+	tms_dpad,
+	tms_joystick,
+	num_touchmovementstyles
+} touchmovementstyle_e;
+
+// Finger motion type
+enum
+{
+	FINGERMOTION_JOYSTICK = 1,
+	FINGERMOTION_MOUSE = 2,
+};
 
 // Touch screen settings
+extern touchmovementstyle_e touch_movementstyle;
 extern boolean touch_dpad_tiny;
-extern boolean touch_dpad_menu;
 extern boolean touch_camera;
 
 // Console variables for the touch screen
+extern consvar_t cv_dpadstyle;
 extern consvar_t cv_dpadtiny;
-extern consvar_t cv_menudpad;
 extern consvar_t cv_touchcamera;
 
 // Touch screen sensitivity
 extern consvar_t cv_touchsens, cv_touchysens;
+
+// Screen joystick movement
+#define TOUCHJOYEXTENDX (touch_dpad_w / 2)
+#define TOUCHJOYEXTENDY (touch_dpad_h / 2)
+extern float touchjoyxmove, touchjoyymove;
 #endif
 
 // two key codes (or virtual key) per game control
@@ -224,15 +266,18 @@ void G_DefineDefaultControls(void);
 
 #ifdef TOUCHINPUTS
 // Define/update touch controls
-void G_DefineTouchControls(void);
+void G_SetupTouchSettings(void);
 void G_UpdateTouchControls(void);
-void G_UpdateTouchSettings(void);
-
-// Update menu touch navigation
-void G_UpdateMenuTouchNavigation(void);
+void G_DefineTouchButtons(void);
 
 // Check if the finger (x, y) is touching the specified button (butt)
 boolean G_FingerTouchesButton(INT32 x, INT32 y, touchconfig_t *butt);
+
+// Check if the gamecontrol is a player control key
+boolean G_TouchButtonIsPlayerControl(INT32 gamecontrol);
+
+// Scale a d-pad
+void G_ScaleDPadCoords(INT32 *x, INT32 *y, INT32 *w, INT32 *h);
 #endif
 
 INT32 G_GetControlScheme(INT32 (*fromcontrols)[2], const INT32 *gclist, INT32 gclen);

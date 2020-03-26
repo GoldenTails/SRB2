@@ -454,22 +454,6 @@ consvar_t cv_cam_lockonboss[2] = {
 	{"cam2_lockaimassist", "Bosses", CV_SAVE, lockedassist_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL},
 };
 
-typedef enum
-{
-	AXISNONE = 0,
-	AXISTURN,
-	AXISMOVE,
-	AXISLOOK,
-	AXISSTRAFE,
-
-	AXISDIGITAL, // axes below this use digital deadzone
-
-	AXISJUMP,
-	AXISSPIN,
-	AXISFIRE,
-	AXISFIRENORMAL,
-} axis_input_e;
-
 consvar_t cv_turnaxis = {"joyaxis_turn", "X-Rudder", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_moveaxis = {"joyaxis_move", "Y-Axis", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_sideaxis = {"joyaxis_side", "X-Axis", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -924,6 +908,18 @@ static INT32 JoyAxis(axis_input_e axissel)
 			return 0;
 	}
 
+#ifdef TOUCHINPUTS
+	if (FLOAT_TO_FIXED(touchjoyxmove) || FLOAT_TO_FIXED(touchjoyymove)) // Touch screen joystick
+	{
+		if (axissel == AXISMOVE)
+			return (INT32)(touchjoyymove * JOYAXISRANGE);
+		else if (axissel == AXISSTRAFE)
+			return (INT32)(touchjoyxmove * JOYAXISRANGE);
+		else
+			return 0;
+	}
+#endif
+
 	if (axisval < 0) //odd -axises
 	{
 		axisval = -axisval;
@@ -1184,11 +1180,6 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		G_CopyTiccmd(cmd, I_BaseTiccmd2(), 1); // empty, or external driver
 	}
 
-#if defined(__ANDROID__)
-	if (!cv_useaccelerometer.value)
-		usejoystick = 0;
-#endif
-
 	strafeisturn = controlstyle == CS_SIMPLE && ticcmd_centerviewdown[forplayer] &&
 		((cv_cam_lockedinput[forplayer].value && !ticcmd_ztargetfocus[forplayer]) || (player->pflags & PF_STARTDASH)) &&
 		!player->climbing && player->powers[pw_carry] != CR_MINECART;
@@ -1223,6 +1214,15 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		((chasecam && !player->spectator) ? chasefreelook : alwaysfreelook);
 	analogjoystickmove = usejoystick && !Joystick.bGamepadStyle;
 	gamepadjoystickmove = usejoystick && Joystick.bGamepadStyle;
+
+#ifdef TOUCHINPUTS
+	if (touch_movementstyle == tms_joystick)
+	{
+		usejoystick = 1;
+		analogjoystickmove = true;
+		gamepadjoystickmove = false;
+	}
+#endif
 
 	thisjoyaiming = (chasecam && !player->spectator) ? chasefreelook : alwaysfreelook;
 
@@ -1872,6 +1872,9 @@ void G_DoLoadLevel(boolean resetplayer)
 	{
 		joyxmove[i] = joyymove[i] = 0;
 		joy2xmove[i] = joy2ymove[i] = 0;
+#ifdef TOUCHINPUTS
+		touchjoyxmove = touchjoyymove = 0.0f;
+#endif
 	}
 	mousex = mousey = 0;
 	mouse2x = mouse2y = 0;
@@ -1976,7 +1979,7 @@ boolean G_Responder(event_t *ev)
 	if (gameaction == ga_nothing && !singledemo &&
 		((demoplayback && !modeattacking && !titledemo) || gamestate == GS_TITLESCREEN))
 	{
-		if (ev->type == ev_keydown && ev->data1 != 301 && !(gamestate == GS_TITLESCREEN && finalecount < TICRATE))
+		if (ev->type == ev_keydown && ev->key != 301 && !(gamestate == GS_TITLESCREEN && finalecount < TICRATE))
 		{
 			M_StartControlPanel();
 			return true;
@@ -2050,75 +2053,10 @@ boolean G_Responder(event_t *ev)
 
 	// allow spy mode changes even during the demo
 	if (gamestate == GS_LEVEL && ev->type == ev_keydown
-		&& (ev->data1 == KEY_F12 || ev->data1 == gamecontrol[gc_viewpoint][0] || ev->data1 == gamecontrol[gc_viewpoint][1]))
+		&& (ev->key == KEY_F12 || ev->key == gamecontrol[gc_viewpoint][0] || ev->key == gamecontrol[gc_viewpoint][1]))
 	{
-		// ViewpointSwitch Lua hook.
-#ifdef HAVE_BLUA
-		UINT8 canSwitchView = 0;
-#endif
-
-		if (splitscreen || !netgame)
-			displayplayer = consoleplayer;
-		else
-		{
-			// spy mode
-			do
-			{
-				displayplayer++;
-				if (displayplayer == MAXPLAYERS)
-					displayplayer = 0;
-
-				if (!playeringame[displayplayer])
-					continue;
-
-#ifdef HAVE_BLUA
-				// Call ViewpointSwitch hooks here.
-				canSwitchView = LUAh_ViewpointSwitch(&players[consoleplayer], &players[displayplayer], false);
-				if (canSwitchView == 1) // Set viewpoint to this player
-					break;
-				else if (canSwitchView == 2) // Skip this player
-					continue;
-#endif
-
-				if (players[displayplayer].spectator)
-					continue;
-
-				if (G_GametypeHasTeams())
-				{
-					if (players[consoleplayer].ctfteam
-					 && players[displayplayer].ctfteam != players[consoleplayer].ctfteam)
-						continue;
-				}
-				else if (gametype == GT_HIDEANDSEEK)
-				{
-					if (players[consoleplayer].pflags & PF_TAGIT)
-						continue;
-				}
-				// Other Tag-based gametypes?
-				else if (G_TagGametype())
-				{
-					if (!players[consoleplayer].spectator
-					 && (players[consoleplayer].pflags & PF_TAGIT) != (players[displayplayer].pflags & PF_TAGIT))
-						continue;
-				}
-				else if (G_GametypeHasSpectators() && G_RingSlingerGametype())
-				{
-					if (!players[consoleplayer].spectator)
-						continue;
-				}
-
-				break;
-			} while (displayplayer != consoleplayer);
-
-			// change statusbar also if playing back demo
-			if (singledemo)
-				ST_changeDemoView();
-
-			// tell who's the view
-			CONS_Printf(M_GetText("Viewpoint: %s\n"), player_names[displayplayer]);
-
+		if (G_HandleSpyMode())
 			return true;
-		}
 	}
 
 	// update keys current state
@@ -2127,39 +2065,15 @@ boolean G_Responder(event_t *ev)
 	switch (ev->type)
 	{
 		case ev_keydown:
-			if (ev->data1 == gamecontrol[gc_pause][0]
-				|| ev->data1 == gamecontrol[gc_pause][1]
-				|| ev->data1 == KEY_PAUSE)
+			if (ev->key == gamecontrol[gc_pause][0]
+				|| ev->key == gamecontrol[gc_pause][1]
+				|| ev->key == KEY_PAUSE)
 			{
-				if (modeattacking && !demoplayback && (gamestate == GS_LEVEL))
-				{
-					pausebreakkey = (ev->data1 == KEY_PAUSE);
-					if (menuactive || pausedelay < 0 || leveltime < 2)
-						return true;
-
-					if (pausedelay < 1+(NEWTICRATE/2))
-						pausedelay = 1+(NEWTICRATE/2);
-					else if (++pausedelay > 1+(NEWTICRATE/2)+(NEWTICRATE/3))
-					{
-						G_SetModeAttackRetryFlag();
-						return true;
-					}
-					pausedelay++; // counteract subsequent subtraction this frame
-				}
-				else
-				{
-					INT32 oldpausedelay = pausedelay;
-					pausedelay = (NEWTICRATE/7);
-					if (!oldpausedelay)
-					{
-						// command will handle all the checks for us
-						COM_ImmedExecute("pause");
-						return true;
-					}
-				}
+				if (G_HandlePauseKey(ev->key == KEY_PAUSE))
+					return true;
 			}
-			if (ev->data1 == gamecontrol[gc_camtoggle][0]
-				|| ev->data1 == gamecontrol[gc_camtoggle][1])
+			if (ev->key == gamecontrol[gc_camtoggle][0]
+				|| ev->key == gamecontrol[gc_camtoggle][1])
 			{
 				if (!camtoggledelay)
 				{
@@ -2167,8 +2081,8 @@ boolean G_Responder(event_t *ev)
 					CV_SetValue(&cv_chasecam, cv_chasecam.value ? 0 : 1);
 				}
 			}
-			if (ev->data1 == gamecontrolbis[gc_camtoggle][0]
-				|| ev->data1 == gamecontrolbis[gc_camtoggle][1])
+			if (ev->key == gamecontrolbis[gc_camtoggle][0]
+				|| ev->key == gamecontrolbis[gc_camtoggle][1])
 			{
 				if (!camtoggledelay2)
 				{
@@ -2884,6 +2798,11 @@ void G_DoReborn(INT32 playernum)
 	// Make sure objectplace is OFF when you first start the level!
 	OP_ResetObjectplace();
 
+#ifdef TOUCHINPUTS
+	if (playernum == consoleplayer)
+		G_UpdateTouchControls();
+#endif
+
 	if (player->bot && playernum != consoleplayer)
 	{ // Bots respawn next to their master.
 		mobj_t *oldmo = NULL;
@@ -3004,6 +2923,9 @@ void G_DoReborn(INT32 playernum)
 			{
 				joyxmove[i] = joyymove[i] = 0;
 				joy2xmove[i] = joy2ymove[i] = 0;
+#ifdef TOUCHINPUTS
+				touchjoyxmove = touchjoyymove = 0.0f;
+#endif
 			}
 			mousex = mousey = 0;
 			mouse2x = mouse2y = 0;
@@ -4310,12 +4232,12 @@ void G_LoadGame(UINT32 slot, INT16 mapoverride)
 	if (strcmp((const char *)save_p, (const char *)vcheck))
 	{
 #ifdef SAVEGAME_OTHERVERSIONS
-		M_StartMessage(M_GetText("Save game from different version.\nYou can load this savegame, but\nsaving afterwards will be disabled.\n\nDo you want to continue anyway?\n\n(Press 'Y' to confirm)\n"),
+		M_StartMessage(M_GetText("Save game from different version.\nYou can load this savegame, but\nsaving afterwards will be disabled.\n\nDo you want to continue anyway?\n\n("PRESS_Y_MESSAGE" to confirm)\n"),
 		               M_ForceLoadGameResponse, MM_YESNO);
 		//Freeing done by the callback function of the above message
 #else
 		M_ClearMenus(true); // so ESC backs out to title
-		M_StartMessage(M_GetText("Save game from different version\n\nPress ESC\n"), NULL, MM_NOTHING);
+		M_StartMessage(M_GetText("Save game from different version\n\n" PRESS_ESC_MESSAGE), NULL, MM_NOTHING);
 		Command_ExitGame_f();
 		Z_Free(savebuffer);
 		save_p = savebuffer = NULL;
@@ -4337,7 +4259,7 @@ void G_LoadGame(UINT32 slot, INT16 mapoverride)
 	if (!P_LoadGame(mapoverride))
 	{
 		M_ClearMenus(true); // so ESC backs out to title
-		M_StartMessage(M_GetText("Savegame file corrupted\n\nPress ESC\n"), NULL, MM_NOTHING);
+		M_StartMessage(M_GetText("Savegame file corrupted\n\n" PRESS_ESC_MESSAGE), NULL, MM_NOTHING);
 		Command_ExitGame_f();
 		Z_Free(savebuffer);
 		save_p = savebuffer = NULL;
@@ -7372,6 +7294,9 @@ boolean G_CheckDemoStatus(void)
 void G_SetGamestate(gamestate_t newstate)
 {
 	gamestate = newstate;
+#ifdef TOUCHINPUTS
+	G_UpdateTouchControls();
+#endif
 }
 
 /* These functions handle the exitgame flag. Before, when the user

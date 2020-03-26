@@ -1202,9 +1202,9 @@ static menuitem_t OP_Mouse2OptionsMenu[] =
 #ifdef TOUCHINPUTS
 static menuitem_t OP_TouchOptionsMenu[] =
 {
-	{IT_STRING | IT_CVAR, NULL, "Tiny controls",          &cv_dpadtiny,       10},
-	{IT_STRING | IT_CVAR, NULL, "Camera movement",        &cv_touchcamera,    20},
-	{IT_STRING | IT_CVAR, NULL, "Use d-pad in menus",     &cv_menudpad,       30},
+	{IT_STRING | IT_CVAR, NULL, "Movement style",         &cv_dpadstyle,      10},
+	{IT_STRING | IT_CVAR, NULL, "Tiny controls",          &cv_dpadtiny,       20},
+	{IT_STRING | IT_CVAR, NULL, "Camera movement",        &cv_touchcamera,    30},
 
 	{IT_STRING | IT_CVAR, NULL, "First-Person Vert-Look", &cv_alwaysfreelook, 50},
 	{IT_STRING | IT_CVAR, NULL, "Third-Person Vert-Look", &cv_chasefreelook,  60},
@@ -2446,7 +2446,11 @@ static void Newrenderer_OnChange(void)
 				"appear incorrectly.\n"
 				"Do you still want to switch to it?\n"
 				"\n"
+#ifdef TOUCHINPUTS
+				"(Tap 'Confirm' or 'Back')",
+#else
 				"(Press 'y' or 'n')",
+#endif
 				Newrenderer_AREYOUSURE, MM_YESNO
 		);
 	}
@@ -3226,6 +3230,8 @@ boolean M_Responder(event_t *ev)
 	if (CON_Ready())
 		return false;
 
+	routine = currentMenu->menuitems[itemOn].itemaction;
+
 	if (noFurtherInput)
 	{
 		// Ignore input after enter/escape/other buttons
@@ -3237,7 +3243,7 @@ boolean M_Responder(event_t *ev)
 		if (ev->type == ev_keydown)
 		{
 			keydown++;
-			ch = ev->data1;
+			ch = ev->key;
 
 			// added 5-2-98 remap virtual keys (mouse & joystick buttons)
 			switch (ch)
@@ -3270,44 +3276,44 @@ boolean M_Responder(event_t *ev)
 					break;
 			}
 		}
-		else if (ev->type == ev_joystick  && ev->data1 == 0 && joywait < I_GetTime())
+		else if (ev->type == ev_joystick && ev->key == 0 && joywait < I_GetTime())
 		{
 			const INT32 jdeadzone = (JOYAXISRANGE * cv_digitaldeadzone.value) / FRACUNIT;
-			if (ev->data3 != INT32_MAX)
+			if (ev->y != INT32_MAX)
 			{
-				if (Joystick.bGamepadStyle || abs(ev->data3) > jdeadzone)
+				if (Joystick.bGamepadStyle || abs(ev->y) > jdeadzone)
 				{
-					if (ev->data3 < 0 && pjoyy >= 0)
+					if (ev->y < 0 && pjoyy >= 0)
 					{
 						ch = KEY_UPARROW;
 						joywait = I_GetTime() + NEWTICRATE/7;
 					}
-					else if (ev->data3 > 0 && pjoyy <= 0)
+					else if (ev->y > 0 && pjoyy <= 0)
 					{
 						ch = KEY_DOWNARROW;
 						joywait = I_GetTime() + NEWTICRATE/7;
 					}
-					pjoyy = ev->data3;
+					pjoyy = ev->y;
 				}
 				else
 					pjoyy = 0;
 			}
 
-			if (ev->data2 != INT32_MAX)
+			if (ev->x != INT32_MAX)
 			{
-				if (Joystick.bGamepadStyle || abs(ev->data2) > jdeadzone)
+				if (Joystick.bGamepadStyle || abs(ev->x) > jdeadzone)
 				{
-					if (ev->data2 < 0 && pjoyx >= 0)
+					if (ev->x < 0 && pjoyx >= 0)
 					{
 						ch = KEY_LEFTARROW;
 						joywait = I_GetTime() + NEWTICRATE/17;
 					}
-					else if (ev->data2 > 0 && pjoyx <= 0)
+					else if (ev->x > 0 && pjoyx <= 0)
 					{
 						ch = KEY_RIGHTARROW;
 						joywait = I_GetTime() + NEWTICRATE/17;
 					}
-					pjoyx = ev->data2;
+					pjoyx = ev->x;
 				}
 				else
 					pjoyx = 0;
@@ -3315,7 +3321,7 @@ boolean M_Responder(event_t *ev)
 		}
 		else if (ev->type == ev_mouse && mousewait < I_GetTime())
 		{
-			pmousey += ev->data3;
+			pmousey += ev->y;
 			if (pmousey < lasty-30)
 			{
 				ch = KEY_DOWNARROW;
@@ -3329,7 +3335,7 @@ boolean M_Responder(event_t *ev)
 				pmousey = lasty += 30;
 			}
 
-			pmousex += ev->data2;
+			pmousex += ev->x;
 			if (pmousex < lastx - 30)
 			{
 				ch = KEY_LEFTARROW;
@@ -3346,9 +3352,9 @@ boolean M_Responder(event_t *ev)
 #ifdef TOUCHINPUTS
 		else if (ev->type == ev_touchdown || ev->type == ev_touchmotion)
 		{
-			INT32 x = ev->data1;
-			INT32 y = ev->data2;
-			INT32 finger = ev->data3;
+			INT32 x = ev->x;
+			INT32 y = ev->y;
+			touchfinger_t *finger = &touchfingers[ev->key];
 			boolean button = false;
 
 			// Check for any buttons first
@@ -3363,8 +3369,8 @@ boolean M_Responder(event_t *ev)
 					if (!butt->w)
 						continue;
 
-					// Ignore d-pad if disabled
-					if (!touch_dpad_menu && butt->dpad)
+					// Ignore hidden buttons
+					if (butt->hidden)
 						continue;
 
 					// Check if your finger touches this button.
@@ -3372,53 +3378,60 @@ boolean M_Responder(event_t *ev)
 					{
 						ch = i;
 						button = true;
+						butt->pressed = I_GetTime() + (TICRATE/10);
 						break;
 					}
 				}
 			}
 
-			// Handle screen regions
-			if (ev->type == ev_touchdown && (!button) && (!touch_dpad_menu))
+			// Finger didn't tap any button
+			if (ev->type == ev_touchdown && (!button))
 			{
-				// 1/4 of the screen
-				INT32 sides = (vid.width / 4);
+				// Tap anywhere to end the message
+				if (routine == M_StopMessage)
+					finger->u.keyinput = KEY_ENTER;
+				else // Handle screen regions
+				{
+					// 1/4 of the screen
+					INT32 sides = (vid.width / 4);
 
-				// Handle horizontal input
-				if (x < sides || x >= (vid.width - sides))
-				{
-					if (x >= (vid.width / 2))
-						touchfingers[finger].u.keyinput = KEY_RIGHTARROW;
+					// Handle horizontal input
+					if (x < sides || x >= (vid.width - sides))
+					{
+						if (x >= (vid.width / 2))
+							finger->u.keyinput = KEY_RIGHTARROW;
+						else
+							finger->u.keyinput = KEY_LEFTARROW;
+					}
 					else
-						touchfingers[finger].u.keyinput = KEY_LEFTARROW;
-				}
-				else
-				{
-					// Handle vertical input
-					if (y >= (vid.height / 2))
-						touchfingers[finger].u.keyinput = KEY_DOWNARROW;
-					else
-						touchfingers[finger].u.keyinput = KEY_UPARROW;
+					{
+						// Handle vertical input
+						if (y >= (vid.height / 2))
+							finger->u.keyinput = KEY_DOWNARROW;
+						else
+							finger->u.keyinput = KEY_UPARROW;
+					}
 				}
 
 				// finger down
-				touchfingers[finger].type.menu = true;
-				touchfingers[finger].x = x;
-				touchfingers[finger].y = y;
+				finger->type.menu = true;
+				finger->x = x;
+				finger->y = y;
 			}
 		}
 		else if (ev->type == ev_touchup)
 		{
-			INT32 finger = ev->data3;
-			if (touchfingers[finger].type.menu)
-				ch = touchfingers[finger].u.keyinput;
-			touchfingers[finger].type.menu = false;
+			touchfinger_t *finger = &touchfingers[ev->key];
+			if (finger->type.menu)
+				ch = finger->u.keyinput;
+			finger->type.menu = false;
 		}
 #endif
 		else if (ev->type == ev_keyup) // Preserve event for other responders
 			keydown = 0;
 	}
 	else if (ev->type == ev_keydown) // Preserve event for other responders
-		ch = ev->data1;
+		ch = ev->key;
 
 	if (ch == -1)
 		return false;
@@ -3495,7 +3508,14 @@ boolean M_Responder(event_t *ev)
 		return false;
 	}
 
-	routine = currentMenu->menuitems[itemOn].itemaction;
+#if defined(__ANDROID__)
+	// Lactozilla: Open the console from the menu
+	if (ch == KEY_CONSOLE)
+	{
+		CON_Toggle();
+		return true;
+	}
+#endif
 
 	// Handle menuitems which need a specific key handling
 	if (routine && (currentMenu->menuitems[itemOn].status & IT_TYPE) == IT_KEYHANDLER)
@@ -4024,30 +4044,41 @@ void M_Init(void)
 	CV_RegisterVar(&cv_dummycontinues);
 	CV_RegisterVar(&cv_dummymares);
 
-	quitmsg[QUITMSG] = M_GetText("Eggman's tied explosives\nto your girlfriend, and\nwill activate them if\nyou press the 'Y' key!\nPress 'N' to save her!\n\n(Press 'Y' to quit)");
-	quitmsg[QUITMSG1] = M_GetText("What would Tails say if\nhe saw you quitting the game?\n\n(Press 'Y' to quit)");
-	quitmsg[QUITMSG2] = M_GetText("Hey!\nWhere do ya think you're goin'?\n\n(Press 'Y' to quit)");
-	quitmsg[QUITMSG3] = M_GetText("Forget your studies!\nPlay some more!\n\n(Press 'Y' to quit)");
-	quitmsg[QUITMSG4] = M_GetText("You're trying to say you\nlike Sonic 2K6 better than\nthis, right?\n\n(Press 'Y' to quit)");
-	quitmsg[QUITMSG5] = M_GetText("Don't leave yet -- there's a\nsuper emerald around that corner!\n\n(Press 'Y' to quit)");
-	quitmsg[QUITMSG6] = M_GetText("You'd rather work than play?\n\n(Press 'Y' to quit)");
-	quitmsg[QUITMSG7] = M_GetText("Go ahead and leave. See if I care...\n*sniffle*\n\n(Press 'Y' to quit)");
+	quitmsg[QUITMSG1] = M_GetText("What would Tails say if\nhe saw you quitting the game?\n\n("PRESS_Y_MESSAGE" to quit)");
+	quitmsg[QUITMSG2] = M_GetText("Hey!\nWhere do ya think you're goin'?\n\n("PRESS_Y_MESSAGE" to quit)");
+	quitmsg[QUITMSG3] = M_GetText("Forget your studies!\nPlay some more!\n\n("PRESS_Y_MESSAGE" to quit)");
+	quitmsg[QUITMSG5] = M_GetText("Don't leave yet -- there's a\nsuper emerald around that corner!\n\n("PRESS_Y_MESSAGE" to quit)");
+	quitmsg[QUITMSG7] = M_GetText("Go ahead and leave. See if I care...\n*sniffle*\n\n("PRESS_Y_MESSAGE" to quit)");
 
-	quitmsg[QUIT2MSG] = M_GetText("If you leave now,\nEggman will take over the world!\n\n(Press 'Y' to quit)");
-	quitmsg[QUIT2MSG1] = M_GetText("Don't quit!\nThere are animals\nto save!\n\n(Press 'Y' to quit)");
-	quitmsg[QUIT2MSG2] = M_GetText("Aw c'mon, just bop\na few more robots!\n\n(Press 'Y' to quit)");
-	quitmsg[QUIT2MSG3] = M_GetText("Did you get all those Chaos Emeralds?\n\n(Press 'Y' to quit)");
-	quitmsg[QUIT2MSG4] = M_GetText("If you leave, I'll use\nmy spin attack on you!\n\n(Press 'Y' to quit)");
-	quitmsg[QUIT2MSG5] = M_GetText("Don't go!\nYou might find the hidden\nlevels!\n\n(Press 'Y' to quit)");
-	quitmsg[QUIT2MSG6] = M_GetText("Hit the 'N' key, Sonic!\nThe 'N' key!\n\n(Press 'Y' to quit)");
+	quitmsg[QUIT2MSG] = M_GetText("If you leave now,\nEggman will take over the world!\n\n("PRESS_Y_MESSAGE" to quit)");
+	quitmsg[QUIT2MSG1] = M_GetText("Don't quit!\nThere are animals\nto save!\n\n("PRESS_Y_MESSAGE" to quit)");
+	quitmsg[QUIT2MSG3] = M_GetText("Did you get all those Chaos Emeralds?\n\n("PRESS_Y_MESSAGE" to quit)");
+	quitmsg[QUIT2MSG4] = M_GetText("If you leave, I'll use\nmy spin attack on you!\n\n("PRESS_Y_MESSAGE" to quit)");
+	quitmsg[QUIT2MSG5] = M_GetText("Don't go!\nYou might find the hidden\nlevels!\n\n("PRESS_Y_MESSAGE" to quit)");
 
-	quitmsg[QUIT3MSG] = M_GetText("Are you really going to give up?\nWe certainly would never give you up.\n\n(Press 'Y' to quit)");
-	quitmsg[QUIT3MSG1] = M_GetText("Come on, just ONE more netgame!\n\n(Press 'Y' to quit)");
-	quitmsg[QUIT3MSG2] = M_GetText("Press 'N' to unlock\nthe Ultimate Cheat!\n\n(Press 'Y' to quit)");
-	quitmsg[QUIT3MSG3] = M_GetText("Why don't you go back and try\njumping on that house to\nsee what happens?\n\n(Press 'Y' to quit)");
-	quitmsg[QUIT3MSG4] = M_GetText("Every time you press 'Y', an\nSRB2 Developer cries...\n\n(Press 'Y' to quit)");
-	quitmsg[QUIT3MSG5] = M_GetText("You'll be back to play soon, though...\n......right?\n\n(Press 'Y' to quit)");
-	quitmsg[QUIT3MSG6] = M_GetText("Aww, is Egg Rock Zone too\ndifficult for you?\n\n(Press 'Y' to quit)");
+	quitmsg[QUIT3MSG] = M_GetText("Are you really going to give up?\nWe certainly would never give you up.\n\n("PRESS_Y_MESSAGE" to quit)");
+	quitmsg[QUIT3MSG1] = M_GetText("Come on, just ONE more netgame!\n\n("PRESS_Y_MESSAGE" to quit)");
+	quitmsg[QUIT3MSG3] = M_GetText("Why don't you go back and try\njumping on that house to\nsee what happens?\n\n("PRESS_Y_MESSAGE" to quit)");
+	quitmsg[QUIT3MSG5] = M_GetText("You'll be back to play soon, though...\n......right?\n\n("PRESS_Y_MESSAGE" to quit)");
+	quitmsg[QUIT3MSG6] = M_GetText("Aww, is Egg Rock Zone too\ndifficult for you?\n\n("PRESS_Y_MESSAGE" to quit)");
+
+#ifdef TOUCHINPUTS
+	quitmsg[QUITMSG] = M_GetText("Eggman's tied explosives\nto your girlfriend, and\nwill activate them if\nyou tap the 'Confirm' button!\nTap the 'Back' button\nto save her!\n\n("PRESS_Y_MESSAGE" to quit)");
+	quitmsg[QUITMSG4] = M_GetText("You're trying to say you\nlike Sonic Dash better than\nthis, right?\n\n("PRESS_Y_MESSAGE" to quit)");
+	quitmsg[QUITMSG6] = M_GetText("You'd rather chat than play?\n\n("PRESS_Y_MESSAGE" to quit)");
+	quitmsg[QUIT2MSG2] = M_GetText("Aw c'mon, just bop a few more robots!\n\n("PRESS_Y_MESSAGE" to quit)");
+	quitmsg[QUIT2MSG6] = M_GetText("Tap the 'Back' button, Sonic!\nThe 'Back' button!\n\n("PRESS_Y_MESSAGE" to quit)");
+	quitmsg[QUIT3MSG2] = M_GetText("Tap 'Back' to unlock\nthe Ultimate Cheat!\n\n("PRESS_Y_MESSAGE" to quit)");
+	quitmsg[QUIT3MSG4] = M_GetText("Every time you tap 'Confirm', an\nSRB2 Developer cries...\n\n("PRESS_Y_MESSAGE" to quit)");
+#else
+	quitmsg[QUITMSG] = M_GetText("Eggman's tied explosives\nto your girlfriend, and\nwill activate them if\nyou press the 'Y' key!\nPress 'N' to save her!\n\n("PRESS_Y_MESSAGE" to quit)");
+	quitmsg[QUITMSG4] = M_GetText("You're trying to say you\nlike Sonic 2K6 better than\nthis, right?\n\n("PRESS_Y_MESSAGE" to quit)");
+	quitmsg[QUITMSG6] = M_GetText("You'd rather work than play?\n\n("PRESS_Y_MESSAGE" to quit)");
+	quitmsg[QUIT2MSG2] = M_GetText("Aw c'mon, just bop\na few more robots!\n\n("PRESS_Y_MESSAGE" to quit)");
+	quitmsg[QUIT2MSG6] = M_GetText("Hit the 'N' key, Sonic!\nThe 'N' key!\n\n("PRESS_Y_MESSAGE" to quit)");
+	quitmsg[QUIT3MSG2] = M_GetText("Press 'N' to unlock\nthe Ultimate Cheat!\n\n("PRESS_Y_MESSAGE" to quit)");
+	quitmsg[QUIT3MSG4] = M_GetText("Every time you press 'Y', an\nSRB2 Developer cries...\n\n("PRESS_Y_MESSAGE" to quit)");
+#endif
 
 	/*
 	Well the menu sucks for forcing us to have an item set
@@ -6825,7 +6856,7 @@ static void M_HandleAddons(INT32 choice)
 							}
 							break;
 						case EXT_TXT:
-							M_StartMessage(va("%c%s\x80\nThis file may not be a console script.\nAttempt to run anyways? \n\n(Press 'Y' to confirm)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), dirmenu[dir_on[menudepthleft]]+DIR_STRING),M_AddonExec,MM_YESNO);
+							M_StartMessage(va("%c%s\x80\nThis file may not be a console script.\nAttempt to run anyways? \n\n("PRESS_Y_MESSAGE" to confirm)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), dirmenu[dir_on[menudepthleft]]+DIR_STRING),M_AddonExec,MM_YESNO);
 							break;
 						case EXT_CFG:
 							M_AddonExec(KEY_ENTER);
@@ -7011,7 +7042,7 @@ static void M_RetryResponse(INT32 ch)
 static void M_Retry(INT32 choice)
 {
 	(void)choice;
-	M_StartMessage(M_GetText("Retry this act from the last starpost?\n\n(Press 'Y' to confirm)\n"),M_RetryResponse,MM_YESNO);
+	M_StartMessage(M_GetText("Retry this act from the last starpost?\n\n("PRESS_Y_MESSAGE" to confirm)\n"),M_RetryResponse,MM_YESNO);
 }
 
 static void M_SelectableClearMenus(INT32 choice)
@@ -7067,7 +7098,7 @@ static void M_DestroyRobots(INT32 choice)
 {
 	(void)choice;
 
-	M_StartMessage(M_GetText("Do you want to destroy all\nrobots in the current level?\n\n(Press 'Y' to confirm)\n"),M_DestroyRobotsResponse,MM_YESNO);
+	M_StartMessage(M_GetText("Do you want to destroy all\nrobots in the current level?\n\n("PRESS_Y_MESSAGE" to confirm)\n"),M_DestroyRobotsResponse,MM_YESNO);
 }
 
 static void M_LevelSelectWarp(INT32 choice)
@@ -8231,7 +8262,7 @@ static void M_StartTutorial(INT32 choice)
 
 	if (choice != INT32_MAX && G_GetControlScheme(gamecontrol, gcl_tutorial_check, num_gcl_tutorial_check) != gcs_fps)
 	{
-		M_StartMessage("Do you want to try the \202recommended \202movement controls\x80?\n\nWe will set them just for this tutorial.\n\nPress 'Y' or 'Enter' to confirm\nPress 'N' or any key to keep \nyour current controls.\n",M_TutorialControlResponse,MM_YESNO);
+		M_StartMessage("Do you want to try the \202recommended \202movement controls\x80?\n\nWe will set them just for this tutorial.\n\n"PRESS_Y_MESSAGE" or 'Enter' to confirm\nPress 'N' or any key to keep \nyour current controls.\n",M_TutorialControlResponse,MM_YESNO);
 		return;
 	}
 	else if (choice != INT32_MAX)
@@ -8823,7 +8854,7 @@ static void M_HandleLoadSave(INT32 choice)
 			{
 				loadgamescroll = 0;
 				S_StartSound(NULL, sfx_skid);
-				M_StartMessage("Are you sure you want to play\n\x85ultimate mode\x80? It isn't remotely fair,\nand you don't even get an emblem for it.\n\n(Press 'Y' to confirm)\n",M_SaveGameUltimateResponse,MM_YESNO);
+				M_StartMessage("Are you sure you want to play\n\x85ultimate mode\x80? It isn't remotely fair,\nand you don't even get an emblem for it.\n\n("PRESS_Y_MESSAGE" to confirm)\n",M_SaveGameUltimateResponse,MM_YESNO);
 			}
 			else if (saveSlotSelected != NOSAVESLOT && savegameinfo[saveSlotSelected-1].lives == -42 && !(!modifiedgame || savemoddata))
 			{
@@ -8855,7 +8886,7 @@ static void M_HandleLoadSave(INT32 choice)
 			{
 				loadgamescroll = 0;
 				S_StartSound(NULL, sfx_skid);
-				M_StartMessage(va("Are you sure you want to delete\nsave file %d?\n\n(Press 'Y' to confirm)\n", saveSlotSelected),M_SaveGameDeleteResponse,MM_YESNO);
+				M_StartMessage(va("Are you sure you want to delete\nsave file %d?\n\n("PRESS_Y_MESSAGE" to confirm)\n", saveSlotSelected),M_SaveGameDeleteResponse,MM_YESNO);
 			}
 			else if (!loadgameoffset)
 			{
@@ -8913,7 +8944,7 @@ static void M_LoadGame(INT32 choice)
 #if !defined(__ANDROID__)
 	if (tutorialmap && cv_tutorialprompt.value)
 	{
-		M_StartMessage("Do you want to \x82play a brief Tutorial\x80?\n\nWe highly recommend this because \nthe controls are slightly different \nfrom other games.\n\nPress 'Y' or 'Enter' to go\nPress 'N' or any key to skip\n",
+		M_StartMessage("Do you want to \x82play a brief Tutorial\x80?\n\nWe highly recommend this because \nthe controls are slightly different \nfrom other games.\n\n"PRESS_Y_MESSAGE" or 'Enter' to go\nPress 'N' or any key to skip\n",
 			M_FirstTimeResponse, MM_YESNO);
 		return;
 	}
@@ -9802,8 +9833,10 @@ void M_DrawTimeAttackMenu(void)
 				V_DrawCharacter(216 + 80 + 2 + (skullAnimCounter/5), y,
 						'\x1D' | V_YELLOWMAP, false);
 			}
+#ifndef TOUCHINPUTS
 			// Draw press ESC to exit string on main record attack menu
 			V_DrawString(104-72, 180, V_TRANSLUCENT, M_GetText("Press ESC to exit"));
+#endif
 		}
 
 		em = M_GetLevelEmblems(cv_nextmap.value);
@@ -10062,8 +10095,10 @@ void M_DrawNightsAttackMenu(void)
 				V_DrawCharacter(208 + 80 + 2 + (skullAnimCounter/5), y,
 						'\x1D' | V_YELLOWMAP, false);
 			}
+#ifndef TOUCHINPUTS
 			// Draw press ESC to exit string on main record attack menu
 			V_DrawString(104-72, 180, V_TRANSLUCENT, M_GetText("Press ESC to exit"));
+#endif
 		}
 
 		// Super Sonic
@@ -10357,11 +10392,11 @@ static void M_SetGuestReplay(INT32 choice)
 		break;
 	case 4: // guest
 	default:
-		M_StartMessage(M_GetText("Are you sure you want to\ndelete the guest replay data?\n\n(Press 'Y' to confirm)\n"),M_EraseGuest,MM_YESNO);
+		M_StartMessage(M_GetText("Are you sure you want to\ndelete the guest replay data?\n\n("PRESS_Y_MESSAGE" to confirm)\n"),M_EraseGuest,MM_YESNO);
 		return;
 	}
 	if (FIL_FileExists(va("%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s-guest.lmp", srb2home, timeattackfolder, G_BuildMapName(cv_nextmap.value))))
-		M_StartMessage(M_GetText("Are you sure you want to\noverwrite the guest replay data?\n\n(Press 'Y' to confirm)\n"),which,MM_YESNO);
+		M_StartMessage(M_GetText("Are you sure you want to\noverwrite the guest replay data?\n\n("PRESS_Y_MESSAGE" to confirm)\n"),which,MM_YESNO);
 	else
 		which(0);
 }
@@ -10428,7 +10463,7 @@ static void M_EndGame(INT32 choice)
 	if (!Playing())
 		return;
 
-	M_StartMessage(M_GetText("Are you sure you want to end the game?\n\n(Press 'Y' to confirm)\n"), M_ExitGameResponse, MM_YESNO);
+	M_StartMessage(M_GetText("Are you sure you want to end the game?\n\n("PRESS_Y_MESSAGE" to confirm)\n"), M_ExitGameResponse, MM_YESNO);
 }
 
 //===========================================================================
@@ -11032,6 +11067,41 @@ static void M_ConnectIP(INT32 choice)
 		I_FinishUpdate(); // page flip or blit buffer
 }
 
+// Lactozilla: IPv4 textbox callback
+static void M_IPv4TextboxInput(INT32 choice)
+{
+	// Rudimentary number and period enforcing - also allows letters so hostnames can be used instead
+	size_t l = strlen(setupm_ip);
+	if ((choice >= '-' && choice <= ':') || (choice >= 'A' && choice <= 'Z') || (choice >= 'a' && choice <= 'z'))
+	{
+		S_StartSound(NULL,sfx_menu1); // Tails
+		setupm_ip[l] = (char)choice;
+		setupm_ip[l+1] = 0;
+	}
+	else if (choice >= 199 && choice <= 211 && choice != 202 && choice != 206) //numpad too!
+	{
+		char keypad_translation[] = {'7','8','9','-','4','5','6','+','1','2','3','0','.'};
+		if ((choice - 199) >= 0) // Redundant check to suppress compiler warning
+			choice = keypad_translation[choice - 199];
+		S_StartSound(NULL,sfx_menu1); // Tails
+		setupm_ip[l] = (char)choice;
+		setupm_ip[l+1] = 0;
+	}
+}
+
+#ifdef TOUCHINPUTS
+static void M_IPv4TextboxScreenKeyboardInput(char *text, size_t length)
+{
+	size_t i;
+	for (i = 0; i < length; i++)
+	{
+		if (strlen(setupm_ip) >= (28-1))
+			break;
+		M_IPv4TextboxInput(text[i]);
+	}
+}
+#endif
+
 // Tails 11-19-2002
 static void M_HandleConnectIP(INT32 choice)
 {
@@ -11052,7 +11122,15 @@ static void M_HandleConnectIP(INT32 choice)
 
 		case KEY_ENTER:
 			S_StartSound(NULL,sfx_menu1); // Tails
-			M_ConnectIP(1);
+#ifdef TOUCHINPUTS
+			if (!I_KeyboardOnScreen())
+			{
+				I_RaiseScreenKeyboard(NULL, 0);
+				I_ScreenKeyboardCallback(M_IPv4TextboxScreenKeyboardInput);
+			}
+			else if (I_KeyboardOnScreen())
+#endif
+				M_ConnectIP(1);
 			break;
 
 		case KEY_ESCAPE:
@@ -11078,6 +11156,10 @@ static void M_HandleConnectIP(INT32 choice)
 
 			/* FALLTHRU */
 		default:
+#ifdef TOUCHINPUTS
+			if (I_KeyboardOnScreen())
+				return;
+#endif
 			l = strlen(setupm_ip);
 
 			if ( ctrldown ) {
@@ -11142,21 +11224,7 @@ static void M_HandleConnectIP(INT32 choice)
 			if (l >= 28-1)
 				break;
 
-			// Rudimentary number and period enforcing - also allows letters so hostnames can be used instead
-			if ((choice >= '-' && choice <= ':') || (choice >= 'A' && choice <= 'Z') || (choice >= 'a' && choice <= 'z'))
-			{
-				S_StartSound(NULL,sfx_menu1); // Tails
-				setupm_ip[l] = (char)choice;
-				setupm_ip[l+1] = 0;
-			}
-			else if (choice >= 199 && choice <= 211 && choice != 202 && choice != 206) //numpad too!
-			{
-				char keypad_translation[] = {'7','8','9','-','4','5','6','+','1','2','3','0','.'};
-				choice = keypad_translation[choice - 199];
-				S_StartSound(NULL,sfx_menu1); // Tails
-				setupm_ip[l] = (char)choice;
-				setupm_ip[l+1] = 0;
-			}
+			M_IPv4TextboxInput(choice);
 
 			break;
 	}
@@ -11629,7 +11697,7 @@ static void M_EraseDataResponse(INT32 ch)
 
 static void M_EraseData(INT32 choice)
 {
-	const char *eschoice, *esstr = M_GetText("Are you sure you want to erase\n%s?\n\n(Press 'Y' to confirm)\n");
+	const char *eschoice, *esstr = M_GetText("Are you sure you want to erase\n%s?\n\n("PRESS_Y_MESSAGE" to confirm)\n");
 
 	erasecontext = (UINT8)choice;
 
@@ -12043,7 +12111,7 @@ static void M_ChangecontrolResponse(event_t *ev)
 {
 	INT32        control;
 	INT32        found;
-	INT32        ch = ev->data1;
+	INT32        ch = ev->key;
 
 	// ESCAPE cancels; dummy out PAUSE
 	if (ch != KEY_ESCAPE && ch != KEY_PAUSE)
@@ -12062,7 +12130,7 @@ static void M_ChangecontrolResponse(event_t *ev)
 			// keypad arrows are converted for the menu in cursor arrows
 			// so use the event instead of ch
 			case ev_keydown:
-				ch = ev->data1;
+				ch = ev->key;
 			break;
 
 			default:
@@ -12377,7 +12445,11 @@ static void M_DrawVideoMode(void)
 		M_CentreText(OP_VideoModeDef.y + 150,
 			va("Wait %d second%s", testtime, (testtime > 1) ? "s" : ""));
 		M_CentreText(OP_VideoModeDef.y + 158,
+#ifdef TOUCHINPUTS
+			"or tap the 'Back' button to return");
+#else
 			"or press ESC to return");
+#endif
 
 	}
 	else
