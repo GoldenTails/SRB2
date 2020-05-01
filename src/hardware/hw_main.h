@@ -13,6 +13,8 @@
 #ifndef __HWR_MAIN_H__
 #define __HWR_MAIN_H__
 
+#define ALAM_LIGHTING
+
 #include "hw_data.h"
 #include "hw_defs.h"
 

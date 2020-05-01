@@ -397,6 +397,8 @@ void HWR_DrawCroppedPatch(patch_t *gpatch, fixed_t x, fixed_t y, fixed_t pscale,
 //  0--1
 	float dupx, dupy, fscale, fwidth, fheight;
 
+	UINT8 perplayershuffle = 0;
+
 	if (alphalevel >= 10 && alphalevel < 13)
 		return;
 
@@ -425,7 +427,73 @@ void HWR_DrawCroppedPatch(patch_t *gpatch, fixed_t x, fixed_t y, fixed_t pscale,
 	dupx = dupy = (dupx < dupy ? dupx : dupy);
 	fscale = FIXED_TO_FLOAT(pscale);
 
-	// fuck it, no GL support for croppedpatch v_perplayer right now. it's not like it's accessible to Lua or anything, and we only use it for menus...
+	if (splitscreen && (option & V_PERPLAYER))
+	{
+		float adjusty = ((option & V_NOSCALESTART) ? vid.height : BASEVIDHEIGHT)/2.0f;
+		fscale /= 2;
+		cy /= 2;
+#ifdef QUADS
+		if (splitscreen > 1) // 3 or 4 players
+		{
+			float adjustx = ((option & V_NOSCALESTART) ? vid.width : BASEVIDWIDTH)/2.0f;
+			//fscalew /= 2;
+			cx /= 2;
+			if (stplyr == &players[displayplayer])
+			{
+				if (!(option & (V_SNAPTOTOP|V_SNAPTOBOTTOM)))
+					perplayershuffle |= 1;
+				if (!(option & (V_SNAPTOLEFT|V_SNAPTORIGHT)))
+					perplayershuffle |= 4;
+				option &= ~V_SNAPTOBOTTOM|V_SNAPTORIGHT;
+			}
+			else if (stplyr == &players[secondarydisplayplayer])
+			{
+				if (!(option & (V_SNAPTOTOP|V_SNAPTOBOTTOM)))
+					perplayershuffle |= 1;
+				if (!(option & (V_SNAPTOLEFT|V_SNAPTORIGHT)))
+					perplayershuffle |= 8;
+				cx += adjustx;
+				option &= ~V_SNAPTOBOTTOM|V_SNAPTOLEFT;
+			}
+			else if (stplyr == &players[thirddisplayplayer])
+			{
+				if (!(option & (V_SNAPTOTOP|V_SNAPTOBOTTOM)))
+					perplayershuffle |= 2;
+				if (!(option & (V_SNAPTOLEFT|V_SNAPTORIGHT)))
+					perplayershuffle |= 4;
+				cy += adjusty;
+				option &= ~V_SNAPTOTOP|V_SNAPTORIGHT;
+			}
+			else if (stplyr == &players[fourthdisplayplayer])
+			{
+				if (!(option & (V_SNAPTOTOP|V_SNAPTOBOTTOM)))
+					perplayershuffle |= 2;
+				if (!(option & (V_SNAPTOLEFT|V_SNAPTORIGHT)))
+					perplayershuffle |= 8;
+				cx += adjustx;
+				cy += adjusty;
+				option &= ~V_SNAPTOTOP|V_SNAPTOLEFT;
+			}
+		}
+		else
+#endif
+		// 2 players
+		{
+			if (stplyr == &players[displayplayer])
+			{
+				if (!(option & (V_SNAPTOTOP|V_SNAPTOBOTTOM)))
+					perplayershuffle = 1;
+				option &= ~V_SNAPTOBOTTOM;
+			}
+			else //if (stplyr == &players[secondarydisplayplayer])
+			{
+				if (!(option & (V_SNAPTOTOP|V_SNAPTOBOTTOM)))
+					perplayershuffle = 2;
+				cy += adjusty;
+				option &= ~V_SNAPTOTOP;
+			}
+		}
+	}
 
 	cy -= (float)(gpatch->topoffset) * fscale;
 	cx -= (float)(gpatch->leftoffset) * fscale;
@@ -456,6 +524,10 @@ void HWR_DrawCroppedPatch(patch_t *gpatch, fixed_t x, fixed_t y, fixed_t pscale,
 					cx += ((float)vid.width - ((float)BASEVIDWIDTH * dupx));
 				else if (!(option & V_SNAPTOLEFT))
 					cx += ((float)vid.width - ((float)BASEVIDWIDTH * dupx))/2;
+				if (perplayershuffle & 4)
+					cx -= ((float)vid.width - ((float)BASEVIDWIDTH * dupx))/4;
+				else if (perplayershuffle & 8)
+					cx += ((float)vid.width - ((float)BASEVIDWIDTH * dupx))/4;
 			}
 			if (fabsf((float)vid.height - (float)BASEVIDHEIGHT * dupy) > 1.0E-36f)
 			{
@@ -463,6 +535,10 @@ void HWR_DrawCroppedPatch(patch_t *gpatch, fixed_t x, fixed_t y, fixed_t pscale,
 					cy += ((float)vid.height - ((float)BASEVIDHEIGHT * dupy));
 				else if (!(option & V_SNAPTOTOP))
 					cy += ((float)vid.height - ((float)BASEVIDHEIGHT * dupy))/2;
+				if (perplayershuffle & 1)
+					cy -= ((float)vid.height - ((float)BASEVIDHEIGHT * dupy))/4;
+				else if (perplayershuffle & 2)
+					cy += ((float)vid.height - ((float)BASEVIDHEIGHT * dupy))/4;
 			}
 		}
 	}
