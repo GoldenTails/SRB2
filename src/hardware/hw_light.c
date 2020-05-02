@@ -1093,7 +1093,7 @@ void HWR_DrawCoronas(void)
 			continue;
 		}
 
-		transform(&cx,&cy,&cz);
+		//transform(&cx,&cy,&cz);
 
 		// more realistique corona !
 		if (cz >= 255*8+250)
