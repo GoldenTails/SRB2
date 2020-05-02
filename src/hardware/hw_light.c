@@ -1078,6 +1078,9 @@ void HWR_DrawCoronas(void)
 		float           cx = LIGHT_POS(j).x;
 		float           cy = LIGHT_POS(j).y;
 		float           cz = LIGHT_POS(j).z; // gravity center
+		float           tcx = LIGHT_POS(j).x;
+		float           tcy = LIGHT_POS(j).y;
+		float           tcz = LIGHT_POS(j).z; // gravity center
 		float           size;
 		light_t         *p_lspr = dynlights->p_lspr[j];
 
@@ -1093,7 +1096,7 @@ void HWR_DrawCoronas(void)
 			continue;
 		}
 
-		//transform(&cx,&cy,&cz);
+		transform(&tcx,&tcy,&tcz);
 
 		// more realistique corona !
 		if (cz >= 255*8+250)
