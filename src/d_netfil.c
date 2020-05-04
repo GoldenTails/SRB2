@@ -977,7 +977,7 @@ void Got_Filetxpak(void)
 
 	if (!(strcmp(filename, "srb2.pk3")
 		&& strcmp(filename, "zones.pk3")
-		&& strcmp(filename, "player.dta")
+		&& strcmp(filename, "player_next.dta")
 		&& strcmp(filename, "patch_next.pk3")
 		&& strcmp(filename, "music.dta")
 		))
