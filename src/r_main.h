@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2019 by Sonic Team Junior.
+// Copyright (C) 1999-2020 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -26,10 +26,10 @@ extern INT32 centerx, centery;
 
 extern fixed_t centerxfrac, centeryfrac;
 extern fixed_t projection, projectiony;
-extern fixed_t fovtan;
+extern fixed_t fovtan; // field of view
 
 // WARNING: a should be unsigned but to add with 2048, it isn't!
-#define AIMINGTODY(a) FixedDiv((FINETANGENT((2048+(((INT32)a)>>ANGLETOFINESHIFT)) & FINEMASK)*160), fovtan)
+#define AIMINGTODY(a) ((FINETANGENT((2048+(((INT32)a)>>ANGLETOFINESHIFT)) & FINEMASK)*160)/fovtan)
 
 extern size_t validcount, linecount, loopcount, framecount;
 
@@ -48,6 +48,8 @@ extern size_t validcount, linecount, loopcount, framecount;
 #define LIGHTSCALESHIFT 12
 #define MAXLIGHTZ 128
 #define LIGHTZSHIFT 20
+
+#define LIGHTRESOLUTIONFIX (640*fovtan/vid.width)
 
 extern lighttable_t *scalelight[LIGHTLEVELS][MAXLIGHTSCALE];
 extern lighttable_t *scalelightfixed[MAXLIGHTSCALE];
@@ -68,7 +70,7 @@ fixed_t R_PointToDist2(fixed_t px2, fixed_t py2, fixed_t px1, fixed_t py1);
 
 fixed_t R_ScaleFromGlobalAngle(angle_t visangle);
 subsector_t *R_PointInSubsector(fixed_t x, fixed_t y);
-subsector_t *R_IsPointInSubsector(fixed_t x, fixed_t y);
+subsector_t *R_PointInSubsectorOrNull(fixed_t x, fixed_t y);
 
 boolean R_DoCulling(line_t *cullheight, line_t *viewcullheight, fixed_t vz, fixed_t bottomh, fixed_t toph);
 
@@ -94,6 +96,9 @@ void R_Init(void);
 void R_InitHardwareMode(void);
 #endif
 void R_ReloadHUDGraphics(void);
+
+void R_CheckViewMorph(void);
+void R_ApplyViewMorph(void);
 
 // just sets setsizeneeded true
 extern boolean setsizeneeded;
