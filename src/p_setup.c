@@ -3780,6 +3780,9 @@ boolean P_LoadLevel(boolean fromnetsave)
 	if (rendermode == render_none)
 		return true;
 
+	// Reset translation colormaps
+	R_InitTranslationColormaps();
+
 	// Title card!
 	G_StartTitleCard();
 

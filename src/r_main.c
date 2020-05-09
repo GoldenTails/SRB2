@@ -993,6 +993,9 @@ void R_Init(void)
 	//I_OutputMsg("\nR_InitTranslationTables\n");
 	R_InitTranslationTables();
 
+	//I_OutputMsg("\nR_InitTranslationColormaps\n");
+	R_InitTranslationColormaps();
+
 	R_InitDrawNodes();
 
 	framecount = 0;
