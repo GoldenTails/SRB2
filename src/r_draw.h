@@ -101,17 +101,38 @@ extern lumpnum_t viewborderlump[8];
 // ------------------------------------------------
 
 #define GTC_CACHE 1
+#define NUMCOLORMAPFREESLOTS NUMMOBJFREESLOTS
+#define NUM_PALETTE_ENTRIES 256
 
-#define TC_DEFAULT    -1
-#define TC_BOSS       -2
-#define TC_METALSONIC -3 // For Metal Sonic battle
-#define TC_ALLWHITE   -4 // For Cy-Brak-demon
-#define TC_RAINBOW    -5 // For single colour
-#define TC_BLINK      -6 // For item blinking, according to kart
-#define TC_DASHMODE   -7 // For Metal Sonic's dashmode
+typedef enum translation_colormap
+{
+	TC_DEFAULT = MAXSKINS,
+	TC_BOSS,     
+	TC_METALSONIC, // For Metal Sonic battle
+	TC_ALLWHITE,   // For Cy-Brak-demon
+	TC_RAINBOW,    // For single colour
+	TC_BLINK,      // For item blinking, according to kart
+	TC_DASHMODE,   // For Metal Sonic's dashmode
+	TC_CUSTOM,     // For a custom colormap
+	// Add new colormaps above this line.
+	// Don't forget to update TRANS_COLORMAP_ENUMS in dehacked.c too!
+
+	TC_FIRSTFREESLOT, // Update with hardcoded colormap count
+	TC_LASTFREESLOT = TC_FIRSTFREESLOT + NUMCOLORMAPFREESLOTS - 1,
+	MAXCOLORMAP
+} colormapnum_t;
+
+typedef struct
+{
+	UINT8 palettemap[NUM_PALETTE_ENTRIES];
+	boolean useskincolor[NUM_PALETTE_ENTRIES];
+} transcolormap_t;
+
+extern transcolormap_t transcolormaps[MAXCOLORMAP - MAXSKINS];
 
 // Initialize color translation tables, for player rendering etc.
 void R_InitTranslationTables(void);
+void R_InitTranslationColormaps(void);
 UINT8* R_GetTranslationColormap(INT32 skinnum, skincolornum_t color, UINT8 flags);
 void R_FlushTranslationColormapCache(void);
 UINT16 R_GetColorByName(const char *name);

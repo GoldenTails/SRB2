@@ -130,8 +130,8 @@ UINT32 nflatxshift, nflatyshift, nflatshiftup, nflatmask;
 #define RAINBOW_TT_CACHE_INDEX (MAXSKINS + 4)
 #define BLINK_TT_CACHE_INDEX (MAXSKINS + 5)
 #define DASHMODE_TT_CACHE_INDEX (MAXSKINS + 6)
+#define CUSTOM_TT_CACHE_INDEX (MAXSKINS + 7)
 #define DEFAULT_STARTTRANSCOLOR 96
-#define NUM_PALETTE_ENTRIES 256
 
 static UINT8** translationtablecache[MAXSKINS + 7] = {NULL};
 UINT8 skincolor_modified[MAXSKINCOLORS];
@@ -149,7 +149,7 @@ void R_InitTranslationTables(void)
 	// optimised code (in other words, transtables pointer low word is 0)
 	transtables = Z_MallocAlign(NUMTRANSTABLES*0x10000, PU_STATIC,
 		NULL, 16);
-
+	
 	W_ReadLump(W_GetNumForName("TRANS10"), transtables);
 	W_ReadLump(W_GetNumForName("TRANS20"), transtables+0x10000);
 	W_ReadLump(W_GetNumForName("TRANS30"), transtables+0x20000);
@@ -159,6 +159,32 @@ void R_InitTranslationTables(void)
 	W_ReadLump(W_GetNumForName("TRANS70"), transtables+0x60000);
 	W_ReadLump(W_GetNumForName("TRANS80"), transtables+0x70000);
 	W_ReadLump(W_GetNumForName("TRANS90"), transtables+0x80000);
+}
+
+/**	\brief The R_InitTranslationColormaps
+
+  load in color translation colormaps
+*/
+
+transcolormap_t transcolormaps[-MAXCOLORMAP];
+
+void R_InitTranslationColormaps(void)
+{
+	printf("%s\n", "Allocating translation colormaps...");
+	transcolormaps = malloc(sizeof(transcolormap_t) * -MAXCOLORMAP);
+	printf("%s\n", "Done allocating translation colormaps.");
+	//transcolormaps = Z_Malloc(-MAXCOLORMAP*NUM_PALETTE_ENTRIES*2, PU_STATIC, NULL);
+
+	// Generate the transcolormaps
+	for (int i = 0; i < NUM_PALETTE_ENTRIES; ++i)
+	{
+		if (i < 112) {
+			transcolormaps[-TC_CUSTOM].palettemap[i] = 0;
+			transcolormaps[-TC_CUSTOM].useskincolor[i] = false;
+		} else {
+			transcolormaps[-TC_CUSTOM].useskincolor[i] = true;
+		}
+	}
 }
 
 
@@ -225,6 +251,53 @@ static void R_RainbowColormap(UINT8 *dest_colormap, UINT16 skincolor)
 	}
 }
 
+//UINT8 custom_colormap[];
+
+static void R_CustomColormap(UINT8 *dest_colormap, UINT8 skincolor)
+{
+	INT32 i;
+	RGBA_t color;
+	UINT8 brightness;
+	INT32 j;
+	UINT8 colorbrightnesses[16];
+	UINT16 brightdif;
+	INT32 temp;
+	UINT8 newcolor;
+
+	// first generate the brightness of all the colours of that skincolour
+	for (i = 0; i < 16; i++)
+	{
+		color = V_GetColor(Color_Index[skincolor-1][i]);
+		SETBRIGHTNESS(colorbrightnesses[i], color.s.red, color.s.green, color.s.blue);
+	}
+
+	// next, for every colour in the palette, choose the transcolor that has the closest brightness
+	for (i = 0; i < NUM_PALETTE_ENTRIES; i++)
+	{
+		newcolor = transcolormaps[-TC_CUSTOM].palettemap[i];
+
+		if (!transcolormaps[-TC_CUSTOM].useskincolor[i])
+		{
+			dest_colormap[i] = newcolor;
+			continue;
+		}
+
+		color = V_GetColor(newcolor);
+
+		SETBRIGHTNESS(brightness, color.s.red, color.s.green, color.s.blue);
+		brightdif = 256;
+		for (j = 0; j < 16; j++)
+		{
+			temp = abs((INT16)brightness - (INT16)colorbrightnesses[j]);
+			if (temp < brightdif)
+			{
+				brightdif = (UINT16)temp;
+				dest_colormap[i] = Color_Index[skincolor-1][j];
+			}
+		}
+	}
+}
+
 #undef SETBRIGHTNESS
 
 static void R_GenerateTranslationColormap(UINT8 *dest_colormap, INT32 skinnum, UINT16 color)
@@ -245,6 +318,15 @@ static void R_GenerateTranslationColormap(UINT8 *dest_colormap, INT32 skinnum, U
 				if (color != SKINCOLOR_NONE)
 				{
 					R_RainbowColormap(dest_colormap, color);
+					return;
+				}
+				break;
+			case TC_CUSTOM:
+				if (color >= MAXTRANSLATIONS)
+					I_Error("Invalid skin color #%hu.", (UINT16)color);
+				if (color != SKINCOLOR_NONE)
+				{
+					R_CustomColormap(dest_colormap, color);
 					return;
 				}
 				break;
@@ -366,7 +448,7 @@ UINT8* R_GetTranslationColormap(INT32 skinnum, skincolornum_t color, UINT8 flags
 	INT32 i;
 
 	// Adjust if we want the default colormap
-	switch (skinnum)
+	/*switch (skinnum)
 	{
 		case TC_DEFAULT:    skintableindex = DEFAULT_TT_CACHE_INDEX; break;
 		case TC_BOSS:       skintableindex = BOSS_TT_CACHE_INDEX; break;
@@ -375,8 +457,14 @@ UINT8* R_GetTranslationColormap(INT32 skinnum, skincolornum_t color, UINT8 flags
 		case TC_RAINBOW:    skintableindex = RAINBOW_TT_CACHE_INDEX; break;
 		case TC_BLINK:      skintableindex = BLINK_TT_CACHE_INDEX; break;
 		case TC_DASHMODE:   skintableindex = DASHMODE_TT_CACHE_INDEX; break;
+		case TC_CUSTOM:     skintableindex = CUSTOM_TT_CACHE_INDEX; break;
 		     default:       skintableindex = skinnum; break;
-	}
+	}*/
+
+	if (skinnum < 0 && skinnum > MAXCOLORMAP)
+		skintableindex = MAXSKINS - skinnum + 1;
+	else
+		skintableindex = skinnum;
 
 	if (flags & GTC_CACHE)
 	{

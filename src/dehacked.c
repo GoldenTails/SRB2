@@ -10077,6 +10077,7 @@ struct {
 	{"TC_RAINBOW",TC_RAINBOW},
 	{"TC_BLINK",TC_BLINK},
 	{"TC_DASHMODE",TC_DASHMODE},
+	{"TC_CUSTOM",TC_CUSTOM},
 
 	// marathonmode flags
 	{"MA_INIT",MA_INIT},
