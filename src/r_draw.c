@@ -170,16 +170,103 @@ transcolormap_t transcolormaps[MAXCOLORMAP - MAXSKINS];
 
 void R_InitTranslationColormaps(void)
 {
+	// Pointers to shorten variable names.
+	transcolormap_t *defaultmap = &transcolormaps[TC_DEFAULT - MAXSKINS];
+	transcolormap_t *bossmap = &transcolormaps[TC_BOSS - MAXSKINS];
+	transcolormap_t *metalsonicmap = &transcolormaps[TC_METALSONIC - MAXSKINS];
+	transcolormap_t *allwhitemap = &transcolormaps[TC_ALLWHITE - MAXSKINS];
+	transcolormap_t *rainbowmap = &transcolormaps[TC_RAINBOW - MAXSKINS];
+	transcolormap_t *blinkmap = &transcolormaps[TC_BLINK - MAXSKINS];
+	transcolormap_t *dashmodemap = &transcolormaps[TC_DASHMODE - MAXSKINS];
+	transcolormap_t *custommap = &transcolormaps[TC_CUSTOM - MAXSKINS];
+
 	// Generate the transcolormaps
-	for (int i = 0; i < NUM_PALETTE_ENTRIES; ++i)
+	for (int i = 0; i < NUM_PALETTE_ENTRIES; i++)
 	{
+		// Fills the colors before processing.
+		// i fills the palette, literal int fills with palette index.
+		defaultmap->palettemap[i] = i; // TC_DEFAULT
+		bossmap->palettemap[i] = i; // TC_BOSS
+		allwhitemap->palettemap[i] = 0; // TC_ALLWHITE
+		metalsonicmap->palettemap[i] = i; // TC_METALSONIC
+		rainbowmap->palettemap[i] = i; // TC_RAINBOW
+		blinkmap->palettemap[i] = 22; // TC_BLINK: Color (71,71,71) translates to 4th last index in the skincolor.
+		dashmodemap->palettemap[i] = i; // TC_DASHMODE
+
+		rainbowmap->useskincolor[i] = true; // TC_RAINBOW
+		blinkmap->useskincolor[i] = true; // TC_BLINK
+
+		// TC_DEFAULT
+		if (i >= 96 && i < 112)
+			defaultmap->useskincolor[i] = true;
+
+		// TC_BOSS
+		if (i < 32 && i >= 16)
+			bossmap->palettemap[i] = 31 - i;
+
+		// TC_RAINBOW
+		if (i == 0 || i == 31)
+			rainbowmap->useskincolor[i] = false;
+
+		// TC_DASHMODE
+		if (i >= 107 && i < 112)
+			dashmodemap->palettemap[i] = i - 64;
+
+		// TC_CUSTOM
 		if (i < 112) {
-			transcolormaps[TC_CUSTOM - MAXSKINS].palettemap[i] = 0;
-			transcolormaps[TC_CUSTOM - MAXSKINS].useskincolor[i] = false;
+			custommap->palettemap[i] = 0;
+			custommap->useskincolor[i] = false;
 		} else {
-			transcolormaps[TC_CUSTOM - MAXSKINS].useskincolor[i] = true;
+			custommap->useskincolor[i] = true;
 		}
 	}
+
+	// TC_METALSONIC
+
+	// was too lazy to assimilate the for loops into the above one
+
+	for (int i = 0; i < 6; i++)
+		metalsonicmap->palettemap[Color_Index[SKINCOLOR_BLUE-1][12-i]] = Color_Index[SKINCOLOR_BLUE-1][i];
+
+	metalsonicmap->palettemap[159] = metalsonicmap->palettemap[253] = metalsonicmap->palettemap[254] = 0;
+
+	for (int i = 0; i < 16; i++)
+		metalsonicmap->palettemap[96+i] = metalsonicmap->palettemap[Color_Index[SKINCOLOR_COBALT-1][i]];
+
+	// TC_DASHMODE
+
+	// This is a long one, because MotorRoach basically hand-picked the indices
+	// Imagine what this would look like if I didn't use pointers to shorten the variable names...
+
+	// greens -> ketchups
+	dashmodemap->palettemap[96] = dashmodemap->palettemap[97] = 48;
+	dashmodemap->palettemap[98] = 49;
+	dashmodemap->palettemap[99] = 51;
+	dashmodemap->palettemap[100] = 52;
+	dashmodemap->palettemap[101] = dashmodemap->palettemap[102] = 54;
+	dashmodemap->palettemap[103] = 34;
+	dashmodemap->palettemap[104] = 37;
+	dashmodemap->palettemap[105] = 39;
+	dashmodemap->palettemap[106] = 41;
+
+	// reds -> steel blues
+	dashmodemap->palettemap[32] = 146;
+	dashmodemap->palettemap[33] = 147;
+	dashmodemap->palettemap[34] = dashmodemap->palettemap[35] = 170;
+	dashmodemap->palettemap[36] = 171;
+	dashmodemap->palettemap[37] = dashmodemap->palettemap[38] = 172;
+	dashmodemap->palettemap[39] = dashmodemap->palettemap[40] = dashmodemap->palettemap[41] = 173;
+	dashmodemap->palettemap[42] = dashmodemap->palettemap[43] = dashmodemap->palettemap[44] = 174;
+	dashmodemap->palettemap[45] = dashmodemap->palettemap[46] = dashmodemap->palettemap[47] = 175;
+	dashmodemap->palettemap[71] = 139;
+
+	// steel blues -> oranges
+	dashmodemap->palettemap[170] = 52;
+	dashmodemap->palettemap[171] = 54;
+	dashmodemap->palettemap[172] = 56;
+	dashmodemap->palettemap[173] = 42;
+	dashmodemap->palettemap[174] = 45;
+	dashmodemap->palettemap[175] = 47;
 }
 
 
@@ -248,7 +335,7 @@ static void R_RainbowColormap(UINT8 *dest_colormap, UINT16 skincolor)
 
 //UINT8 custom_colormap[];
 
-static void R_CustomColormap(UINT8 *dest_colormap, UINT8 skincolor)
+static void R_CustomColormap(UINT8 *dest_colormap, INT32 skinnum, UINT8 skincolor)
 {
 	INT32 i;
 	RGBA_t color;
@@ -269,9 +356,9 @@ static void R_CustomColormap(UINT8 *dest_colormap, UINT8 skincolor)
 	// next, for every colour in the palette, choose the transcolor that has the closest brightness
 	for (i = 0; i < NUM_PALETTE_ENTRIES; i++)
 	{
-		newcolor = transcolormaps[TC_CUSTOM - MAXSKINS].palettemap[i];
+		newcolor = transcolormaps[skinnum - MAXSKINS].palettemap[i];
 
-		if (!transcolormaps[TC_CUSTOM - MAXSKINS].useskincolor[i])
+		if (!transcolormaps[skinnum - MAXSKINS].useskincolor[i])
 		{
 			dest_colormap[i] = newcolor;
 			continue;
@@ -302,7 +389,8 @@ static void R_GenerateTranslationColormap(UINT8 *dest_colormap, INT32 skinnum, U
 	// Handle a couple of simple special cases
 	if (skinnum > TC_DEFAULT)
 	{
-		switch (skinnum)
+		R_CustomColormap(dest_colormap, skinnum, color);
+		/*switch (skinnum)
 		{
 			case TC_ALLWHITE:
 				memset(dest_colormap, 0, NUM_PALETTE_ENTRIES * sizeof(UINT8));
@@ -316,12 +404,13 @@ static void R_GenerateTranslationColormap(UINT8 *dest_colormap, INT32 skinnum, U
 					return;
 				}
 				break;
+			case TC_BOSS:
 			case TC_CUSTOM:
 				if (color >= MAXTRANSLATIONS)
 					I_Error("Invalid skin color #%hu.", (UINT16)color);
 				if (color != SKINCOLOR_NONE)
 				{
-					R_CustomColormap(dest_colormap, color);
+					R_CustomColormap(dest_colormap, color, skinnum);
 					return;
 				}
 				break;
@@ -390,7 +479,7 @@ static void R_GenerateTranslationColormap(UINT8 *dest_colormap, INT32 skinnum, U
 			dest_colormap[173] = 42;
 			dest_colormap[174] = 45;
 			dest_colormap[175] = 47;
-		}
+		}*/
 		return;
 	}
 	else if (color == SKINCOLOR_NONE)
