@@ -980,6 +980,8 @@ static int libd_getColormap(lua_State *L)
 
 		if (skinnum < 0)
 			skinnum = -skinnum + MAXSKINS - 1;
+
+		printf("%s\n", (skinnum == TC_CUSTOM) ? "true" : "false");
 	}
 	else // skin name
 	{
