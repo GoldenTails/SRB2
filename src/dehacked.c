@@ -51,11 +51,13 @@
 static char *FREE_STATES[NUMSTATEFREESLOTS];
 static char *FREE_MOBJS[NUMMOBJFREESLOTS];
 static char *FREE_SKINCOLORS[NUMCOLORFREESLOTS];
+static char *FREE_TRANS_COLORMAPS[NUMCOLORMAPFREESLOTS];
 static UINT8 used_spr[(NUMSPRITEFREESLOTS / 8) + 1]; // Bitwise flag for sprite freeslot in use! I would use ceil() here if I could, but it only saves 1 byte of memory anyway.
 #define initfreeslots() {\
 memset(FREE_STATES,0,sizeof(char *) * NUMSTATEFREESLOTS);\
 memset(FREE_MOBJS,0,sizeof(char *) * NUMMOBJFREESLOTS);\
 memset(FREE_SKINCOLORS,0,sizeof(char *) * NUMCOLORFREESLOTS);\
+memset(FREE_TRANS_COLORMAPS,0,sizeof(char *) * NUMCOLORMAPFREESLOTS);\
 memset(used_spr,0,sizeof(UINT8) * ((NUMSPRITEFREESLOTS / 8) + 1));\
 }
 
@@ -71,6 +73,7 @@ static UINT16 get_mus(const char *word, UINT8 dehacked_mode);
 #endif
 static hudnum_t get_huditem(const char *word);
 static menutype_t get_menutype(const char *word);
+//static colormapnum_t get_trans_colormap(const char *word);
 //static INT16 get_gametype(const char *word);
 //static powertype_t get_power(const char *word);
 skincolornum_t get_skincolor(const char *word);
@@ -578,6 +581,29 @@ static void readfreeslots(MYFILE *f)
 						break;
 					}
 			}
+			/*
+			else if (fastcmp(type, "TC"))
+			{
+				for (i = 0; i < NUMCOLORMAPFREESLOTS; i++)
+					if (!FREE_TRANS_COLORMAPS[i]) {
+						FREE_TRANS_COLORMAPS[i] = Z_Malloc(strlen(word)+1, PU_STATIC, NULL);
+						strcpy(FREE_TRANS_COLORMAPS[i],word);
+						break;
+					}
+			}
+			*/
+			/*
+			else if (fastcmp(type, "TC"))
+			{
+				for (i = 0; i < NUMCOLORMAPFREESLOTS; i++)
+					if (!FREE_TRANS_COLORMAPS[i]) {
+						FREE_TRANS_COLORMAPS[i] = Z_Malloc(strlen(word)+1, PU_STATIC, NULL);
+						strcpy(FREE_TRANS_COLORMAPS[i],word);
+						M_AddMenuColor(numskincolors++);
+						break;
+					}
+			}
+			*/
 			else if (fastcmp(type, "SPR2"))
 			{
 				// Search if we already have an SPR2 by that name...
@@ -9315,6 +9341,18 @@ static const char *COLOR_ENUMS[] = {
 	"SUPERTAN5"		// SKINCOLOR_SUPERTAN5,
 };
 
+static const char *const TRANS_COLORMAP_LIST[] = {
+	"DEFAULT",
+	"BOSS",     
+	"METALSONIC", // For Metal Sonic battle
+	"ALLWHITE",   // For Cy-Brak-demon
+	"RAINBOW",    // For single colour
+	"BLINK",      // For item blinking, according to kart
+	"DASHMODE",   // For Metal Sonic's dashmode
+	"CUSTOM"      // For a custom colormap
+	// When updating this, don't forget to update translation_colormap in r_draw.h!
+};
+
 static const char *const POWERS_LIST[] = {
 	"INVULNERABILITY",
 	"SNEAKERS",
@@ -10067,7 +10105,7 @@ struct {
 	{"KR_SYNCH",KR_SYNCH},
 	{"KR_TIMEOUT",KR_TIMEOUT},
 	{"KR_BAN",KR_BAN},
-	{"KR_LEAVE",KR_LEAVE},
+	{"KR_LEAVE",KR_LEAVE},/*
 
 	// translation colormaps
 	{"TC_DEFAULT",TC_DEFAULT},
@@ -10077,7 +10115,7 @@ struct {
 	{"TC_RAINBOW",TC_RAINBOW},
 	{"TC_BLINK",TC_BLINK},
 	{"TC_DASHMODE",TC_DASHMODE},
-	{"TC_CUSTOM",TC_CUSTOM},
+	{"TC_CUSTOM",TC_CUSTOM},*/
 
 	// marathonmode flags
 	{"MA_INIT",MA_INIT},
@@ -10260,6 +10298,26 @@ static menutype_t get_menutype(const char *word)
 	return MN_NONE;
 }
 
+/*static colormapnum_t get_trans_colormap(const char *word)
+{ // Returns the value of MT_ enumerations
+	colormapnum_t i;
+	if (*word >= '0' && *word <= '9')
+		return atoi(word);
+	if (fastncmp("TC_",word,3))
+		word += 3; // take off the TC_
+	for (i = 0; i < NUMCOLORMAPFREESLOTS; i++) {
+		if (!FREE_TRANS_COLORMAPS[i])
+			break;
+		if (fastcmp(word, FREE_TRANS_COLORMAPS[i]))
+			return TC_FIRSTFREESLOT+i;
+	}
+	for (i = 0; i < TC_FIRSTFREESLOT; i++)
+		if (fastcmp(word, TRANS_COLORMAP_LIST[i]+3))
+			return i;
+	deh_warning("Couldn't find mobjtype named 'TC_%s'",word);
+	return TC_DEFAULT;
+}
+*/
 /*static INT16 get_gametype(const char *word)
 { // Returns the value of GT_ enumerations
 	INT16 i;
@@ -10563,6 +10621,7 @@ void DEH_Check(void)
 #if defined(_DEBUG) || defined(PARANOIA)
 	const size_t dehstates = sizeof(STATE_LIST)/sizeof(const char*);
 	const size_t dehmobjs  = sizeof(MOBJTYPE_LIST)/sizeof(const char*);
+	const size_t dehcmaps  = sizeof(TRANS_COLORMAP_LIST)/sizeof(const char*);
 	const size_t dehpowers = sizeof(POWERS_LIST)/sizeof(const char*);
 	const size_t dehcolors = sizeof(COLOR_ENUMS)/sizeof(const char*);
 
@@ -10571,6 +10630,9 @@ void DEH_Check(void)
 
 	if (dehmobjs != MT_FIRSTFREESLOT)
 		I_Error("You forgot to update the Dehacked mobjtype list, you dolt!\n(%d mobj types defined, versus %s in the Dehacked list)\n", MT_FIRSTFREESLOT, sizeu1(dehmobjs));
+
+	if (dehmobjs != TC_FIRSTFREESLOT)
+		I_Error("You forgot to update the Dehacked colormap list, you dolt!\n(%d colormaps defined, versus %s in the Dehacked list)\n", TC_FIRSTFREESLOT, sizeu1(dehcmaps));
 
 	if (dehpowers != NUMPOWERS)
 		I_Error("You forgot to update the Dehacked powers list, you dolt!\n(%d powers defined, versus %s in the Dehacked list)\n", NUMPOWERS, sizeu1(dehpowers));
@@ -10699,6 +10761,20 @@ static inline int lib_freeslot(lua_State *L)
 				}
 			if (i == NUMCOLORFREESLOTS)
 				CONS_Alert(CONS_WARNING, "Ran out of free skincolor slots!\n");
+		else if (fastcmp(type, "TC"))
+		{
+			mobjtype_t i;
+			for (i = 0; i < NUMCOLORMAPFREESLOTS; i++)
+				if (!FREE_TRANS_COLORMAPS[i]) {
+					CONS_Printf("Colormap TC_%s allocated.\n",word);
+					FREE_TRANS_COLORMAPS[i] = Z_Malloc(strlen(word)+1, PU_STATIC, NULL);
+					strcpy(FREE_TRANS_COLORMAPS[i],word);
+					lua_pushinteger(L, -(i + (TC_FIRSTFREESLOT - TC_DEFAULT) + 1));
+					r++;
+					break;
+				}
+			if (i == NUMMOBJFREESLOTS)
+				CONS_Alert(CONS_WARNING, "Ran out of free colormap slots!\n");
 		}
 		else if (fastcmp(type, "SPR2"))
 		{
@@ -10925,6 +11001,24 @@ static inline int lib_getenum(lua_State *L)
 				return 1;
 			}
 		return luaL_error(L, "mobjtype '%s' does not exist.\n", word);
+	}
+	else if (fastncmp("TC_",word,3)) {
+		p = word+3;
+		for (i = 0; i < NUMCOLORMAPFREESLOTS; i++) {
+			if (!FREE_TRANS_COLORMAPS[i])
+				break;
+			if (fastcmp(p, FREE_TRANS_COLORMAPS[i])) {
+				lua_pushinteger(L, -(i + (TC_FIRSTFREESLOT - TC_DEFAULT) + 1));
+				return 1;
+			}
+		}
+
+		for (i = 0; i < TC_FIRSTFREESLOT; i++)
+			if (fastcmp(p, TRANS_COLORMAP_LIST[i])) {
+				lua_pushinteger(L, -(i + 1));
+				return 1;
+			}
+		return luaL_error(L, "colormap '%s' does not exist.\n", word);
 	}
 	else if (fastncmp("SPR_",word,4)) {
 		p = word+4;

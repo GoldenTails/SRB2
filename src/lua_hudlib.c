@@ -974,8 +974,12 @@ static int libd_getColormap(lua_State *L)
 	else if (lua_type(L, 1) == LUA_TNUMBER) // skin number
 	{
 		skinnum = (INT32)luaL_checkinteger(L, 1);
-		if (skinnum <= MAXCOLORMAP || skinnum >= MAXSKINS)
-			return luaL_error(L, "skin number %d is out of range (%d - %d)", skinnum, MAXCOLORMAP+1, MAXSKINS-1);
+
+		if (skinnum <= -(MAXCOLORMAP - MAXSKINS) || skinnum >= MAXSKINS)
+			return luaL_error(L, "skin number %d is out of range (%d - %d)", skinnum, -(MAXCOLORMAP - MAXSKINS)+1, MAXSKINS-1);
+
+		if (skinnum < 0)
+			skinnum = -skinnum + MAXSKINS - 1;
 	}
 	else // skin name
 	{
