@@ -352,6 +352,9 @@ static void R_CustomColormap(UINT8 *dest_colormap, INT32 skinnum, UINT8 skincolo
 		SETBRIGHTNESS(colorbrightnesses[i], color.s.red, color.s.green, color.s.blue);
 	}
 
+	if (!transcolormaps[skinnum - MAXSKINS])
+		I_Error("Invalid skin #%hu.", (UINT16)skinnum);
+
 	// next, for every colour in the palette, choose the transcolor that has the closest brightness
 	for (i = 0; i < NUM_PALETTE_ENTRIES; i++)
 	{
@@ -390,10 +393,13 @@ static void R_GenerateTranslationColormap(UINT8 *dest_colormap, INT32 skinnum, U
 	{
 		// Not even gonna attempt to make this possible via user input
 		// If some brave soul decides they want to attempt this, be my guest.
-		if (skinnum == TC_BLINK)
+		if (skinnum == TC_BLINK) {
 			memset(dest_colormap, Color_Index[color-1][3], NUM_PALETTE_ENTRIES * sizeof(UINT8));
-		else
+		} else {
+			if (color >= MAXTRANSLATIONS)
+				I_Error("Invalid skin color #%hu.", (UINT16)color);
 			R_CustomColormap(dest_colormap, skinnum, color);
+		}
 		return;
 	}
 	else if (color == SKINCOLOR_NONE)

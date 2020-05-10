@@ -9347,7 +9347,7 @@ static const char *COLOR_ENUMS[] = {
 
 static const char *const TRANS_COLORMAP_LIST[] = {
 	"DEFAULT",
-	"BOSS",     
+	"BOSS",
 	"METALSONIC", // For Metal Sonic battle
 	"ALLWHITE",   // For Cy-Brak-demon
 	"RAINBOW",    // For single colour
@@ -10109,17 +10109,7 @@ struct {
 	{"KR_SYNCH",KR_SYNCH},
 	{"KR_TIMEOUT",KR_TIMEOUT},
 	{"KR_BAN",KR_BAN},
-	{"KR_LEAVE",KR_LEAVE},/*
-
-	// translation colormaps
-	{"TC_DEFAULT",TC_DEFAULT},
-	{"TC_BOSS",TC_BOSS},
-	{"TC_METALSONIC",TC_METALSONIC},
-	{"TC_ALLWHITE",TC_ALLWHITE},
-	{"TC_RAINBOW",TC_RAINBOW},
-	{"TC_BLINK",TC_BLINK},
-	{"TC_DASHMODE",TC_DASHMODE},
-	{"TC_CUSTOM",TC_CUSTOM},*/
+	{"KR_LEAVE",KR_LEAVE},
 
 	// marathonmode flags
 	{"MA_INIT",MA_INIT},
@@ -10321,8 +10311,8 @@ static menutype_t get_menutype(const char *word)
 	deh_warning("Couldn't find mobjtype named 'TC_%s'",word);
 	return TC_DEFAULT;
 }
-*/
-/*static INT16 get_gametype(const char *word)
+
+static INT16 get_gametype(const char *word)
 { // Returns the value of GT_ enumerations
 	INT16 i;
 	if (*word >= '0' && *word <= '9')
