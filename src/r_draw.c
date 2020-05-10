@@ -165,23 +165,18 @@ void R_InitTranslationTables(void)
   load in color translation colormaps
 */
 
-transcolormap_t transcolormaps[-MAXCOLORMAP];
+transcolormap_t transcolormaps[MAXCOLORMAP - MAXSKINS];
 
 void R_InitTranslationColormaps(void)
 {
-	printf("%s\n", "Allocating translation colormaps...");
-	transcolormaps = malloc(sizeof(transcolormap_t) * -MAXCOLORMAP);
-	printf("%s\n", "Done allocating translation colormaps.");
-	//transcolormaps = Z_Malloc(-MAXCOLORMAP*NUM_PALETTE_ENTRIES*2, PU_STATIC, NULL);
-
 	// Generate the transcolormaps
 	for (int i = 0; i < NUM_PALETTE_ENTRIES; ++i)
 	{
 		if (i < 112) {
-			transcolormaps[-TC_CUSTOM].palettemap[i] = 0;
-			transcolormaps[-TC_CUSTOM].useskincolor[i] = false;
+			transcolormaps[TC_CUSTOM - MAXSKINS].palettemap[i] = 0;
+			transcolormaps[TC_CUSTOM - MAXSKINS].useskincolor[i] = false;
 		} else {
-			transcolormaps[-TC_CUSTOM].useskincolor[i] = true;
+			transcolormaps[TC_CUSTOM - MAXSKINS].useskincolor[i] = true;
 		}
 	}
 }
@@ -273,9 +268,9 @@ static void R_CustomColormap(UINT8 *dest_colormap, UINT8 skincolor)
 	// next, for every colour in the palette, choose the transcolor that has the closest brightness
 	for (i = 0; i < NUM_PALETTE_ENTRIES; i++)
 	{
-		newcolor = transcolormaps[-TC_CUSTOM].palettemap[i];
+		newcolor = transcolormaps[TC_CUSTOM - MAXSKINS].palettemap[i];
 
-		if (!transcolormaps[-TC_CUSTOM].useskincolor[i])
+		if (!transcolormaps[TC_CUSTOM - MAXSKINS].useskincolor[i])
 		{
 			dest_colormap[i] = newcolor;
 			continue;
@@ -304,7 +299,7 @@ static void R_GenerateTranslationColormap(UINT8 *dest_colormap, INT32 skinnum, U
 	INT32 i, starttranscolor, skinramplength;
 
 	// Handle a couple of simple special cases
-	if (skinnum < TC_DEFAULT)
+	if (skinnum > TC_DEFAULT)
 	{
 		switch (skinnum)
 		{
@@ -459,10 +454,7 @@ UINT8* R_GetTranslationColormap(INT32 skinnum, skincolornum_t color, UINT8 flags
 		     default:       skintableindex = skinnum; break;
 	}*/
 
-	if (skinnum < 0 && skinnum > MAXCOLORMAP)
-		skintableindex = MAXSKINS - skinnum + 1;
-	else
-		skintableindex = skinnum;
+	skintableindex = skinnum;
 
 	if (flags & GTC_CACHE)
 	{
