@@ -133,7 +133,9 @@ extern transcolormap_t transcolormaps[MAXCOLORMAP - MAXSKINS];
 // Initialize color translation tables, for player rendering etc.
 void R_InitTranslationTables(void);
 void R_InitTranslationColormaps(void);
-UINT8* R_GetTranslationColormap(INT32 skinnum, skincolornum_t color, UINT8 flags);
+boolean R_TranslationColormapExists(INT32 skinnum);
+UINT8* R_GetTranslationColormap(INT32 transnum, skincolornum_t color, UINT8 flags);
+UINT8* R_GetSkinTranslationColormap(INT32 skinnum, skincolors_t color, UINT8 flags);
 void R_FlushTranslationColormapCache(void);
 UINT16 R_GetColorByName(const char *name);
 UINT16 R_GetSuperColorByName(const char *name);
