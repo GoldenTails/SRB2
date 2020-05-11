@@ -968,12 +968,14 @@ static int libd_getColormap(lua_State *L)
 	INT32 skinnum = TC_DEFAULT;
 	skincolornum_t color = luaL_optinteger(L, 2, 0);
 	UINT8* colormap = NULL;
+	INT32 luaskinnum = skinnum;
+
 	HUDONLY
 	if (lua_isnoneornil(L, 1))
 		; // defaults to TC_DEFAULT
 	else if (lua_type(L, 1) == LUA_TNUMBER) // skin number
 	{
-		skinnum = (INT32)luaL_checkinteger(L, 1);
+		luaskinnum = skinnum = (INT32)luaL_checkinteger(L, 1);
 
 		if (skinnum <= -(MAXCOLORMAP - MAXSKINS) || skinnum >= MAXSKINS)
 			return luaL_error(L, "skin number %d is out of range (%d - %d)", skinnum, -(MAXCOLORMAP - MAXSKINS)+1, MAXSKINS-1);
@@ -981,7 +983,10 @@ static int libd_getColormap(lua_State *L)
 		if (skinnum < 0)
 			skinnum = -skinnum + MAXSKINS - 1;
 
-		printf("%s\n", (skinnum == TC_CUSTOM) ? "true" : "false");
+		if (!R_TranslationColormapExists(skinnum))
+			return luaL_error(L, "Colormap %d doesn't exist! Create a colormap first!", luaskinnum);
+
+		printf("%s\n", "successful/");
 	}
 	else // skin name
 	{
