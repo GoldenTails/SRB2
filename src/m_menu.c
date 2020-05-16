@@ -4833,7 +4833,7 @@ static void M_DrawPauseMenu(void)
 		Z_Free(pause);
 
 		// Draw any and all emblems at the top.
-		M_DrawMapEmblems(gamemap, 24, 40);
+		M_DrawMapEmblems(gamemap, 112, 48);
 
 		V_DrawCenteredString(80, 28, V_YELLOWMAP, mapheaderinfo[gamemap-1]->lvlttl);
 
