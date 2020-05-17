@@ -541,9 +541,23 @@ void SCR_DisplayTicRate(void)
 	if (totaltics <= TICRATE/2) ticcntcolor = V_REDMAP;
 	else if (totaltics == TICRATE) ticcntcolor = V_GREENMAP;
 
-	if (cv_ticrate.value == 2) // compact counter
+	if (cv_ticrate.value == 4) // compressed counter
+	{
+		V_DrawThinString(vid.width-(10*vid.dupx), h,
+			ticcntcolor|V_NOSCALESTART|V_USERHUDTRANS, va("%02d", totaltics));
+	}
+	else if (cv_ticrate.value == 3) // thin counter
+	{
+		V_DrawThinString(vid.width-(44*vid.dupx), h,
+			V_YELLOWMAP|V_NOSCALESTART|V_USERHUDTRANS, "FPS:");
+		V_DrawThinString(vid.width-(24*vid.dupx), h,
+			ticcntcolor|V_NOSCALESTART|V_USERHUDTRANS, va("%02d/%02u", totaltics, TICRATE));
+	}
+	else if (cv_ticrate.value == 2) // compact counter
+	{
 		V_DrawString(vid.width-(16*vid.dupx), h,
 			ticcntcolor|V_NOSCALESTART|V_USERHUDTRANS, va("%02d", totaltics));
+	}
 	else if (cv_ticrate.value == 1) // full counter
 	{
 		V_DrawString(vid.width-(72*vid.dupx), h,
