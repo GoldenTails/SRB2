@@ -543,14 +543,14 @@ void SCR_DisplayTicRate(void)
 
 	if (cv_ticrate.value == 4) // compressed counter
 	{
-		V_DrawThinString(vid.width-(10*vid.dupx), h,
+		V_DrawThinString(vid.width-(10*vid.dupx), h + (1 * vid.dupy),
 			ticcntcolor|V_NOSCALESTART|V_USERHUDTRANS, va("%02d", totaltics));
 	}
 	else if (cv_ticrate.value == 3) // thin counter
 	{
-		V_DrawThinString(vid.width-(44*vid.dupx), h,
+		V_DrawThinString(vid.width-(44*vid.dupx), h + (1 * vid.dupy),
 			V_YELLOWMAP|V_NOSCALESTART|V_USERHUDTRANS, "FPS:");
-		V_DrawThinString(vid.width-(24*vid.dupx), h,
+		V_DrawThinString(vid.width-(24*vid.dupx), h + (1 * vid.dupy),
 			ticcntcolor|V_NOSCALESTART|V_USERHUDTRANS, va("%02d/%02u", totaltics, TICRATE));
 	}
 	else if (cv_ticrate.value == 2) // compact counter
