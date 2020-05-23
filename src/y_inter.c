@@ -700,7 +700,7 @@ dontdrawbg:
 					V_DrawSmallScaledPatch(x+16, y-4, 0,faceprefix[*data.match.character[i]]);
 				else
 				{
-					UINT8 *colormap = R_GetTranslationColormap(*data.match.character[i], *data.match.color[i], GTC_CACHE);
+					UINT8 *colormap = R_GetSkinTranslationColormap(*data.match.character[i], *data.match.color[i], GTC_CACHE);
 					V_DrawSmallMappedPatch(x+16, y-4, 0,faceprefix[*data.match.character[i]], colormap);
 				}
 
@@ -796,7 +796,7 @@ dontdrawbg:
 		{
 			if (playeringame[data.match.num[i]] && !(data.match.spectator[i]))
 			{
-				UINT8 *colormap = R_GetTranslationColormap(*data.match.character[i], *data.match.color[i], GTC_CACHE);
+				UINT8 *colormap = R_GetSkinTranslationColormap(*data.match.character[i], *data.match.color[i], GTC_CACHE);
 
 				if (*data.match.color[i] == SKINCOLOR_RED) //red
 				{
@@ -883,7 +883,7 @@ dontdrawbg:
 					V_DrawSmallScaledPatch(x+16, y-4, 0,faceprefix[*data.competition.character[i]]);
 				else
 				{
-					UINT8 *colormap = R_GetTranslationColormap(*data.competition.character[i], *data.competition.color[i], GTC_CACHE);
+					UINT8 *colormap = R_GetSkinTranslationColormap(*data.competition.character[i], *data.competition.color[i], GTC_CACHE);
 					V_DrawSmallMappedPatch(x+16, y-4, 0,faceprefix[*data.competition.character[i]], colormap);
 				}
 

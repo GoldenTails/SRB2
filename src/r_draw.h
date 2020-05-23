@@ -116,6 +116,7 @@ typedef enum translation_colormap
 	TC_CUSTOM,     // For a custom colormap
 	// Add new colormaps above this line.
 	// Don't forget to update TRANS_COLORMAP_ENUMS in dehacked.c too!
+	// And also R_InitTranslationColormaps in r_draw.c!
 
 	TC_FIRSTFREESLOT, // Update with hardcoded colormap count
 	TC_LASTFREESLOT = TC_FIRSTFREESLOT + NUMCOLORMAPFREESLOTS - 1,

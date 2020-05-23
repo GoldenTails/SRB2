@@ -446,6 +446,8 @@ static void R_GenerateTranslationColormap(UINT8 *dest_colormap, INT32 skinnum, U
 
 static void R_GenerateSkinTranslationColormap(UINT8 *dest_colormap, INT32 skinnum, UINT8 color)
 {
+	INT32 i, starttranscolor, skinramplength;
+
 	if (color == SKINCOLOR_NONE)
 	{
 		for (i = 0; i < NUM_PALETTE_ENTRIES; i++)
@@ -483,7 +485,7 @@ static void R_GenerateSkinTranslationColormap(UINT8 *dest_colormap, INT32 skinnu
 
 boolean R_TranslationColormapExists(INT32 skinnum)
 {
-	return skinnum - MAXSKINS <= maxtranscolormap;
+	return skinnum <= maxtranscolormap;
 }
 
 /**	\brief	Retrieves a translation colormap from the cache.

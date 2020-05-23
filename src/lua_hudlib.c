@@ -986,7 +986,7 @@ static int libd_getColormap(lua_State *L)
 		if (!R_TranslationColormapExists(skinnum))
 			return luaL_error(L, "Colormap %d doesn't exist! Create a colormap first!", luaskinnum);
 
-		printf("%s\n", "successful/");
+		//printf("%s\n", "successful/");
 	}
 	else // skin name
 	{

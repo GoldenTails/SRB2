@@ -190,8 +190,10 @@ static const struct {
 
 	{META_HUDINFO,      "hudinfo_t"},
 	{META_PATCH,        "patch_t"},
-	{META_COLORMAP,     "colormap"},
 	{META_CAMERA,       "camera_t"},
+
+	{META_COLORMAP,     "colormap"},
+	{META_TRANSCOLORMAP,"transcolormap_t"},
 
 	{META_ACTION,       "action"},
 

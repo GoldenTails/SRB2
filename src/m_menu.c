@@ -8480,7 +8480,7 @@ static void M_DrawLoadGameData(void)
 				sprdef = &charbotskin->sprites[SPR2_SIGN];
 				if (!sprdef->numframes)
 					goto skipbot;
-				colormap = R_GetTranslationColormap(savegameinfo[savetodraw].botskin, charbotskin->prefcolor, 0);
+				colormap = R_GetSkinTranslationColormap(savegameinfo[savetodraw].botskin, charbotskin->prefcolor, 0);
 				sprframe = &sprdef->spriteframes[0];
 				patch = W_CachePatchNum(sprframe->lumppat[0], PU_PATCH);
 
@@ -8500,7 +8500,7 @@ skipbot:
 			if (!charskin) // shut up compiler
 				goto skipsign;
 			sprdef = &charskin->sprites[SPR2_SIGN];
-			colormap = R_GetTranslationColormap(savegameinfo[savetodraw].skinnum, charskin->prefcolor, 0);
+			colormap = R_GetSkinTranslationColormap(savegameinfo[savetodraw].skinnum, charskin->prefcolor, 0);
 			if (!sprdef->numframes)
 				goto skipsign;
 			sprframe = &sprdef->spriteframes[0];
@@ -11823,7 +11823,7 @@ static void M_DrawSetupMultiPlayerMenu(void)
 		goto faildraw;
 
 	// ok, draw player sprite for sure now
-	colormap = R_GetTranslationColormap(setupm_fakeskin, setupm_fakecolor->color, 0);
+	colormap = R_GetSkinTranslationColormap(setupm_fakeskin, setupm_fakecolor->color, 0);
 
 	if (multi_frame >= sprdef->numframes)
 		multi_frame = 0;

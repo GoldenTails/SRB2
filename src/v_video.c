@@ -1047,7 +1047,7 @@ void V_DrawContinueIcon(INT32 x, INT32 y, INT32 flags, INT32 skinnum, UINT16 ski
 		spritedef_t *sprdef = &skins[skinnum].sprites[SPR2_XTRA];
 		spriteframe_t *sprframe = &sprdef->spriteframes[XTRA_CONTINUE];
 		patch_t *patch = W_CachePatchNum(sprframe->lumppat[0], PU_PATCH);
-		const UINT8 *colormap = R_GetTranslationColormap(skinnum, skincolor, GTC_CACHE);
+		const UINT8 *colormap = R_GetSkinTranslationColormap(skinnum, skincolor, GTC_CACHE);
 
 		V_DrawMappedPatch(x, y, flags, patch, colormap);
 	}

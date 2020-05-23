@@ -812,14 +812,14 @@ static void ST_drawLivesArea(void)
 	if (stplyr->spectator)
 	{
 		// spectator face
-		UINT8 *colormap = R_GetTranslationColormap(stplyr->skin, SKINCOLOR_CLOUDY, GTC_CACHE);
+		UINT8 *colormap = R_GetSkinTranslationColormap(stplyr->skin, SKINCOLOR_CLOUDY, GTC_CACHE);
 		V_DrawSmallMappedPatch(hudinfo[HUD_LIVES].x, hudinfo[HUD_LIVES].y,
 			hudinfo[HUD_LIVES].f|V_PERPLAYER|V_HUDTRANSHALF, faceprefix[stplyr->skin], colormap);
 	}
 	else if (stplyr->mo && stplyr->mo->color)
 	{
 		// skincolor face/super
-		UINT8 *colormap = R_GetTranslationColormap(stplyr->skin, stplyr->mo->color, GTC_CACHE);
+		UINT8 *colormap = R_GetSkinTranslationColormap(stplyr->skin, stplyr->mo->color, GTC_CACHE);
 		patch_t *face = faceprefix[stplyr->skin];
 		if (stplyr->powers[pw_super] && !(stplyr->charflags & SF_NOSUPERSPRITES))
 			face = superprefix[stplyr->skin];
@@ -831,7 +831,7 @@ static void ST_drawLivesArea(void)
 			if (v_supertrans < 10)
 			{
 				v_supertrans <<= V_ALPHASHIFT;
-				colormap = R_GetTranslationColormap(stplyr->skin, stplyr->mo->tracer->color, GTC_CACHE);
+				colormap = R_GetSkinTranslationColormap(stplyr->skin, stplyr->mo->tracer->color, GTC_CACHE);
 				V_DrawSmallMappedPatch(hudinfo[HUD_LIVES].x, hudinfo[HUD_LIVES].y,
 					hudinfo[HUD_LIVES].f|V_PERPLAYER|v_supertrans, face, colormap);
 			}
@@ -840,7 +840,7 @@ static void ST_drawLivesArea(void)
 	else if (stplyr->skincolor)
 	{
 		// skincolor face
-		UINT8 *colormap = R_GetTranslationColormap(stplyr->skin, stplyr->skincolor, GTC_CACHE);
+		UINT8 *colormap = R_GetSkinTranslationColormap(stplyr->skin, stplyr->skincolor, GTC_CACHE);
 		V_DrawSmallMappedPatch(hudinfo[HUD_LIVES].x, hudinfo[HUD_LIVES].y,
 			hudinfo[HUD_LIVES].f|V_PERPLAYER|V_HUDTRANS, faceprefix[stplyr->skin], colormap);
 	}

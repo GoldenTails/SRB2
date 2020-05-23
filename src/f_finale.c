@@ -2143,7 +2143,7 @@ void F_EndingDrawer(void)
 				scale += (parallaxticker-4)<<5;
 
 			if (goodending)
-				colormap = R_GetTranslationColormap(players[consoleplayer].skin, players[consoleplayer].skincolor, GTC_CACHE);
+				colormap = R_GetSkinTranslationColormap(players[consoleplayer].skin, players[consoleplayer].skincolor, GTC_CACHE);
 
 			if ((frame = ((parallaxticker & 1) ? 1 : 0) + (parallaxticker/TICRATE)) < 3)
 				V_DrawFixedPatch(x, y, scale, 0, endfwrk[frame], colormap);
@@ -3658,7 +3658,7 @@ void F_StartContinue(void)
 	contskins[0] = &skins[players[consoleplayer].skin];
 	cont_spr2[0][0] = P_GetSkinSprite2(contskins[0], SPR2_CNT1, NULL);
 	cont_spr2[0][2] = contskins[0]->contangle & 7;
-	contcolormaps[0] = R_GetTranslationColormap(players[consoleplayer].skin, players[consoleplayer].skincolor, GTC_CACHE);
+	contcolormaps[0] = R_GetSkinTranslationColormap(players[consoleplayer].skin, players[consoleplayer].skincolor, GTC_CACHE);
 	cont_spr2[0][4] = contskins[0]->sprites[cont_spr2[0][0]].numframes;
 	cont_spr2[0][5] = max(1, contskins[0]->contspeed);
 
@@ -3674,7 +3674,7 @@ void F_StartContinue(void)
 		contskins[1] = &skins[players[secondplaya].skin];
 		cont_spr2[1][0] = P_GetSkinSprite2(contskins[1], SPR2_CNT4, NULL);
 		cont_spr2[1][2] = (contskins[1]->contangle >> 3) & 7;
-		contcolormaps[1] = R_GetTranslationColormap(players[secondplaya].skin, players[secondplaya].skincolor, GTC_CACHE);
+		contcolormaps[1] = R_GetSkinTranslationColormap(players[secondplaya].skin, players[secondplaya].skincolor, GTC_CACHE);
 		cont_spr2[1][4] = contskins[1]->sprites[cont_spr2[1][0]].numframes;
 		if (cont_spr2[1][0] == SPR2_CNT4)
 			cont_spr2[1][5] = 4; // sorry, this one is hardcoded
