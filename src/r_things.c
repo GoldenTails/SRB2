@@ -792,7 +792,7 @@ static void R_DrawVisSprite(vissprite_t *vis)
 		else if (!(vis->cut & SC_PRECIP) && vis->mobj->skin && vis->mobj->sprite == SPR_PLAY) // MT_GHOST LOOKS LIKE A PLAYER SO USE THE PLAYER TRANSLATION TABLES. >_>
 		{
 			size_t skinnum = (skin_t*)vis->mobj->skin-skins;
-			dc_translation = R_GetTranslationColormap((INT32)skinnum, vis->mobj->color, GTC_CACHE);
+			dc_translation = R_GetSkinTranslationColormap((INT32)skinnum, vis->mobj->color, GTC_CACHE);
 		}
 		else // Use the defaults
 			dc_translation = R_GetTranslationColormap(TC_DEFAULT, vis->mobj->color, GTC_CACHE);
@@ -823,7 +823,7 @@ static void R_DrawVisSprite(vissprite_t *vis)
 		else if (!(vis->cut & SC_PRECIP) && vis->mobj->skin && vis->mobj->sprite == SPR_PLAY) // This thing is a player!
 		{
 			size_t skinnum = (skin_t*)vis->mobj->skin-skins;
-			dc_translation = R_GetTranslationColormap((INT32)skinnum, vis->mobj->color, GTC_CACHE);
+			dc_translation = R_GetSkinTranslationColormap((INT32)skinnum, vis->mobj->color, GTC_CACHE);
 		}
 		else // Use the defaults
 			dc_translation = R_GetTranslationColormap(TC_DEFAULT, vis->mobj->color, GTC_CACHE);
