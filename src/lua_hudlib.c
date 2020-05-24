@@ -213,6 +213,16 @@ static const char *const camera_opt[] = {
 	"momz",
 	NULL};
 
+enum transcolormapt {
+	transcolormap_palettemap = 0,
+	transcolormap_useskincolor
+};
+
+static const char *const transcolormap_opt[] = {
+	"palettemap",
+	"useskincolor",
+	NULL};
+
 static int lib_getHudInfo(lua_State *L)
 {
 	UINT32 i;
@@ -280,6 +290,92 @@ static int hudinfo_num(lua_State *L)
 	return 1;
 }
 
+// Arbitrary transcolormaps[] table index -> transcolormap_t *
+static int lib_getTransColormap(lua_State *L)
+{
+	UINT32 i;
+	lua_remove(L, 1);
+
+	i = luaL_checkinteger(L, 1);
+	if (i >= MAXCOLORMAP)
+		return luaL_error(L, "states[] index %d out of range (0 - %d)", i, MAXCOLORMAP-1);
+	LUA_PushUserdata(L, &transcolormaps[i], META_TRANSCOLORMAP);
+	return 1;
+}
+
+/*// stack: dummy, transcolormaps[] table index, table of values to set.
+static int lib_setTransColormap(lua_State *L)
+{
+	sfxinfo_t *info;
+
+	lua_remove(L, 1);
+	{
+		UINT32 i = luaL_checkinteger(L, 1);
+		if (i >= MAXCOLORMAP)
+			return luaL_error(L, "sfxinfo[] index %d out of range (1 - %d)", i, MAXCOLORMAP-1);
+		info = &transcolormaps[i]; // get the transcolormap to assign to.
+	}
+	luaL_checktype(L, 2, LUA_TTABLE); // check that we've been passed a table.
+	lua_remove(L, 1); // pop sfx num, don't need it any more.
+	lua_settop(L, 1); // cut the stack here. the only thing left now is the table of data we're assigning to the sfx.
+
+	lua_pushnil(L);
+	while (lua_next(L, 1)) {
+		enum transcolormap i;
+
+		if (lua_isnumber(L, 2))
+			i = lua_tointeger(L, 2) - 1; // lua is one based, this enum is zero based.
+		else
+			i = luaL_checkoption(L, 2, NULL, transcolormap_opt);
+
+		switch(i)
+		{
+		case transcolormap_palettemap:
+			if (lua_isuserdata(L, 3)) {
+				info->palettemap = *((UINT8 **)luaL_checkudata(L, 3, META_PALETTEMAP));
+				break;
+			}
+			luaL_checktype(L, 3, LUA_TTABLE);
+
+			for (int palIndex = 0; palIndex < 255; palIndex++)
+			{
+				lua_rawgeti(L, 3, palIndex+1);
+				if (lua_isnil(L, -1))
+					info->palettemap[palIndex] = palIndex;
+				else
+					info->palettemap[palIndex] = (UINT8)luaL_checkinteger(L, -1);
+				lua_pop(L, -1);
+			}
+
+			//info->singularity = luaL_checkboolean(L, 3);
+			break;
+		case transcolormap_useskincolor:
+			if (lua_isuserdata(L, 3)) {
+				info->useskincolor = *((boolean **)luaL_checkudata(L, 3, META_USESKINCOLOR));
+				break;
+			}
+			luaL_checktype(L, 3, LUA_TTABLE);
+
+			for (int palIndex = 0; palIndex < 255; palIndex++)
+			{
+				lua_rawgeti(L, 3, palIndex+1);
+				if (lua_isnil(L, -1))
+					info->useskincolor[palIndex] = palIndex;
+				else
+					info->useskincolor[palIndex] = luaL_checkboolean(L, -1);
+				lua_pop(L, -1);
+			}
+
+			break;
+		default:
+			break;
+		}
+		lua_pop(L, 1);
+	}
+
+	return 0;
+}
+*/
 static int colormap_get(lua_State *L)
 {
 	UINT8 *colormap = *((UINT8 **)luaL_checkudata(L, 1, META_COLORMAP));
@@ -297,6 +393,115 @@ static int colormap_set(lua_State *L)
 	if (i >= 256)
 		return luaL_error(L, "colormap index %d out of range (0 - %d)", i, 255);
 	colormap[i] = (UINT8)luaL_checkinteger(L, 3);
+	return 0;
+}
+
+static int transcolormap_get(lua_State *L) {
+	transcolormap_t *transcolormap = *((transcolormap_t **)luaL_checkudata(L, 1, META_TRANSCOLORMAP));
+	enum transcolormapt field = luaL_checkoption(L, 2, NULL, transcolormap_opt);
+	I_Assert(transcolormap != NULL); // transcolormaps are always valid
+
+	switch(field)
+	{
+	// For some reason, using LUA_PushUserdata causes transcolormap->palettemap to point
+	// to transcolormap; but only in Lua...?
+	case transcolormap_palettemap:
+		LUA_PushUserdata(L, transcolormap->palettemap, META_PALETTEMAP);
+		break;
+	case transcolormap_useskincolor:
+		LUA_PushUserdata(L, transcolormap->useskincolor, META_USESKINCOLOR);
+		break;
+	}
+	return 1;
+}
+
+static int transcolormap_set(lua_State *L) {
+	transcolormap_t *transcolormap = *((transcolormap_t **)luaL_checkudata(L, 1, META_TRANSCOLORMAP));
+	enum transcolormapt field = luaL_checkoption(L, 2, NULL, transcolormap_opt);
+	I_Assert(transcolormap != NULL); // transcolormaps are always valid
+
+	switch(field)
+	{
+	case transcolormap_palettemap:
+		if (lua_isuserdata(L, 3)) {
+			for (int i = 0; i < 255; i++)
+				transcolormap->palettemap[i] = *((UINT8 **)luaL_checkudata(L, 3, META_PALETTEMAP))[i];
+			break;
+		}
+		luaL_checktype(L, 3, LUA_TTABLE);
+
+		for (int i = 0; i < 255; i++)
+		{
+			lua_rawgeti(L, 3, i+1);
+			if (lua_isnil(L, -1))
+				transcolormap->palettemap[i] = i;
+			else
+				transcolormap->palettemap[i] = (UINT8)luaL_checkinteger(L, -1);
+			lua_pop(L, -1);
+		}
+
+		break;
+	case transcolormap_useskincolor:
+		if (lua_isuserdata(L, 3)) {
+			for (int i = 0; i < 255; i++)
+				transcolormap->useskincolor[i] = *((boolean **)luaL_checkudata(L, 3, META_USESKINCOLOR))[i];
+			break;
+		}
+		luaL_checktype(L, 3, LUA_TTABLE);
+
+		for (int i = 0; i < 255; i++)
+		{
+			lua_rawgeti(L, 3, i+1);
+			if (lua_isnil(L, -1))
+				transcolormap->useskincolor[i] = i;
+			else
+				transcolormap->useskincolor[i] = luaL_checkboolean(L, -1);
+			lua_pop(L, -1);
+		}
+
+		break;
+	}
+	return 0;
+}
+
+static int palettemap_get(lua_State *L)
+{
+	printf("%s\n", "palettemap access!");
+	UINT8 *palettemap = *((UINT8 **)luaL_checkudata(L, 1, META_PALETTEMAP));
+	UINT32 i = luaL_checkinteger(L, 2);
+	if (i >= 256)
+		return luaL_error(L, "transcolormap_t.palettemap index %d out of range (0 - %d)", i, 255);
+	lua_pushinteger(L, palettemap[i]);
+	return 1;
+}
+
+static int palettemap_set(lua_State *L)
+{
+	UINT8 *palettemap = *((UINT8 **)luaL_checkudata(L, 1, META_PALETTEMAP));
+	UINT32 i = luaL_checkinteger(L, 2);
+	if (i >= 256)
+		return luaL_error(L, "transcolormap_t.palettemap index %d out of range (0 - %d)", i, 255);
+	palettemap[i] = (UINT8)luaL_checkinteger(L, 3);
+	return 0;
+}
+
+static int useskincolor_get(lua_State *L)
+{
+	UINT8 *useskincolor = *((UINT8 **)luaL_checkudata(L, 1, META_USESKINCOLOR));
+	UINT32 i = luaL_checkinteger(L, 2);
+	if (i >= 256)
+		return luaL_error(L, "transcolormap_t.useskincolor index %d out of range (0 - %d)", i, 255);
+	lua_pushboolean(L, useskincolor[i]);
+	return 1;
+}
+
+static int useskincolor_set(lua_State *L)
+{
+	UINT8 *useskincolor = *((UINT8 **)luaL_checkudata(L, 1, META_USESKINCOLOR));
+	UINT32 i = luaL_checkinteger(L, 2);
+	if (i >= 256)
+		return luaL_error(L, "transcolormap_t.useskincolor index %d out of range (0 - %d)", i, 255);
+	useskincolor[i] = luaL_checkboolean(L, 3);
 	return 0;
 }
 
@@ -1314,11 +1519,49 @@ int LUA_HudLib(lua_State *L)
 		lua_setmetatable(L, -2);
 	lua_setglobal(L, "hudinfo");
 
+	/*lua_newuserdata(L, 0);
+		lua_createtable(L, 0, 2);
+			lua_pushcfunction(L, lib_getTransColormap);
+			lua_setfield(L, -2, "__index");
+
+			lua_pushcfunction(L, lib_setTransColormap);
+			lua_setfield(L, -2, "__newindex");
+
+			lua_pushcfunction(L, lib_sfxlen);
+			lua_setfield(L, -2, "__len");
+		lua_setmetatable(L, -2);
+	lua_pushvalue(L, -1);
+	lua_setglobal(L, "transcolormaps");*/
+
 	luaL_newmetatable(L, META_COLORMAP);
 		lua_pushcfunction(L, colormap_get);
 		lua_setfield(L, -2, "__index");
 
 		lua_pushcfunction(L, colormap_set);
+		lua_setfield(L, -2, "__newindex");
+	lua_pop(L,1);
+
+	luaL_newmetatable(L, META_TRANSCOLORMAP);
+		lua_pushcfunction(L, transcolormap_get);
+		lua_setfield(L, -2, "__index");
+
+		lua_pushcfunction(L, transcolormap_set);
+		lua_setfield(L, -2, "__newindex");
+	lua_pop(L,1);
+
+	luaL_newmetatable(L, META_PALETTEMAP);
+		lua_pushcfunction(L, palettemap_get);
+		lua_setfield(L, -2, "__index");
+
+		lua_pushcfunction(L, palettemap_set);
+		lua_setfield(L, -2, "__newindex");
+	lua_pop(L,1);
+
+	luaL_newmetatable(L, META_USESKINCOLOR);
+		lua_pushcfunction(L, useskincolor_get);
+		lua_setfield(L, -2, "__index");
+
+		lua_pushcfunction(L, useskincolor_set);
 		lua_setfield(L, -2, "__newindex");
 	lua_pop(L,1);
 
