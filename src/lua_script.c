@@ -16,6 +16,7 @@
 #include "z_zone.h"
 #include "w_wad.h"
 #include "p_setup.h"
+#include "r_draw.h"
 #include "r_state.h"
 #include "r_sky.h"
 #include "g_game.h"
@@ -355,6 +356,9 @@ int LUA_PushGlobals(lua_State *L, const char *word)
 		return 1;
 	} else if (fastcmp(word, "token")) {
 		lua_pushinteger(L, token);
+		return 1;
+	} else if (fastcmp(word, "customcolormap")) {
+		LUA_PushUserdata(L, &transcolormaps[TC_CUSTOM], META_TRANSCOLORMAP);
 		return 1;
 	}
 	return 0;

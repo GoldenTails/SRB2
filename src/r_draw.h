@@ -125,8 +125,8 @@ typedef enum translation_colormap
 
 typedef struct
 {
-	UINT8 palettemap[NUM_PALETTE_ENTRIES];
 	boolean useskincolor[NUM_PALETTE_ENTRIES];
+	UINT8 palettemap[NUM_PALETTE_ENTRIES];
 } transcolormap_t;
 
 extern transcolormap_t transcolormaps[MAXCOLORMAP - MAXSKINS];
