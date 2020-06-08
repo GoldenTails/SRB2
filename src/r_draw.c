@@ -180,44 +180,68 @@ void R_InitTranslationColormaps(void)
 	transcolormap_t *dashmodemap = &transcolormaps[TC_DASHMODE - MAXSKINS];
 	transcolormap_t *custommap = &transcolormaps[TC_CUSTOM - MAXSKINS];
 
+	*defaultmap->palettemap = malloc(sizeof(defaultmap->palettemap));
+	*bossmap->palettemap = malloc(sizeof(bossmap->palettemap));
+	*metalsonicmap->palettemap = malloc(sizeof(metalsonicmap->palettemap));
+	*allwhitemap->palettemap = malloc(sizeof(allwhitemap->palettemap));
+	*rainbowmap->palettemap = malloc(sizeof(rainbowmap->palettemap));
+	*blinkmap->palettemap = malloc(sizeof(blinkmap->palettemap));
+	*dashmodemap->palettemap = malloc(sizeof(dashmodemap->palettemap));
+	*custommap->palettemap = malloc(sizeof(custommap->palettemap));
+
+	*defaultmap->useskincolor = malloc(sizeof(defaultmap->useskincolor));
+	*bossmap->useskincolor = malloc(sizeof(bossmap->useskincolor));
+	*metalsonicmap->useskincolor = malloc(sizeof(metalsonicmap->useskincolor));
+	*allwhitemap->useskincolor = malloc(sizeof(allwhitemap->useskincolor));
+	*rainbowmap->useskincolor = malloc(sizeof(rainbowmap->useskincolor));
+	*blinkmap->useskincolor = malloc(sizeof(blinkmap->useskincolor));
+	*dashmodemap->useskincolor = malloc(sizeof(dashmodemap->useskincolor));
+	*custommap->useskincolor = malloc(sizeof(custommap->useskincolor));
+
+	CONS_Printf("R_InitTranslationColormaps()...\n");
+	CONS_Printf(va("%d\n", defaultmap->palettemap[NUM_PALETTE_ENTRIES-1]));
+
 	// Generate the transcolormaps
 	for (int i = 0; i < NUM_PALETTE_ENTRIES; i++)
 	{
+		CONS_Printf("we in the for loop...\n");
+
 		// Fills the colors before processing.
 		// i fills the palette, literal int fills with palette index.
-		defaultmap->palettemap[i] = i; // TC_DEFAULT
-		bossmap->palettemap[i] = i; // TC_BOSS
-		allwhitemap->palettemap[i] = 0; // TC_ALLWHITE
-		metalsonicmap->palettemap[i] = i; // TC_METALSONIC
-		rainbowmap->palettemap[i] = i; // TC_RAINBOW
-		blinkmap->palettemap[i] = 16; // A semi-TC_BLINK, real one is hardcoded.
-		dashmodemap->palettemap[i] = i; // TC_DASHMODE
+		*defaultmap->palettemap[i] = i; // TC_DEFAULT
+		CONS_Printf("first write...\n");
+		*bossmap->palettemap[i] = i; // TC_BOSS
+		*allwhitemap->palettemap[i] = 0; // TC_ALLWHITE
+		*metalsonicmap->palettemap[i] = i; // TC_METALSONIC
+		*rainbowmap->palettemap[i] = i; // TC_RAINBOW
+		*blinkmap->palettemap[i] = 16; // A semi-TC_BLINK, real one is hardcoded.
+		*dashmodemap->palettemap[i] = i; // TC_DASHMODE
 
-		rainbowmap->useskincolor[i] = true; // TC_RAINBOW
-		blinkmap->useskincolor[i] = true; // TC_BLINK
+		*rainbowmap->useskincolor[i] = true; // TC_RAINBOW
+		*blinkmap->useskincolor[i] = true; // TC_BLINK
 
 		// TC_DEFAULT
 		if (i >= 96 && i < 112)
-			defaultmap->useskincolor[i] = true;
+			*defaultmap->useskincolor[i] = true;
 
 		// TC_BOSS
 		if (i < 32 && i >= 16)
-			bossmap->palettemap[i] = 31 - i;
+			*bossmap->palettemap[i] = 31 - i;
 
 		// TC_RAINBOW
 		if (i == 0 || i == 31)
-			rainbowmap->useskincolor[i] = false;
+			*rainbowmap->useskincolor[i] = false;
 
 		// TC_DASHMODE
 		if (i >= 107 && i < 112)
-			dashmodemap->palettemap[i] = i - 64;
+			*dashmodemap->palettemap[i] = i - 64;
 
 		// TC_CUSTOM
 		if (i < 112) {
-			custommap->palettemap[i] = 0;
-			custommap->useskincolor[i] = false;
+			*custommap->palettemap[i] = 0;
+			*custommap->useskincolor[i] = false;
 		} else {
-			custommap->useskincolor[i] = true;
+			*custommap->useskincolor[i] = true;
 		}
 	}
 
@@ -226,12 +250,12 @@ void R_InitTranslationColormaps(void)
 	// was too lazy to assimilate the for loops into the above one
 
 	for (int i = 0; i < 6; i++)
-		metalsonicmap->palettemap[Color_Index[SKINCOLOR_BLUE-1][12-i]] = Color_Index[SKINCOLOR_BLUE-1][i];
+		*metalsonicmap->palettemap[skincolors[SKINCOLOR_BLUE].ramp[12-i]] = skincolors[SKINCOLOR_BLUE].ramp[i];
 
-	metalsonicmap->palettemap[159] = metalsonicmap->palettemap[253] = metalsonicmap->palettemap[254] = 0;
+	*metalsonicmap->palettemap[159] = *metalsonicmap->palettemap[253] = *metalsonicmap->palettemap[254] = 0;
 
 	for (int i = 0; i < 16; i++)
-		metalsonicmap->palettemap[96+i] = metalsonicmap->palettemap[Color_Index[SKINCOLOR_COBALT-1][i]];
+		*metalsonicmap->palettemap[96+i] = *metalsonicmap->palettemap[skincolors[SKINCOLOR_COBALT].ramp[i]];
 
 	// TC_DASHMODE
 
@@ -239,34 +263,34 @@ void R_InitTranslationColormaps(void)
 	// Imagine what this would look like if I didn't use pointers to shorten the variable names...
 
 	// greens -> ketchups
-	dashmodemap->palettemap[96] = dashmodemap->palettemap[97] = 48;
-	dashmodemap->palettemap[98] = 49;
-	dashmodemap->palettemap[99] = 51;
-	dashmodemap->palettemap[100] = 52;
-	dashmodemap->palettemap[101] = dashmodemap->palettemap[102] = 54;
-	dashmodemap->palettemap[103] = 34;
-	dashmodemap->palettemap[104] = 37;
-	dashmodemap->palettemap[105] = 39;
-	dashmodemap->palettemap[106] = 41;
+	*dashmodemap->palettemap[96] = *dashmodemap->palettemap[97] = 48;
+	*dashmodemap->palettemap[98] = 49;
+	*dashmodemap->palettemap[99] = 51;
+	*dashmodemap->palettemap[100] = 52;
+	*dashmodemap->palettemap[101] = *dashmodemap->palettemap[102] = 54;
+	*dashmodemap->palettemap[103] = 34;
+	*dashmodemap->palettemap[104] = 37;
+	*dashmodemap->palettemap[105] = 39;
+	*dashmodemap->palettemap[106] = 41;
 
 	// reds -> steel blues
-	dashmodemap->palettemap[32] = 146;
-	dashmodemap->palettemap[33] = 147;
-	dashmodemap->palettemap[34] = dashmodemap->palettemap[35] = 170;
-	dashmodemap->palettemap[36] = 171;
-	dashmodemap->palettemap[37] = dashmodemap->palettemap[38] = 172;
-	dashmodemap->palettemap[39] = dashmodemap->palettemap[40] = dashmodemap->palettemap[41] = 173;
-	dashmodemap->palettemap[42] = dashmodemap->palettemap[43] = dashmodemap->palettemap[44] = 174;
-	dashmodemap->palettemap[45] = dashmodemap->palettemap[46] = dashmodemap->palettemap[47] = 175;
-	dashmodemap->palettemap[71] = 139;
+	*dashmodemap->palettemap[32] = 146;
+	*dashmodemap->palettemap[33] = 147;
+	*dashmodemap->palettemap[34] = *dashmodemap->palettemap[35] = 170;
+	*dashmodemap->palettemap[36] = 171;
+	*dashmodemap->palettemap[37] = *dashmodemap->palettemap[38] = 172;
+	*dashmodemap->palettemap[39] = *dashmodemap->palettemap[40] = *dashmodemap->palettemap[41] = 173;
+	*dashmodemap->palettemap[42] = *dashmodemap->palettemap[43] = *dashmodemap->palettemap[44] = 174;
+	*dashmodemap->palettemap[45] = *dashmodemap->palettemap[46] = *dashmodemap->palettemap[47] = 175;
+	*dashmodemap->palettemap[71] = 139;
 
 	// steel blues -> oranges
-	dashmodemap->palettemap[170] = 52;
-	dashmodemap->palettemap[171] = 54;
-	dashmodemap->palettemap[172] = 56;
-	dashmodemap->palettemap[173] = 42;
-	dashmodemap->palettemap[174] = 45;
-	dashmodemap->palettemap[175] = 47;
+	*dashmodemap->palettemap[170] = 52;
+	*dashmodemap->palettemap[171] = 54;
+	*dashmodemap->palettemap[172] = 56;
+	*dashmodemap->palettemap[173] = 42;
+	*dashmodemap->palettemap[174] = 45;
+	*dashmodemap->palettemap[175] = 47;
 
 	maxtranscolormap = TC_FIRSTFREESLOT - 1;
 }
@@ -345,7 +369,7 @@ static void R_CustomColormap(UINT8 *dest_colormap, INT32 skinnum, UINT8 skincolo
 	// first generate the brightness of all the colours of that skincolour
 	for (i = 0; i < 16; i++)
 	{
-		color = V_GetColor(Color_Index[skincolor-1][i]);
+		color = V_GetColor(skincolors[skincolor].ramp[i]);
 		SETBRIGHTNESS(colorbrightnesses[i], color.s.red, color.s.green, color.s.blue);
 	}
 
@@ -357,9 +381,9 @@ static void R_CustomColormap(UINT8 *dest_colormap, INT32 skinnum, UINT8 skincolo
 	// next, for every colour in the palette, choose the transcolor that has the closest brightness
 	for (i = 0; i < NUM_PALETTE_ENTRIES; i++)
 	{
-		newcolor = transcolormaps[skinnum - MAXSKINS].palettemap[i];
+		newcolor = *transcolormaps[skinnum - MAXSKINS].palettemap[i];
 
-		if (!transcolormaps[skinnum - MAXSKINS].useskincolor[i])
+		if (!*transcolormaps[skinnum - MAXSKINS].useskincolor[i])
 		{
 			dest_colormap[i] = newcolor;
 			continue;
@@ -375,7 +399,7 @@ static void R_CustomColormap(UINT8 *dest_colormap, INT32 skinnum, UINT8 skincolo
 			if (temp < brightdif)
 			{
 				brightdif = (UINT16)temp;
-				dest_colormap[i] = Color_Index[skincolor-1][j];
+				dest_colormap[i] = skincolors[skincolor].ramp[j];
 			}
 		}
 	}
@@ -401,9 +425,9 @@ static void R_GenerateTranslationColormap(UINT8 *dest_colormap, INT32 skinnum, U
 		// Not even gonna attempt to make this possible via user input
 		// If some brave soul decides they want to attempt this, be my guest.
 		if (skinnum == TC_BLINK) {
-			memset(dest_colormap, Color_Index[color-1][3], NUM_PALETTE_ENTRIES * sizeof(UINT8));
+			memset(dest_colormap, skincolors[color].ramp[3], NUM_PALETTE_ENTRIES * sizeof(UINT8));
 		} else {
-			if (color >= MAXTRANSLATIONS)
+			if (color >= numskincolors)
 				I_Error("Invalid skin color #%hu.", (UINT16)color);
 			R_CustomColormap(dest_colormap, skinnum, color);
 		}
@@ -454,7 +478,7 @@ static void R_GenerateSkinTranslationColormap(UINT8 *dest_colormap, INT32 skinnu
 		return;
 	}
 
-	if (color >= MAXTRANSLATIONS)
+	if (color >= numskincolors)
 		I_Error("Invalid skin color #%hu.", (UINT16)color);
 
 	//starttranscolor = (skinnum != TC_DEFAULT) ? skins[skinnum].starttranscolor : DEFAULT_STARTTRANSCOLOR;
@@ -479,7 +503,7 @@ static void R_GenerateSkinTranslationColormap(UINT8 *dest_colormap, INT32 skinnu
 
 	// Build the translated ramp
 	for (i = 0; i < skinramplength; i++)
-		dest_colormap[starttranscolor + i] = (UINT8)Color_Index[color-1][i];
+		dest_colormap[starttranscolor + i] = (UINT8)skincolors[color].ramp[i];
 }
 
 boolean R_TranslationColormapExists(INT32 skinnum)
@@ -528,7 +552,7 @@ UINT8* R_GetTranslationColormap(INT32 transnum, skincolornum_t color, UINT8 flag
 	return ret;
 }
 
-UINT8* R_GetSkinTranslationColormap(INT32 skinnum, skincolors_t color, UINT8 flags)
+UINT8* R_GetSkinTranslationColormap(INT32 skinnum, skincolornum_t color, UINT8 flags)
 {
 	UINT8* ret;
 
@@ -537,7 +561,7 @@ UINT8* R_GetSkinTranslationColormap(INT32 skinnum, skincolors_t color, UINT8 fla
 
 		// Allocate table for skin if necessary
 		if (!translationtablecache[skinnum])
-			translationtablecache[skinnum] = Z_Calloc(MAXTRANSLATIONS * sizeof(UINT8**), PU_STATIC, NULL);
+			translationtablecache[skinnum] = Z_Calloc(MAXSKINCOLORS * sizeof(UINT8**), PU_STATIC, NULL);
 
 		// Get colormap
 		ret = translationtablecache[skinnum][color];

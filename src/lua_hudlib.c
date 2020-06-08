@@ -298,7 +298,7 @@ static int lib_getTransColormap(lua_State *L)
 
 	i = luaL_checkinteger(L, 1);
 	if (i >= MAXCOLORMAP)
-		return luaL_error(L, "states[] index %d out of range (0 - %d)", i, MAXCOLORMAP-1);
+		return luaL_error(L, "transcolormaps[] index %d out of range (0 - %d)", i, MAXCOLORMAP-1);
 	LUA_PushUserdata(L, &transcolormaps[i], META_TRANSCOLORMAP);
 	return 1;
 }
@@ -406,10 +406,10 @@ static int transcolormap_get(lua_State *L) {
 	// For some reason, using LUA_PushUserdata causes transcolormap->palettemap to point
 	// to transcolormap; but only in Lua...?
 	case transcolormap_palettemap:
-		LUA_PushUserdata(L, transcolormap->palettemap, META_PALETTEMAP);
+		LUA_PushUserdata(L, &transcolormap->palettemap, META_PALETTEMAP);
 		break;
 	case transcolormap_useskincolor:
-		LUA_PushUserdata(L, transcolormap->useskincolor, META_USESKINCOLOR);
+		LUA_PushUserdata(L, &transcolormap->useskincolor, META_USESKINCOLOR);
 		break;
 	}
 	return 1;
@@ -425,7 +425,7 @@ static int transcolormap_set(lua_State *L) {
 	case transcolormap_palettemap:
 		if (lua_isuserdata(L, 3)) {
 			for (int i = 0; i < 255; i++)
-				transcolormap->palettemap[i] = *((UINT8 **)luaL_checkudata(L, 3, META_PALETTEMAP))[i];
+				*transcolormap->palettemap[i] = *((UINT8 **)luaL_checkudata(L, 3, META_PALETTEMAP))[i];
 			break;
 		}
 		luaL_checktype(L, 3, LUA_TTABLE);
@@ -434,9 +434,9 @@ static int transcolormap_set(lua_State *L) {
 		{
 			lua_rawgeti(L, 3, i+1);
 			if (lua_isnil(L, -1))
-				transcolormap->palettemap[i] = i;
+				*transcolormap->palettemap[i] = i;
 			else
-				transcolormap->palettemap[i] = (UINT8)luaL_checkinteger(L, -1);
+				*transcolormap->palettemap[i] = (UINT8)luaL_checkinteger(L, -1);
 			lua_pop(L, -1);
 		}
 
@@ -444,7 +444,7 @@ static int transcolormap_set(lua_State *L) {
 	case transcolormap_useskincolor:
 		if (lua_isuserdata(L, 3)) {
 			for (int i = 0; i < 255; i++)
-				transcolormap->useskincolor[i] = *((boolean **)luaL_checkudata(L, 3, META_USESKINCOLOR))[i];
+				*transcolormap->useskincolor[i] = *((boolean **)luaL_checkudata(L, 3, META_USESKINCOLOR))[i];
 			break;
 		}
 		luaL_checktype(L, 3, LUA_TTABLE);
@@ -453,9 +453,9 @@ static int transcolormap_set(lua_State *L) {
 		{
 			lua_rawgeti(L, 3, i+1);
 			if (lua_isnil(L, -1))
-				transcolormap->useskincolor[i] = i;
+				*transcolormap->useskincolor[i] = i;
 			else
-				transcolormap->useskincolor[i] = luaL_checkboolean(L, -1);
+				*transcolormap->useskincolor[i] = luaL_checkboolean(L, -1);
 			lua_pop(L, -1);
 		}
 

@@ -125,8 +125,8 @@ typedef enum translation_colormap
 
 typedef struct
 {
-	boolean useskincolor[NUM_PALETTE_ENTRIES];
-	UINT8 palettemap[NUM_PALETTE_ENTRIES];
+	UINT8 *palettemap[NUM_PALETTE_ENTRIES];
+	boolean *useskincolor[NUM_PALETTE_ENTRIES];
 } transcolormap_t;
 
 extern transcolormap_t transcolormaps[MAXCOLORMAP - MAXSKINS];
@@ -136,7 +136,7 @@ void R_InitTranslationTables(void);
 void R_InitTranslationColormaps(void);
 boolean R_TranslationColormapExists(INT32 skinnum);
 UINT8* R_GetTranslationColormap(INT32 transnum, skincolornum_t color, UINT8 flags);
-UINT8* R_GetSkinTranslationColormap(INT32 skinnum, skincolors_t color, UINT8 flags);
+UINT8* R_GetSkinTranslationColormap(INT32 skinnum, skincolornum_t color, UINT8 flags);
 void R_FlushTranslationColormapCache(void);
 UINT16 R_GetColorByName(const char *name);
 UINT16 R_GetSuperColorByName(const char *name);
