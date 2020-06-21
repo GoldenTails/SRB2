@@ -2921,6 +2921,7 @@ static void P_ProcessLineSpecial(line_t *line, mobj_t *mo, sector_t *callsec)
 		case 422: // Cut away to another view
 			{
 				mobj_t *altview;
+				INT32 aim;
 
 				if ((!mo || !mo->player) && !titlemapinaction) // only players have views, and title screens
 					return;
@@ -2941,29 +2942,15 @@ static void P_ProcessLineSpecial(line_t *line, mobj_t *mo, sector_t *callsec)
 					P_SetTarget(&mo->player->awayviewmobj, altview);
 					mo->player->awayviewtics = P_AproxDistance(line->dx, line->dy)>>FRACBITS;
 				}
-
-
-				if (line->flags & ML_NOCLIMB) // lets you specify a vertical angle
-				{
-					INT32 aim;
-
-					aim = sides[line->sidenum[0]].textureoffset>>FRACBITS;
-					aim = (aim + 360) % 360;
-					aim *= (ANGLE_90>>8);
-					aim /= 90;
-					aim <<= 8;
-					if (titlemapinaction)
-						titlemapcameraref->cusval = (angle_t)aim;
-					else
-						mo->player->awayviewaiming = (angle_t)aim;
-				}
+				aim = sides[line->sidenum[0]].textureoffset>>FRACBITS;
+				aim = (aim + 360) % 360;
+				aim *= (ANGLE_90>>8);
+				aim /= 90;
+				aim <<= 8;
+				if (titlemapinaction)
+					titlemapcameraref->cusval = (angle_t)aim;
 				else
-				{
-					// straight ahead
-					if (!titlemapinaction)
-						mo->player->awayviewaiming = 0;
-					// don't do cusval cause that's annoying
-				}
+					mo->player->awayviewaiming = (angle_t)aim;
 			}
 			break;
 
