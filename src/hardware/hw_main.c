@@ -3443,7 +3443,8 @@ void HWR_InitTextureMapping(void)
 // sprite translucency effects apply on the rendered view (instead of the background sky!!)
 
 static UINT32 gl_visspritecount;
-static gl_vissprite_t *gl_visspritechunks[MAXVISSPRITES >> VISSPRITECHUNKBITS] = {NULL};
+//static gl_vissprite_t *gl_visspritechunks[MAXVISSPRITES >> VISSPRITECHUNKBITS] = {NULL};
+static gl_vissprite_t *gl_visspritechunks;
 
 // --------------------------------------------------------------------------
 // HWR_ClearSprites
@@ -3451,23 +3452,24 @@ static gl_vissprite_t *gl_visspritechunks[MAXVISSPRITES >> VISSPRITECHUNKBITS] =
 // --------------------------------------------------------------------------
 static void HWR_ClearSprites(void)
 {
+	gl_vissprite_t* gl_tmpvisspritechunks = gl_visspritechunks;
+	Z_Free(gl_tmpvisspritechunks);
+
 	gl_visspritecount = 0;
 }
 
 // --------------------------------------------------------------------------
 // HWR_NewVisSprite
 // --------------------------------------------------------------------------
-static gl_vissprite_t gl_overflowsprite;
-
 static gl_vissprite_t *HWR_GetVisSprite(UINT32 num)
 {
 		UINT32 chunk = num >> VISSPRITECHUNKBITS;
 
 		// Allocate chunk if necessary
-		if (!gl_visspritechunks[chunk])
+		if (!&gl_visspritechunks[chunk])
 			Z_Malloc(sizeof(gl_vissprite_t) * VISSPRITESPERCHUNK, PU_LEVEL, &gl_visspritechunks[chunk]);
 
-		return gl_visspritechunks[chunk] + (num & VISSPRITEINDEXMASK);
+		return &gl_visspritechunks[chunk] + (num & VISSPRITEINDEXMASK);
 }
 
 static gl_vissprite_t *HWR_NewVisSprite(void)

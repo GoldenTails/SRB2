@@ -491,7 +491,10 @@ void R_AddSpriteDefs(UINT16 wadnum)
 //
 UINT32 visspritecount;
 static UINT32 clippedvissprites;
-static vissprite_t *visspritechunks[MAXVISSPRITES >> VISSPRITECHUNKBITS] = {NULL};
+//static vissprite_t *visspritechunks[MAXVISSPRITES >> VISSPRITECHUNKBITS] = {NULL};
+//static vissprite_t *visspritechunks[] = {NULL};
+static vissprite_t *visspriteslist;
+static UINT32 visspriteslist_alloc = 2048; // small reference to original number :)
 
 //
 // R_InitSprites
@@ -547,6 +550,8 @@ void R_InitSprites(void)
 	}
 	ST_ReloadSkinFaceGraphics();
 
+	visspriteslist = Z_Malloc(visspriteslist_alloc * sizeof(vissprite_t), PU_STATIC, NULL);
+
 	//
 	// check if all sprites have frames
 	//
@@ -569,25 +574,28 @@ void R_ClearSprites(void)
 //
 // R_NewVisSprite
 //
-static vissprite_t overflowsprite;
-
 static vissprite_t *R_GetVisSprite(UINT32 num)
 {
-		UINT32 chunk = num >> VISSPRITECHUNKBITS;
-
-		// Allocate chunk if necessary
-		if (!visspritechunks[chunk])
-			Z_Malloc(sizeof(vissprite_t) * VISSPRITESPERCHUNK, PU_LEVEL, &visspritechunks[chunk]);
-
-		return visspritechunks[chunk] + (num & VISSPRITEINDEXMASK);
+	vissprite_t *vissprite = &visspriteslist[num];
+	return vissprite;
 }
 
 static vissprite_t *R_NewVisSprite(void)
 {
-	if (visspritecount == MAXVISSPRITES)
-		return &overflowsprite;
+	vissprite_t *vissprite;
 
-	return R_GetVisSprite(visspritecount++);
+	if (visspritecount == visspriteslist_alloc) {
+		visspriteslist_alloc *= 2;
+		visspriteslist = Z_Realloc(visspriteslist, visspriteslist_alloc * sizeof(vissprite_t), PU_STATIC, NULL);
+	}
+
+	//CONS_Printf("%s%d\n", "visspriteslist length: ", visspritecount);
+
+	memset(&visspriteslist[++visspritecount], 0, sizeof(vissprite_t));
+
+	vissprite = &visspriteslist[visspritecount];
+
+	return vissprite;
 }
 
 //
