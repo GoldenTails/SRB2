@@ -550,8 +550,6 @@ void R_InitSprites(void)
 	}
 	ST_ReloadSkinFaceGraphics();
 
-	visspriteslist = Z_Malloc(visspriteslist_alloc * sizeof(vissprite_t), PU_STATIC, NULL);
-
 	//
 	// check if all sprites have frames
 	//
@@ -569,6 +567,7 @@ void R_InitSprites(void)
 void R_ClearSprites(void)
 {
 	visspritecount = clippedvissprites = 0;
+	visspriteslist = Z_Malloc(visspriteslist_alloc * sizeof(vissprite_t), PU_PATCH, NULL);
 }
 
 //
@@ -576,7 +575,13 @@ void R_ClearSprites(void)
 //
 static vissprite_t *R_GetVisSprite(UINT32 num)
 {
-	vissprite_t *vissprite = &visspriteslist[num];
+	vissprite_t *vissprite;
+
+	if (num > visspritecount)
+		I_Error("wow you fucking did it");
+
+	vissprite = &visspriteslist[num];
+
 	return vissprite;
 }
 
@@ -586,7 +591,7 @@ static vissprite_t *R_NewVisSprite(void)
 
 	if (visspritecount == visspriteslist_alloc) {
 		visspriteslist_alloc *= 2;
-		visspriteslist = Z_Realloc(visspriteslist, visspriteslist_alloc * sizeof(vissprite_t), PU_STATIC, NULL);
+		visspriteslist = Z_Realloc(visspriteslist, visspriteslist_alloc * sizeof(vissprite_t), PU_PATCH, NULL);
 	}
 
 	//CONS_Printf("%s%d\n", "visspriteslist length: ", visspritecount);

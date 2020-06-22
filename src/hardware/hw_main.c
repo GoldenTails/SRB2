@@ -3443,8 +3443,8 @@ void HWR_InitTextureMapping(void)
 // sprite translucency effects apply on the rendered view (instead of the background sky!!)
 
 static UINT32 gl_visspritecount;
-//static gl_vissprite_t *gl_visspritechunks[MAXVISSPRITES >> VISSPRITECHUNKBITS] = {NULL};
-static gl_vissprite_t *gl_visspritechunks;
+static gl_vissprite_t *gl_visspriteslist;
+static UINT32 gl_visspriteslist_alloc = 2048; // small reference to original number :)
 
 // --------------------------------------------------------------------------
 // HWR_ClearSprites
@@ -3452,10 +3452,8 @@ static gl_vissprite_t *gl_visspritechunks;
 // --------------------------------------------------------------------------
 static void HWR_ClearSprites(void)
 {
-	gl_vissprite_t* gl_tmpvisspritechunks = gl_visspritechunks;
-	Z_Free(gl_tmpvisspritechunks);
-
 	gl_visspritecount = 0;
+	gl_visspriteslist = Z_Malloc(gl_visspriteslist_alloc * sizeof(gl_vissprite_t), PU_PATCH, NULL);
 }
 
 // --------------------------------------------------------------------------
@@ -3463,21 +3461,26 @@ static void HWR_ClearSprites(void)
 // --------------------------------------------------------------------------
 static gl_vissprite_t *HWR_GetVisSprite(UINT32 num)
 {
-		UINT32 chunk = num >> VISSPRITECHUNKBITS;
-
-		// Allocate chunk if necessary
-		if (!&gl_visspritechunks[chunk])
-			Z_Malloc(sizeof(gl_vissprite_t) * VISSPRITESPERCHUNK, PU_LEVEL, &gl_visspritechunks[chunk]);
-
-		return &gl_visspritechunks[chunk] + (num & VISSPRITEINDEXMASK);
+	gl_vissprite_t *gl_vissprite = &gl_visspriteslist[num];
+	return gl_vissprite;
 }
 
 static gl_vissprite_t *HWR_NewVisSprite(void)
 {
-	if (gl_visspritecount == MAXVISSPRITES)
-		return &gl_overflowsprite;
+	gl_vissprite_t *gl_vissprite;
 
-	return HWR_GetVisSprite(gl_visspritecount++);
+	if (gl_visspritecount == gl_visspriteslist_alloc) {
+		gl_visspriteslist_alloc *= 2;
+		gl_visspriteslist = Z_Realloc(gl_visspriteslist, gl_visspriteslist_alloc * sizeof(gl_vissprite_t), PU_PATCH, NULL);
+	}
+
+	//CONS_Printf("%s%d\n", "gl_visspriteslist length: ", gl_visspritecount);
+
+	memset(&gl_visspriteslist[++gl_visspritecount], 0, sizeof(gl_vissprite_t));
+
+	gl_vissprite = &gl_visspriteslist[gl_visspritecount];
+
+	return gl_vissprite;
 }
 
 // A hack solution for transparent surfaces appearing on top of linkdraw sprites.
