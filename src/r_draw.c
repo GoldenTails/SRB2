@@ -227,12 +227,12 @@ void R_InitTranslationColormaps(void)
 	// was too lazy to assimilate the for loops into the above one
 
 	for (int i = 0; i < 6; i++)
-		metalsonicmap->palettemap[Color_Index[SKINCOLOR_BLUE-1][12-i]] = Color_Index[SKINCOLOR_BLUE-1][i];
+		metalsonicmap->palettemap[skincolors[SKINCOLOR_BLUE].ramp[12-i]] = skincolors[SKINCOLOR_BLUE].ramp[i];
 
 	metalsonicmap->palettemap[159] = metalsonicmap->palettemap[253] = metalsonicmap->palettemap[254] = 0;
 
 	for (int i = 0; i < 16; i++)
-		metalsonicmap->palettemap[96+i] = metalsonicmap->palettemap[Color_Index[SKINCOLOR_COBALT-1][i]];
+		metalsonicmap->palettemap[96+i] = metalsonicmap->palettemap[skincolors[SKINCOLOR_COBALT].ramp[i]];
 
 	// TC_DASHMODE
 
@@ -269,7 +269,9 @@ void R_InitTranslationColormaps(void)
 	dashmodemap->palettemap[174] = 45;
 	dashmodemap->palettemap[175] = 47;
 
-	maxtranscolormap = TC_FIRSTFREESLOT - 1;
+	maxtranscolormap = TC_FIRSTFREESLOT - MAXSKINS - 1;
+
+	printf("%s%d\n", "maxtranscolormap: ", maxtranscolormap);
 }
 
 // Define for getting accurate color brightness readings according to how the human eye sees them.
@@ -346,7 +348,7 @@ static void R_CustomColormap(UINT8 *dest_colormap, INT32 skinnum, UINT8 skincolo
 	// first generate the brightness of all the colours of that skincolour
 	for (i = 0; i < 16; i++)
 	{
-		color = V_GetColor(Color_Index[skincolor-1][i]);
+		color = V_GetColor(skincolors[skincolor].ramp[i]);
 		SETBRIGHTNESS(colorbrightnesses[i], color.s.red, color.s.green, color.s.blue);
 	}
 
@@ -376,7 +378,7 @@ static void R_CustomColormap(UINT8 *dest_colormap, INT32 skinnum, UINT8 skincolo
 			if (temp < brightdif)
 			{
 				brightdif = (UINT16)temp;
-				dest_colormap[i] = Color_Index[skincolor-1][j];
+				dest_colormap[i] = skincolors[skincolor].ramp[j];
 			}
 		}
 	}
@@ -402,9 +404,9 @@ static void R_GenerateTranslationColormap(UINT8 *dest_colormap, INT32 skinnum, U
 		// Not even gonna attempt to make this possible via user input
 		// If some brave soul decides they want to attempt this, be my guest.
 		if (skinnum == TC_BLINK) {
-			memset(dest_colormap, Color_Index[color-1][3], NUM_PALETTE_ENTRIES * sizeof(UINT8));
+			memset(dest_colormap, skincolors[color].ramp[3], NUM_PALETTE_ENTRIES * sizeof(UINT8));
 		} else {
-			if (color >= MAXTRANSLATIONS)
+			if (color >= numskincolors)
 				I_Error("Invalid skin color #%hu.", (UINT16)color);
 			R_CustomColormap(dest_colormap, skinnum, color);
 		}
@@ -455,7 +457,7 @@ static void R_GenerateSkinTranslationColormap(UINT8 *dest_colormap, INT32 skinnu
 		return;
 	}
 
-	if (color >= MAXTRANSLATIONS)
+	if (color >= numskincolors)
 		I_Error("Invalid skin color #%hu.", (UINT16)color);
 
 	//starttranscolor = (skinnum != TC_DEFAULT) ? skins[skinnum].starttranscolor : DEFAULT_STARTTRANSCOLOR;
@@ -480,11 +482,27 @@ static void R_GenerateSkinTranslationColormap(UINT8 *dest_colormap, INT32 skinnu
 
 	// Build the translated ramp
 	for (i = 0; i < skinramplength; i++)
-		dest_colormap[starttranscolor + i] = (UINT8)Color_Index[color-1][i];
+		dest_colormap[starttranscolor + i] = (UINT8)skincolors[color].ramp[i];
+}
+
+transcolormap_t* R_NewTranslationColormap(void)
+{
+	transcolormap_t* colormap;
+
+	I_Assert(maxtranscolormap < MAXCOLORMAP - MAXSKINS);
+
+	colormap = &transcolormaps[++maxtranscolormap];
+	memset(colormap->palettemap, 0, sizeof(colormap->palettemap));
+	memset(colormap->useskincolor, 0, sizeof(colormap->useskincolor));
+
+	printf("%s%d%s\n", "Transcolormap ", maxtranscolormap, " created!");
+
+	return colormap;
 }
 
 boolean R_TranslationColormapExists(INT32 skinnum)
 {
+	printf("-- %d, %d\n", skinnum, maxtranscolormap);
 	return skinnum <= maxtranscolormap;
 }
 
@@ -539,7 +557,7 @@ UINT8* R_GetTranslationColormap(INT32 transnum, skincolornum_t color, UINT8 flag
 	return ret;
 }
 
-UINT8* R_GetSkinTranslationColormap(INT32 skinnum, skincolors_t color, UINT8 flags)
+UINT8* R_GetSkinTranslationColormap(INT32 skinnum, skincolornum_t color, UINT8 flags)
 {
 	UINT8* ret;
 
@@ -548,7 +566,7 @@ UINT8* R_GetSkinTranslationColormap(INT32 skinnum, skincolors_t color, UINT8 fla
 
 		// Allocate table for skin if necessary
 		if (!translationtablecache[skinnum])
-			translationtablecache[skinnum] = Z_Calloc(MAXTRANSLATIONS * sizeof(UINT8**), PU_STATIC, NULL);
+			translationtablecache[skinnum] = Z_Calloc(MAXSKINCOLORS * sizeof(UINT8**), PU_STATIC, NULL);
 
 		// Get colormap
 		ret = translationtablecache[skinnum][color];

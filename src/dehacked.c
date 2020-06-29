@@ -10113,6 +10113,9 @@ struct {
 	{"MA_NOCUTSCENES",MA_NOCUTSCENES},
 	{"MA_INGAME",MA_INGAME},
 
+	// transcolormap flags
+	{"TCF_USESKINCOLOR", TCF_USESKINCOLOR},
+
 	{NULL,0}
 };
 
@@ -10751,9 +10754,10 @@ static inline int lib_freeslot(lua_State *L)
 				}
 			if (i == NUMCOLORFREESLOTS)
 				CONS_Alert(CONS_WARNING, "Ran out of free skincolor slots!\n");
+		}
 		else if (fastcmp(type, "TC"))
 		{
-			mobjtype_t i;
+			colormapnum_t i;
 			for (i = 0; i < NUMCOLORMAPFREESLOTS; i++)
 				if (!FREE_TRANS_COLORMAPS[i]) {
 					CONS_Printf("Colormap TC_%s allocated.\n",word);
@@ -10763,7 +10767,7 @@ static inline int lib_freeslot(lua_State *L)
 					r++;
 					break;
 				}
-			if (i == NUMMOBJFREESLOTS)
+			if (i == NUMCOLORMAPFREESLOTS)
 				CONS_Alert(CONS_WARNING, "Ran out of free colormap slots!\n");
 		}
 		else if (fastcmp(type, "SPR2"))

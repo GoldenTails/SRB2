@@ -13,6 +13,7 @@
 #include "doomdef.h"
 #include "fastcmp.h"
 #include "r_defs.h"
+#include "r_draw.h" // TCF_USESKINCOLOR
 #include "r_local.h"
 #include "st_stuff.h" // hudinfo[]
 #include "g_game.h"
@@ -294,19 +295,73 @@ static int hudinfo_num(lua_State *L)
 static int lib_getTransColormap(lua_State *L)
 {
 	UINT32 i;
+	transcolormap_t *transcolormap;
+
+	if (!hud_running)
+		return luaL_error(L, "transcolormaps[] should not be accessed outside of rendering hooks!");
+
 	lua_remove(L, 1);
 
 	i = luaL_checkinteger(L, 1);
+	i = -i - 1;
+
 	if (i >= MAXCOLORMAP)
-		return luaL_error(L, "states[] index %d out of range (0 - %d)", i, MAXCOLORMAP-1);
-	LUA_PushUserdata(L, &transcolormaps[i], META_TRANSCOLORMAP);
+		return luaL_error(L, "transcolormaps[] index %d out of range (%d - -1)", -(i + 1), -MAXCOLORMAP);
+
+	if (!R_TranslationColormapExists(i))
+		transcolormap = R_NewTranslationColormap();
+	else
+		transcolormap = &transcolormaps[i];
+
+	LUA_PushUserdata(L, transcolormap, META_TRANSCOLORMAP);
 	return 1;
+}
+
+// stack: dummy, transcolormaps[] table index, table of values to set.
+static int lib_setTransColormap(lua_State *L)
+{
+	UINT32 i;
+	transcolormap_t *transcolormap;
+
+	if (!hud_running)
+		return luaL_error(L, "transcolormaps[] should not be accessed outside of rendering hooks!");
+
+	lua_remove(L, 1);
+
+	i = luaL_checkinteger(L, 1);
+	i = -i - 1;
+
+	if (i >= MAXCOLORMAP)
+		return luaL_error(L, "transcolormaps[] index %d out of range (%d - -1)", -(i + 1), -MAXCOLORMAP);
+
+	if (!R_TranslationColormapExists(i))
+		transcolormap = R_NewTranslationColormap();
+	else
+		transcolormap = &transcolormaps[i];
+
+	luaL_checktype(L, 3, LUA_TTABLE);
+
+	for (int array_index = 0; array_index < 255; array_index++)
+	{
+		lua_rawgeti(L, 3, array_index+1);
+		if (!lua_isnil(L, -1)) {
+			UINT16 value = (UINT16)luaL_checkinteger(L, -1);
+
+			if (value & TCF_USESKINCOLOR)
+				transcolormap->useskincolor[array_index] = true;
+			else
+				transcolormap->useskincolor[array_index] = false;
+
+			transcolormap->palettemap[array_index] = (UINT8)value;
+		}
+		lua_pop(L, 1);
+	}
 }
 
 /*// stack: dummy, transcolormaps[] table index, table of values to set.
 static int lib_setTransColormap(lua_State *L)
 {
-	sfxinfo_t *info;
+	transcolormap_t *info;
 
 	lua_remove(L, 1);
 	{
@@ -374,8 +429,8 @@ static int lib_setTransColormap(lua_State *L)
 	}
 
 	return 0;
-}
-*/
+}*/
+
 static int colormap_get(lua_State *L)
 {
 	UINT8 *colormap = *((UINT8 **)luaL_checkudata(L, 1, META_COLORMAP));
@@ -398,25 +453,31 @@ static int colormap_set(lua_State *L)
 
 static int transcolormap_get(lua_State *L) {
 	transcolormap_t *transcolormap = *((transcolormap_t **)luaL_checkudata(L, 1, META_TRANSCOLORMAP));
-	enum transcolormapt field = luaL_checkoption(L, 2, NULL, transcolormap_opt);
-	I_Assert(transcolormap != NULL); // transcolormaps are always valid
-
-	switch(field)
-	{
-	// For some reason, using LUA_PushUserdata causes transcolormap->palettemap to point
-	// to transcolormap; but only in Lua...?
-	case transcolormap_palettemap:
-		LUA_PushUserdata(L, transcolormap->palettemap, META_PALETTEMAP);
-		break;
-	case transcolormap_useskincolor:
-		LUA_PushUserdata(L, transcolormap->useskincolor, META_USESKINCOLOR);
-		break;
-	}
+	UINT32 i = luaL_checkinteger(L, 2);
+	UINT16 value;
+	if (i >= 256)
+		return luaL_error(L, "transcolormap index %d out of range (0 - %d)", i, 255);
+	value = transcolormap->palettemap[i];
+	if (transcolormap->useskincolor[i])
+		value |= TCF_USESKINCOLOR;
+	lua_pushinteger(L, value);
 	return 1;
 }
 
 static int transcolormap_set(lua_State *L) {
 	transcolormap_t *transcolormap = *((transcolormap_t **)luaL_checkudata(L, 1, META_TRANSCOLORMAP));
+	UINT32 i = luaL_checkinteger(L, 2);
+	UINT16 value;
+	if (i >= 256)
+		return luaL_error(L, "transcolormap index %d out of range (0 - %d)", i, 255);
+	value = (UINT16)luaL_checkinteger(L, 3);
+	if (value & TCF_USESKINCOLOR)
+		transcolormap->useskincolor[i] = true;
+	else
+		transcolormap->useskincolor[i] = false;
+	transcolormap->palettemap[i] = (UINT8)value;
+	return 0;
+	/*transcolormap_t *transcolormap = *((transcolormap_t **)luaL_checkudata(L, 1, META_TRANSCOLORMAP));
 	enum transcolormapt field = luaL_checkoption(L, 2, NULL, transcolormap_opt);
 	I_Assert(transcolormap != NULL); // transcolormaps are always valid
 
@@ -461,14 +522,14 @@ static int transcolormap_set(lua_State *L) {
 
 		break;
 	}
-	return 0;
-}
+	return 0;*/
+}/*
 
 static int palettemap_get(lua_State *L)
 {
-	printf("%s\n", "palettemap access!");
 	UINT8 *palettemap = *((UINT8 **)luaL_checkudata(L, 1, META_PALETTEMAP));
 	UINT32 i = luaL_checkinteger(L, 2);
+	printf("%s\n", "palettemap access!");
 	if (i >= 256)
 		return luaL_error(L, "transcolormap_t.palettemap index %d out of range (0 - %d)", i, 255);
 	lua_pushinteger(L, palettemap[i]);
@@ -503,7 +564,7 @@ static int useskincolor_set(lua_State *L)
 		return luaL_error(L, "transcolormap_t.useskincolor index %d out of range (0 - %d)", i, 255);
 	useskincolor[i] = luaL_checkboolean(L, 3);
 	return 0;
-}
+}*/
 
 static int patch_get(lua_State *L)
 {
@@ -1192,14 +1253,16 @@ static int libd_getColormap(lua_State *L)
 	{
 		luaskinnum = skinnum = (INT32)luaL_checkinteger(L, 1);
 
-		if (skinnum <= -(MAXCOLORMAP - MAXSKINS) || skinnum >= MAXSKINS)
-			return luaL_error(L, "skin number %d is out of range (%d - %d)", skinnum, -(MAXCOLORMAP - MAXSKINS)+1, MAXSKINS-1);
-
 		if (skinnum < 0)
-			skinnum = -skinnum + MAXSKINS - 1;
+			skinnum = (-skinnum - 1) + MAXSKINS;
 
-		if (!R_TranslationColormapExists(skinnum))
+		if (skinnum < MAXSKINS || skinnum > MAXCOLORMAP - MAXSKINS)
+			return luaL_error(L, "skin number %d is out of range (%d - -1)", luaskinnum, -(MAXCOLORMAP - MAXSKINS)+1);
+
+		printf("%d, %d\n", luaskinnum, skinnum - MAXSKINS);
+		if (!R_TranslationColormapExists(skinnum - MAXSKINS)) {
 			return luaL_error(L, "Colormap %d doesn't exist! Create a colormap first!", luaskinnum);
+		}
 
 		//printf("%s\n", "successful/");
 	}
@@ -1519,7 +1582,7 @@ int LUA_HudLib(lua_State *L)
 		lua_setmetatable(L, -2);
 	lua_setglobal(L, "hudinfo");
 
-	/*lua_newuserdata(L, 0);
+	lua_newuserdata(L, 0);
 		lua_createtable(L, 0, 2);
 			lua_pushcfunction(L, lib_getTransColormap);
 			lua_setfield(L, -2, "__index");
@@ -1527,11 +1590,11 @@ int LUA_HudLib(lua_State *L)
 			lua_pushcfunction(L, lib_setTransColormap);
 			lua_setfield(L, -2, "__newindex");
 
-			lua_pushcfunction(L, lib_sfxlen);
-			lua_setfield(L, -2, "__len");
+			//lua_pushcfunction(L, lib_sfxlen);
+			//lua_setfield(L, -2, "__len");
 		lua_setmetatable(L, -2);
 	lua_pushvalue(L, -1);
-	lua_setglobal(L, "transcolormaps");*/
+	lua_setglobal(L, "transcolormaps");
 
 	luaL_newmetatable(L, META_COLORMAP);
 		lua_pushcfunction(L, colormap_get);
@@ -1547,7 +1610,7 @@ int LUA_HudLib(lua_State *L)
 
 		lua_pushcfunction(L, transcolormap_set);
 		lua_setfield(L, -2, "__newindex");
-	lua_pop(L,1);
+	lua_pop(L,1);/*
 
 	luaL_newmetatable(L, META_PALETTEMAP);
 		lua_pushcfunction(L, palettemap_get);
@@ -1563,7 +1626,7 @@ int LUA_HudLib(lua_State *L)
 
 		lua_pushcfunction(L, useskincolor_set);
 		lua_setfield(L, -2, "__newindex");
-	lua_pop(L,1);
+	lua_pop(L,1);*/
 
 	luaL_newmetatable(L, META_PATCH);
 		lua_pushcfunction(L, patch_get);

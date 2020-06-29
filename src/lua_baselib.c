@@ -194,8 +194,8 @@ static const struct {
 	{META_CAMERA,       "camera_t"},
 
 	{META_TRANSCOLORMAP,"transcolormap_t"},
-	{META_PALETTEMAP,   "transcolormap_t.palettemap"},
-	{META_USESKINCOLOR, "transcolormap_t.useskincolor"},
+	/*{META_PALETTEMAP,   "transcolormap_t.palettemap"},
+	{META_USESKINCOLOR, "transcolormap_t.useskincolor"},*/
 
 	{META_ACTION,       "action"},
 
