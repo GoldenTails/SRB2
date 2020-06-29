@@ -180,26 +180,47 @@ void R_InitTranslationColormaps(void)
 	transcolormap_t *dashmodemap = &transcolormaps[TC_DASHMODE - MAXSKINS];
 	transcolormap_t *custommap = &transcolormaps[TC_CUSTOM - MAXSKINS];
 
-	*defaultmap->palettemap = malloc(sizeof(defaultmap->palettemap));
-	*bossmap->palettemap = malloc(sizeof(bossmap->palettemap));
-	*metalsonicmap->palettemap = malloc(sizeof(metalsonicmap->palettemap));
-	*allwhitemap->palettemap = malloc(sizeof(allwhitemap->palettemap));
-	*rainbowmap->palettemap = malloc(sizeof(rainbowmap->palettemap));
-	*blinkmap->palettemap = malloc(sizeof(blinkmap->palettemap));
-	*dashmodemap->palettemap = malloc(sizeof(dashmodemap->palettemap));
-	*custommap->palettemap = malloc(sizeof(custommap->palettemap));
+	*defaultmap->palettemap = Z_Malloc(sizeof(defaultmap->palettemap), PU_STATIC, NULL);
+	*bossmap->palettemap = Z_Malloc(sizeof(bossmap->palettemap), PU_STATIC, NULL);
+	*metalsonicmap->palettemap = Z_Malloc(sizeof(metalsonicmap->palettemap), PU_STATIC, NULL);
+	*allwhitemap->palettemap = Z_Malloc(sizeof(allwhitemap->palettemap), PU_STATIC, NULL);
+	*rainbowmap->palettemap = Z_Malloc(sizeof(rainbowmap->palettemap), PU_STATIC, NULL);
+	*blinkmap->palettemap = Z_Malloc(sizeof(blinkmap->palettemap), PU_STATIC, NULL);
+	*dashmodemap->palettemap = Z_Malloc(sizeof(dashmodemap->palettemap), PU_STATIC, NULL);
+	*custommap->palettemap = Z_Malloc(sizeof(custommap->palettemap), PU_STATIC, NULL);
 
-	*defaultmap->useskincolor = malloc(sizeof(defaultmap->useskincolor));
-	*bossmap->useskincolor = malloc(sizeof(bossmap->useskincolor));
-	*metalsonicmap->useskincolor = malloc(sizeof(metalsonicmap->useskincolor));
-	*allwhitemap->useskincolor = malloc(sizeof(allwhitemap->useskincolor));
-	*rainbowmap->useskincolor = malloc(sizeof(rainbowmap->useskincolor));
-	*blinkmap->useskincolor = malloc(sizeof(blinkmap->useskincolor));
-	*dashmodemap->useskincolor = malloc(sizeof(dashmodemap->useskincolor));
-	*custommap->useskincolor = malloc(sizeof(custommap->useskincolor));
+	printf("%d\n", sizeof(defaultmap->palettemap) / sizeof(UINT8 *));
+
+	memset(defaultmap->palettemap, 0, sizeof(defaultmap->palettemap));
+	memset(bossmap->palettemap, 0, sizeof(bossmap->palettemap));
+	memset(metalsonicmap->palettemap, 0, sizeof(metalsonicmap->palettemap));
+	memset(allwhitemap->palettemap, 0, sizeof(allwhitemap->palettemap));
+	memset(rainbowmap->palettemap, 0, sizeof(rainbowmap->palettemap));
+	memset(blinkmap->palettemap, 0, sizeof(blinkmap->palettemap));
+	memset(dashmodemap->palettemap, 0, sizeof(dashmodemap->palettemap));
+	memset(custommap->palettemap, 0, sizeof(custommap->palettemap));
+
+	*defaultmap->useskincolor = Z_Malloc(sizeof(defaultmap->useskincolor), PU_STATIC, NULL);
+	*bossmap->useskincolor = Z_Malloc(sizeof(bossmap->useskincolor), PU_STATIC, NULL);
+	*metalsonicmap->useskincolor = Z_Malloc(sizeof(metalsonicmap->useskincolor), PU_STATIC, NULL);
+	*allwhitemap->useskincolor = Z_Malloc(sizeof(allwhitemap->useskincolor), PU_STATIC, NULL);
+	*rainbowmap->useskincolor = Z_Malloc(sizeof(rainbowmap->useskincolor), PU_STATIC, NULL);
+	*blinkmap->useskincolor = Z_Malloc(sizeof(blinkmap->useskincolor), PU_STATIC, NULL);
+	*dashmodemap->useskincolor = Z_Malloc(sizeof(dashmodemap->useskincolor), PU_STATIC, NULL);
+	*custommap->useskincolor = Z_Malloc(sizeof(custommap->useskincolor), PU_STATIC, NULL);
+
+	memset(defaultmap->useskincolor, 0, sizeof(defaultmap->useskincolor));
+	memset(bossmap->useskincolor, 0, sizeof(bossmap->useskincolor));
+	memset(metalsonicmap->useskincolor, 0, sizeof(metalsonicmap->useskincolor));
+	memset(allwhitemap->useskincolor, 0, sizeof(allwhitemap->useskincolor));
+	memset(rainbowmap->useskincolor, 0, sizeof(rainbowmap->useskincolor));
+	memset(blinkmap->useskincolor, 0, sizeof(blinkmap->useskincolor));
+	memset(dashmodemap->useskincolor, 0, sizeof(dashmodemap->useskincolor));
+	memset(custommap->useskincolor, 0, sizeof(custommap->useskincolor));
 
 	CONS_Printf("R_InitTranslationColormaps()...\n");
-	CONS_Printf(va("%d\n", defaultmap->palettemap[NUM_PALETTE_ENTRIES-1]));
+	CONS_Printf("%d\n", *defaultmap->palettemap[0]);
+	CONS_Printf("%d\n", *defaultmap->palettemap[1]);
 
 	// Generate the transcolormaps
 	for (int i = 0; i < NUM_PALETTE_ENTRIES; i++)
@@ -303,51 +324,6 @@ void R_InitTranslationColormaps(void)
 // (See this same define in hw_md2.c!)
 #define SETBRIGHTNESS(brightness,r,g,b) \
 	brightness = (UINT8)(((1063*((UINT16)r)/5000) + (3576*((UINT16)g)/5000) + (361*((UINT16)b)/5000)) / 3)
-
-/** \brief	Generates the rainbow colourmaps that are used when a player has the invincibility power... stolen from kart, with permission
-
-	\param	dest_colormap	colormap to populate
-	\param	skincolor		translation color
-*/
-static void R_RainbowColormap(UINT8 *dest_colormap, UINT16 skincolor)
-{
-	INT32 i;
-	RGBA_t color;
-	UINT8 brightness;
-	INT32 j;
-	UINT8 colorbrightnesses[16];
-	UINT16 brightdif;
-	INT32 temp;
-
-	// first generate the brightness of all the colours of that skincolour
-	for (i = 0; i < 16; i++)
-	{
-		color = V_GetColor(skincolors[skincolor].ramp[i]);
-		SETBRIGHTNESS(colorbrightnesses[i], color.s.red, color.s.green, color.s.blue);
-	}
-
-	// next, for every colour in the palette, choose the transcolor that has the closest brightness
-	for (i = 0; i < NUM_PALETTE_ENTRIES; i++)
-	{
-		if (i == 0 || i == 31) // pure black and pure white don't change
-		{
-			dest_colormap[i] = (UINT8)i;
-			continue;
-		}
-		color = V_GetColor(i);
-		SETBRIGHTNESS(brightness, color.s.red, color.s.green, color.s.blue);
-		brightdif = 256;
-		for (j = 0; j < 16; j++)
-		{
-			temp = abs((INT16)brightness - (INT16)colorbrightnesses[j]);
-			if (temp < brightdif)
-			{
-				brightdif = (UINT16)temp;
-				dest_colormap[i] = skincolors[skincolor].ramp[j];
-			}
-		}
-	}
-}
 
 /** \brief	Generates a colormap with a palette mapping and skincolor mapping array. Based off of R_RainbowColormap.
 
