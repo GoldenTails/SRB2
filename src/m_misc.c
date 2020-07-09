@@ -982,8 +982,10 @@ static inline boolean M_PNGLib(void)
 static void M_PNGFrame(png_structp png_ptr, png_infop png_info_ptr, png_bytep png_buf)
 {
 	png_uint_32 pitch = png_get_rowbytes(png_ptr, png_info_ptr);
-	PNG_CONST png_uint_32 height = vid.height;
+	PNG_CONST png_uint_32 height = vid.height / 2;
+	PNG_CONST png_uint_32 width = vid.width / 2;
 	png_bytepp row_pointers = png_malloc(png_ptr, height* sizeof (png_bytep));
+	png_uint_32 x;
 	png_uint_32 y;
 	png_uint_16 framedelay = (png_uint_16)cv_apng_delay.value;
 
@@ -991,15 +993,23 @@ static void M_PNGFrame(png_structp png_ptr, png_infop png_info_ptr, png_bytep pn
 
 	for (y = 0; y < height; y++)
 	{
+		for (x = 0; x < width; x++) {
+			png_byte *color = &(row_pointers[y][x]);
+			png_byte *ptr = &(png_buf[x * 3 * 2]);
+			
+			printf("[%d, %d]: (%d, %d, %d)\n", x, y, ptr[0], ptr[1], ptr[2]);
+			memcpy(color, ptr, 3);
+		}
+
 		row_pointers[y] = png_buf;
-		png_buf += pitch;
+		png_buf += pitch * 2;
 	}
 
 #ifndef PNG_STATIC
 	if (aPNG_write_frame_head)
 #endif
 		aPNG_write_frame_head(apng_ptr, apng_info_ptr, row_pointers,
-			vid.width, /* width */
+			width, /* width */
 			height,    /* height */
 			0,         /* x offset */
 			0,         /* y offset */
@@ -1080,7 +1090,7 @@ static boolean M_SetupaPNG(png_const_charp filename, png_bytep pal)
 	png_set_compression_strategy(apng_ptr, cv_zlib_strategya.value);
 	png_set_compression_window_bits(apng_ptr, cv_zlib_window_bitsa.value);
 
-	M_PNGhdr(apng_ptr, apng_info_ptr, vid.width, vid.height, pal);
+	M_PNGhdr(apng_ptr, apng_info_ptr, vid.width / 2, vid.height / 2, pal);
 
 	M_PNGText(apng_ptr, apng_info_ptr, true);
 
