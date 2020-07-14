@@ -97,6 +97,7 @@ void R_DrawMasked(maskcount_t* masks, UINT8 nummasks);
 // ----------
 
 // number of sprite lumps for spritewidth,offset,topoffset lookup tables
+#define MAXVISSPRITES 2048
 #define VISSPRITECHUNKBITS 6	// 2^6 = 64 sprites per chunk
 #define VISSPRITESPERCHUNK (1 << VISSPRITECHUNKBITS)
 #define VISSPRITEINDEXMASK (VISSPRITESPERCHUNK - 1)

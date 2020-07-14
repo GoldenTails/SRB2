@@ -3444,7 +3444,7 @@ void HWR_InitTextureMapping(void)
 
 static UINT32 gl_visspritecount;
 static gl_vissprite_t *gl_visspriteslist;
-static UINT32 gl_visspriteslist_alloc = 2048; // small reference to original number :)
+static UINT32 gl_maxvissprites = 2048; // small reference to original number :)
 
 // --------------------------------------------------------------------------
 // HWR_ClearSprites
@@ -3453,7 +3453,7 @@ static UINT32 gl_visspriteslist_alloc = 2048; // small reference to original num
 static void HWR_ClearSprites(void)
 {
 	gl_visspritecount = 0;
-	gl_visspriteslist = Z_Malloc(gl_visspriteslist_alloc * sizeof(gl_vissprite_t), PU_PATCH, NULL);
+	gl_visspriteslist = Z_Malloc(gl_maxvissprites * sizeof(gl_vissprite_t), PU_STATIC, NULL);
 }
 
 // --------------------------------------------------------------------------
@@ -3469,9 +3469,9 @@ static gl_vissprite_t *HWR_NewVisSprite(void)
 {
 	gl_vissprite_t *gl_vissprite;
 
-	if (gl_visspritecount == gl_visspriteslist_alloc) {
-		gl_visspriteslist_alloc *= 2;
-		gl_visspriteslist = Z_Realloc(gl_visspriteslist, gl_visspriteslist_alloc * sizeof(gl_vissprite_t), PU_PATCH, NULL);
+	if (gl_visspritecount == gl_maxvissprites - 1) {
+		gl_maxvissprites *= 2;
+		gl_visspriteslist = Z_Realloc(gl_visspriteslist, gl_maxvissprites * sizeof(gl_vissprite_t), PU_STATIC, NULL);
 	}
 
 	//CONS_Printf("%s%d\n", "gl_visspriteslist length: ", gl_visspritecount);

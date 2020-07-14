@@ -494,7 +494,7 @@ static UINT32 clippedvissprites;
 //static vissprite_t *visspritechunks[MAXVISSPRITES >> VISSPRITECHUNKBITS] = {NULL};
 //static vissprite_t *visspritechunks[] = {NULL};
 static vissprite_t *visspriteslist;
-static UINT32 visspriteslist_alloc = 2048; // small reference to original number :)
+static UINT32 maxvissprites = 2048; // small reference to original number :)
 
 //
 // R_InitSprites
@@ -567,7 +567,7 @@ void R_InitSprites(void)
 void R_ClearSprites(void)
 {
 	visspritecount = clippedvissprites = 0;
-	visspriteslist = Z_Malloc(visspriteslist_alloc * sizeof(vissprite_t), PU_PATCH, NULL);
+	visspriteslist = Z_Malloc(maxvissprites * sizeof(vissprite_t), PU_STATIC, NULL);
 }
 
 //
@@ -589,12 +589,10 @@ static vissprite_t *R_NewVisSprite(void)
 {
 	vissprite_t *vissprite;
 
-	if (visspritecount == visspriteslist_alloc) {
-		visspriteslist_alloc *= 2;
-		visspriteslist = Z_Realloc(visspriteslist, visspriteslist_alloc * sizeof(vissprite_t), PU_PATCH, NULL);
+	if (visspritecount == maxvissprites - 1) {
+		maxvissprites *= 2;
+		visspriteslist = Z_Realloc(visspriteslist, maxvissprites * sizeof(vissprite_t), PU_STATIC, NULL);
 	}
-
-	//CONS_Printf("%s%d\n", "visspriteslist length: ", visspritecount);
 
 	memset(&visspriteslist[++visspritecount], 0, sizeof(vissprite_t));
 
