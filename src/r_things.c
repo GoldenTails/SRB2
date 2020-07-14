@@ -508,7 +508,8 @@ void R_AddSpriteDefs(UINT16 wadnum)
 //
 UINT32 visspritecount;
 static UINT32 clippedvissprites;
-static vissprite_t *visspritechunks[MAXVISSPRITES >> VISSPRITECHUNKBITS] = {NULL};
+static vissprite_t *vissprites = NULL;
+static UINT32 maxvissprites = MAXVISSPRITES; // small reference to original number :)
 
 //
 // R_InitSprites
@@ -544,7 +545,7 @@ void R_InitSprites(void)
 	if (!numsprites)
 		I_Error("R_AddSpriteDefs: no sprites in namelist\n");
 
-	sprites = Z_Calloc(numsprites * sizeof (*sprites), PU_STATIC, NULL);
+	sprites = Z_Calloc(numsprites * sizeof (*sprites), PU_PATCH, NULL);
 
 	// find sprites in each -file added pwad
 	for (i = 0; i < numwadfiles; i++)
@@ -581,30 +582,42 @@ void R_InitSprites(void)
 void R_ClearSprites(void)
 {
 	visspritecount = clippedvissprites = 0;
+
+	if (vissprites != NULL)
+		Z_Free(vissprites);
+
+	vissprites = Z_Malloc(maxvissprites * sizeof(vissprite_t), PU_PATCH, NULL);
 }
 
 //
 // R_NewVisSprite
 //
-static vissprite_t overflowsprite;
-
 static vissprite_t *R_GetVisSprite(UINT32 num)
 {
-		UINT32 chunk = num >> VISSPRITECHUNKBITS;
+	vissprite_t *vissprite;
 
-		// Allocate chunk if necessary
-		if (!visspritechunks[chunk])
-			Z_Malloc(sizeof(vissprite_t) * VISSPRITESPERCHUNK, PU_LEVEL, &visspritechunks[chunk]);
+	if (num > visspritecount)
+		I_Error("Vissprite number out of range! Use R_NewVisSprite first!");
 
-		return visspritechunks[chunk] + (num & VISSPRITEINDEXMASK);
+	vissprite = &vissprites[num];
+
+	return vissprite;
 }
 
 static vissprite_t *R_NewVisSprite(void)
 {
-	if (visspritecount == MAXVISSPRITES)
-		return &overflowsprite;
+	vissprite_t *vissprite;
 
-	return R_GetVisSprite(visspritecount++);
+	if (visspritecount == maxvissprites - 1) {
+		maxvissprites *= 2;
+		vissprites = Z_Realloc(vissprites, maxvissprites * sizeof(vissprite_t), PU_STATIC, NULL);
+	}
+
+	memset(&vissprites[++visspritecount], 0, sizeof(vissprite_t));
+
+	vissprite = &vissprites[visspritecount];
+
+	return vissprite;
 }
 
 //
