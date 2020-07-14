@@ -494,7 +494,7 @@ static UINT32 clippedvissprites;
 //static vissprite_t *visspritechunks[MAXVISSPRITES >> VISSPRITECHUNKBITS] = {NULL};
 //static vissprite_t *visspritechunks[] = {NULL};
 static vissprite_t *visspriteslist;
-static UINT32 maxvissprites = 2048; // small reference to original number :)
+static UINT32 maxvissprites = MAXVISSPRITES; // small reference to original number :)
 
 //
 // R_InitSprites

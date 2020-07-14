@@ -3444,7 +3444,7 @@ void HWR_InitTextureMapping(void)
 
 static UINT32 gl_visspritecount;
 static gl_vissprite_t *gl_visspriteslist;
-static UINT32 gl_maxvissprites = 2048; // small reference to original number :)
+static UINT32 gl_maxvissprites = MAXVISSPRITES; // small reference to original number :)
 
 // --------------------------------------------------------------------------
 // HWR_ClearSprites
@@ -3496,18 +3496,25 @@ typedef struct
 } zbuffersprite_t;
 
 // this list is used to store data about linkdraw sprites
-zbuffersprite_t linkdrawlist[MAXVISSPRITES];
-UINT32 linkdrawcount = 0;
+static zbuffersprite_t *linkdrawlist = NULL;
+static UINT32 linkdrawcount = 0;
+static UINT32 linkdrawlist_alloc = MAXVISSPRITES; // small reference to original number :)
 
 // add the necessary data to the list for delayed z-buffer drawing
 static void HWR_LinkDrawHackAdd(FOutVector *verts, gl_vissprite_t *spr)
 {
-	if (linkdrawcount < MAXVISSPRITES)
+	if (linkdrawlist == NULL)
+		linkdrawlist = Z_Malloc(linkdrawlist_alloc * sizeof(zbuffersprite_t), PU_STATIC, NULL);
+
+	if (linkdrawcount == linkdrawlist_alloc - 1)
 	{
-		memcpy(linkdrawlist[linkdrawcount].verts, verts, sizeof(FOutVector) * 4);
-		linkdrawlist[linkdrawcount].spr = spr;
-		linkdrawcount++;
+		linkdrawlist_alloc *= 2;
+		linkdrawlist = Z_Realloc(linkdrawlist, linkdrawlist_alloc * sizeof(zbuffersprite_t), PU_STATIC, NULL);
 	}
+
+	memcpy(linkdrawlist[linkdrawcount].verts, verts, sizeof(FOutVector) * 4);
+	linkdrawlist[linkdrawcount].spr = spr;
+	linkdrawcount++;
 }
 
 // process and clear the list of sprites for delayed z-buffer drawing
@@ -4241,7 +4248,7 @@ static inline void HWR_DrawPrecipitationSprite(gl_vissprite_t *spr)
 // --------------------------------------------------------------------------
 // Sort vissprites by distance
 // --------------------------------------------------------------------------
-gl_vissprite_t* gl_vsprorder[MAXVISSPRITES];
+static gl_vissprite_t **gl_vsprorder = NULL;
 
 // Note: For more correct transparency the transparent sprites would need to be
 // sorted and drawn together with transparent surfaces.
@@ -4317,6 +4324,19 @@ static int CompareVisSprites(const void *p1, const void *p2)
 static void HWR_SortVisSprites(void)
 {
 	UINT32 i;
+
+	if (gl_vsprorder == NULL) {
+		printf("%s\n", "allocating...");
+		gl_vsprorder = Z_Calloc(gl_maxvissprites * sizeof(gl_vissprite_t *), PU_STATIC, NULL);
+	}
+
+	while (gl_visspritecount >= gl_maxvissprites - 1)
+	{
+		printf("%s\n", "doubling allocation.");
+		gl_maxvissprites *= 2;
+		gl_vsprorder = Z_Realloc(gl_vsprorder, gl_maxvissprites * sizeof(gl_vissprite_t *), PU_STATIC, NULL);
+	}
+
 	for (i = 0; i < gl_visspritecount; i++)
 	{
 		gl_vsprorder[i] = HWR_GetVisSprite(i);
