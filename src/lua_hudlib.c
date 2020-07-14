@@ -1263,8 +1263,6 @@ static int libd_getColormap(lua_State *L)
 		if (!R_TranslationColormapExists(skinnum - MAXSKINS)) {
 			return luaL_error(L, "Colormap %d doesn't exist! Create a colormap first!", luaskinnum);
 		}
-
-		//printf("%s\n", "successful/");
 	}
 	else // skin name
 	{
@@ -1276,7 +1274,9 @@ static int libd_getColormap(lua_State *L)
 
 	// all was successful above, now we generate the colormap at last!
 
+	printf("%s\n", "before R_GetTranslationColormap...");
 	colormap = R_GetTranslationColormap(skinnum, color, GTC_CACHE);
+	printf("%s\n", "after R_GetTranslationColormap...");
 	LUA_PushUserdata(L, colormap, META_COLORMAP); // push as META_COLORMAP userdata, specifically for patches to use!
 	return 1;
 }
@@ -1343,6 +1343,13 @@ static int libd_renderer(lua_State *L)
 		case render_soft:   lua_pushliteral(L, "software"); break; // Software renderer
 		default:            lua_pushliteral(L, "none");     break; // render_none (for dedicated), in case there's any reason this should be run
 	}
+	return 1;
+}
+
+static int libd_transcolormaps(lua_State *L)
+{
+	HUDONLY
+	LUA_PushUserdata(L, transcolormaps, META_TRANSCOLORMAPLIST); // push transcolormaps
 	return 1;
 }
 
@@ -1460,6 +1467,8 @@ static luaL_Reg lib_draw[] = {
 	{"renderer", libd_renderer},
 	{"localTransFlag", libd_getlocaltransflag},
 	{"userTransFlag", libd_getusertransflag},
+	{"transcolormaps", libd_transcolormaps},
+
 	{NULL, NULL}
 };
 
@@ -1582,19 +1591,16 @@ int LUA_HudLib(lua_State *L)
 		lua_setmetatable(L, -2);
 	lua_setglobal(L, "hudinfo");
 
-	lua_newuserdata(L, 0);
-		lua_createtable(L, 0, 2);
-			lua_pushcfunction(L, lib_getTransColormap);
-			lua_setfield(L, -2, "__index");
+	luaL_newmetatable(L, META_TRANSCOLORMAPLIST);
+		lua_pushcfunction(L, lib_getTransColormap);
+		lua_setfield(L, -2, "__index");
 
-			lua_pushcfunction(L, lib_setTransColormap);
-			lua_setfield(L, -2, "__newindex");
+		lua_pushcfunction(L, lib_setTransColormap);
+		lua_setfield(L, -2, "__newindex");
 
-			//lua_pushcfunction(L, lib_sfxlen);
-			//lua_setfield(L, -2, "__len");
-		lua_setmetatable(L, -2);
-	lua_pushvalue(L, -1);
-	lua_setglobal(L, "transcolormaps");
+		//lua_pushcfunction(L, lib_sfxlen);
+		//lua_setfield(L, -2, "__len");
+	lua_pop(L,1);
 
 	luaL_newmetatable(L, META_COLORMAP);
 		lua_pushcfunction(L, colormap_get);

@@ -193,6 +193,7 @@ static const struct {
 	{META_COLORMAP,     "colormap"},
 	{META_CAMERA,       "camera_t"},
 
+	{META_TRANSCOLORMAPLIST,"transcolormap_t[]"},
 	{META_TRANSCOLORMAP,"transcolormap_t"},
 	/*{META_PALETTEMAP,   "transcolormap_t.palettemap"},
 	{META_USESKINCOLOR, "transcolormap_t.useskincolor"},*/
