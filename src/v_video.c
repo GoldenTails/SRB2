@@ -2139,8 +2139,10 @@ static void V_AlignCoordsToStringFlags(fixed_t *x, fixed_t *y, fixed_t scale, IN
 		*y *= FRACUNIT;
 	}
 
-	if (stringflags & VDS_RIGHTALIGN)
-		*x -= V_StringWidth(string, option) * FRACUNIT;
+	if (stringflags & VDS_CENTERALIGN)
+		*x -= V_StringWidth(string, option)/2 * scale;
+	else if (stringflags & VDS_RIGHTALIGN)
+		*x -= V_StringWidth(string, option) * scale;
 
 	/*if (stringflags & VDS_CENTERALIGN)
 		*x -= (V_StringWidth(string, option) * scale / 2);
@@ -2155,7 +2157,7 @@ static void V_AlignCoordsToStringFlags(fixed_t *x, fixed_t *y, fixed_t scale, IN
 //
 static void V_DrawAnyString(fixed_t x, fixed_t y, fixed_t scale, INT32 stringflags, INT32 option, const char *string)
 {
-	fixed_t cx = x, cy = y, w, center = 0, left = 0;
+	fixed_t cx = x, cy = y, w, left = 0;
 	INT32 c, dupx, dupy, scrwidth;
 	const char *ch = string;
 	INT32 charflags = 0;
@@ -2238,10 +2240,7 @@ static void V_DrawAnyString(fixed_t x, fixed_t y, fixed_t scale, INT32 stringfla
 		}
 
 		if (charwidth)
-		{
 			w = charwidth * dupx * scale;
-			center = (w/2 - hu_font[c]->width*(dupx/2)*scale);
-		}
 		else
 			w = hu_font[c]->width * dupx * scale;
 
@@ -2254,7 +2253,7 @@ static void V_DrawAnyString(fixed_t x, fixed_t y, fixed_t scale, INT32 stringfla
 		}
 
 		colormap = V_GetStringColormap(charflags);
-		V_DrawFixedPatch(cx + center, cy, scale, option, hu_font[c], colormap);
+		V_DrawFixedPatch(cx, cy, scale, option, hu_font[c], colormap);
 
 		cx += w;
 	}
@@ -2265,17 +2264,17 @@ static void V_DrawAnyString(fixed_t x, fixed_t y, fixed_t scale, INT32 stringfla
 // can't even make these macros because of ST_drawDebugInfo in st_stuff.c
 void V_DrawString(INT32 x, INT32 y, INT32 option, const char *string)
 {
-	V_DrawAnyString(x*FRACUNIT, y*FRACUNIT, FRACUNIT, 0, option, string);
+	V_DrawAnyString(x*FRACUNIT, y*FRACUNIT, (FRACUNIT/2 + FRACUNIT/4) + FINESINE((FixedAngle(leveltime * FRACUNIT)>>ANGLETOFINESHIFT) & FINEMASK)/4, 0, option, string);
 }
 
 void V_DrawCenteredString(INT32 x, INT32 y, INT32 option, const char *string)
 {
-	V_DrawAnyString(x*FRACUNIT, y*FRACUNIT, FRACUNIT, VDS_CENTERALIGN, option, string);
+	V_DrawAnyString(x*FRACUNIT, y*FRACUNIT, (FRACUNIT/2 + FRACUNIT/4) + FINESINE((FixedAngle(leveltime * FRACUNIT)>>ANGLETOFINESHIFT) & FINEMASK)/4, VDS_CENTERALIGN, option, string);
 }
 
 void V_DrawRightAlignedString(INT32 x, INT32 y, INT32 option, const char *string)
 {
-	V_DrawAnyString(x*FRACUNIT, y*FRACUNIT, FRACUNIT, VDS_RIGHTALIGN, option, string);
+	V_DrawAnyString(x*FRACUNIT, y*FRACUNIT, (FRACUNIT/2 + FRACUNIT/4) + FINESINE((FixedAngle(leveltime * FRACUNIT)>>ANGLETOFINESHIFT) & FINEMASK)/4, VDS_RIGHTALIGN, option, string);
 }
 
 //
@@ -2284,12 +2283,12 @@ void V_DrawRightAlignedString(INT32 x, INT32 y, INT32 option, const char *string
 //
 void V_DrawSmallString(INT32 x, INT32 y, INT32 option, const char *string)
 {
-	V_DrawAnyString(x*FRACUNIT, y*FRACUNIT, FRACUNIT/2, 0, option, string);
+	V_DrawAnyString(x*FRACUNIT, y*FRACUNIT, (FRACUNIT/2 + FRACUNIT/4) + FINESINE((FixedAngle(leveltime * FRACUNIT)>>ANGLETOFINESHIFT) & FINEMASK)/4, 0, option, string);
 }
 
 void V_DrawCenteredSmallString(INT32 x, INT32 y, INT32 option, const char *string)
 {
-	V_DrawAnyString(x*FRACUNIT, y*FRACUNIT, FRACUNIT/2, VDS_CENTERALIGN, option, string);
+	V_DrawAnyString(x*FRACUNIT, y*FRACUNIT, (FRACUNIT/2 + FRACUNIT/4) + FINESINE((FixedAngle(leveltime * FRACUNIT)>>ANGLETOFINESHIFT) & FINEMASK)/4, VDS_CENTERALIGN, option, string);
 }
 
 
