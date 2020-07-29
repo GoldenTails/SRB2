@@ -21,6 +21,15 @@
 //------------------------------------
 //           heads up font
 //------------------------------------
+
+typedef struct
+{
+	INT32 start;
+	INT32 end;
+	INT32 size;
+	patch_t **chars;
+} font_t;
+
 #define HU_FONTSTART '\x16' // the first font character
 #define HU_FONTEND '~'
 
@@ -78,13 +87,14 @@ void HU_AddChatText(const char *text, boolean playsound);
 // set true when entering a chat message
 extern boolean chat_on;
 
-extern patch_t *hu_font[HU_FONTSIZE], *tny_font[HU_FONTSIZE];
+extern font_t hu_font;
+extern font_t tny_font;
 extern patch_t *tallnum[10];
 extern patch_t *nightsnum[10];
-extern patch_t *lt_font[LT_FONTSIZE];
-extern patch_t *cred_font[CRED_FONTSIZE];
-extern patch_t *ntb_font[NT_FONTSIZE];
-extern patch_t *nto_font[NT_FONTSIZE];
+extern font_t lt_font;
+extern font_t cred_font;
+extern font_t ntb_font;
+extern font_t nto_font;
 extern patch_t *ttlnum[10];
 extern patch_t *emeraldpics[3][8];
 extern patch_t *rflagico;
