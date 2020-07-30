@@ -4785,11 +4785,16 @@ static void P_DoSpinAbility(player_t *player, ticcmd_t *cmd)
 			P_InstaThrust(player->mo, player->mo->angle, 10*player->mo->scale);
 		else
 		{
-			player->skidtime = 0;
-			player->pflags &= ~PF_SPINNING;
-			P_SetPlayerMobjState(player->mo, S_PLAY_STND);
-			player->mo->momx = player->cmomx;
-			player->mo->momy = player->cmomy;
+			player->mo->momx = FixedMul(player->mo->momx + player->cmomx, 4*FRACUNIT/5) - player->cmomx;
+			player->mo->momy = FixedMul(player->mo->momy + player->cmomy, 4*FRACUNIT/5) - player->cmomy;
+
+			if (player->speed < player->mo->scale) {
+				player->skidtime = 0;
+				player->pflags &= ~PF_SPINNING;
+				P_SetPlayerMobjState(player->mo, S_PLAY_STND);
+				player->mo->momx = player->cmomx;
+				player->mo->momy = player->cmomy;
+			}
 		}
 	}
 
