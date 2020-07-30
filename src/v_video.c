@@ -2098,6 +2098,7 @@ static fixed_t V_AnyStringWidth(const char *string, font_t font, INT32 option, f
 	INT32 c;
 	INT32 spacewidth = font.spacewidth * scale, charwidth = 0;
 	size_t i;
+	INT32 lowercase = (option & V_ALLOWLOWERCASE);
 
 	if (!string)
 		return 0;
@@ -2121,7 +2122,11 @@ static fixed_t V_AnyStringWidth(const char *string, font_t font, INT32 option, f
 		if (string[i] & 0x80)
 			continue;
 
-		c = toupper(string[i]) - font.start;
+		c = string[i];
+		if (!lowercase)
+			c = toupper(c);
+		c -= font.start;
+
 		if (c < 0 || c >= font.size || !font.chars[c])
 			w += spacewidth;
 		else
@@ -2691,6 +2696,7 @@ INT32 V_CreditStringWidth(const char *string)
 void V_DrawLevelTitle(INT32 x, INT32 y, INT32 option, const char *string)
 {
 	option &= ~V_RETURN8;
+	option |= V_ALLOWLOWERCASE;
 	V_DrawAnyString(x, y, FRACUNIT, lt_font, VDS_INTEGER, option, string);
 }
 
@@ -2698,7 +2704,7 @@ void V_DrawLevelTitle(INT32 x, INT32 y, INT32 option, const char *string)
 //
 INT32 V_LevelNameWidth(const char *string)
 {
-	return (INT32)V_AnyStringWidth(string, lt_font, 0, 1);
+	return (INT32)V_AnyStringWidth(string, lt_font, V_ALLOWLOWERCASE, 1);
 }
 
 // Find max height of the string
@@ -2710,8 +2716,8 @@ INT32 V_LevelNameHeight(const char *string)
 
 	for (i = 0; i < strlen(string); i++)
 	{
-		c = string[i] - LT_FONTSTART;
-		if (c < 0 || c >= LT_FONTSIZE || !lt_font.chars[c])
+		c = string[i] - lt_font.start;
+		if (c < 0 || c >= lt_font.size || !lt_font.chars[c])
 			continue;
 
 		if (lt_font.chars[c]->height > w)
