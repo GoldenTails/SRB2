@@ -190,6 +190,16 @@ void HU_LoadGraphics(void)
 	tny_font.end = hu_font.end = HU_FONTEND;
 	tny_font.size = hu_font.size = HU_FONTSIZE;
 
+	hu_font.spacewidth = 4;
+	hu_font.monospacewidth = 8;
+	hu_font.charwidth = 8;
+	hu_font.sixspacewidth = 6;
+
+	tny_font.spacewidth = 2;
+	tny_font.monospacewidth = 5;
+	tny_font.charwidth = 5;
+	tny_font.sixspacewidth = 3;
+
 	hu_font.chars = Z_Calloc(hu_font.size * sizeof(patch_t *), PU_STATIC, NULL);
 	tny_font.chars = Z_Calloc(tny_font.size * sizeof(patch_t *), PU_STATIC, NULL);
 
@@ -214,6 +224,11 @@ void HU_LoadGraphics(void)
 	lt_font.end = LT_FONTEND;
 	lt_font.size = LT_FONTSIZE;
 
+	lt_font.spacewidth = 16;
+	lt_font.monospacewidth = 16;
+	lt_font.charwidth = 0; // If this is 0, it will not process V_OLDSPACING. Cool, right?
+	lt_font.sixspacewidth = 16;
+
 	lt_font.chars = Z_Calloc(lt_font.size * sizeof(patch_t *), PU_STATIC, NULL);
 
 	for (i = 0; i < LT_FONTSIZE; i++)
@@ -230,6 +245,11 @@ void HU_LoadGraphics(void)
 	cred_font.start = j = CRED_FONTSTART;
 	cred_font.end = CRED_FONTEND;
 	cred_font.size = CRED_FONTSIZE;
+
+	cred_font.spacewidth = 16;
+	cred_font.monospacewidth = 16;
+	cred_font.charwidth = 0; // If this is 0, it will not process V_OLDSPACING. Cool, right?
+	cred_font.sixspacewidth = 16;
 
 	cred_font.chars = Z_Calloc(cred_font.size * sizeof(patch_t *), PU_STATIC, NULL);
 
