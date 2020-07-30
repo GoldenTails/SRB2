@@ -27,6 +27,12 @@ typedef struct
 	INT32 start;
 	INT32 end;
 	INT32 size;
+
+	INT32 spacewidth; // Default space width
+	INT32 monospacewidth; // Space width when V_MONOSPACE is enabled
+	INT32 sixspacewidth; // Space width when V_6WIDTHSPACE is enabled
+	INT32 charwidth; // Character width when V_OLDSPACING is enabled
+
 	patch_t **chars;
 } font_t;
 
