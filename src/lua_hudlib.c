@@ -780,10 +780,10 @@ static void applyAlignmentFromString(char *string, fixed_t *scale, font_t **font
 			*scale = FRACUNIT/2;
 			break;
 		case align_normal:
-			*font = &hu_font;
+			*font = &fonts[font_hu];
 			break;
 		case align_thin:
-			*font = &tny_font;
+			*font = &fonts[font_tny];
 			break;
 		case align_fixed:
 			*stringflags &= ~VDS_INTEGER;
@@ -808,7 +808,7 @@ static int libd_drawString(lua_State *L)
 {
 	INT32 stringflags = VDS_INTEGER;
 	fixed_t scale = FRACUNIT;
-	font_t *font = &hu_font;
+	font_t *font = &fonts[font_hu];
 
 	fixed_t x = luaL_checkfixed(L, 1);
 	fixed_t y = luaL_checkfixed(L, 2);
@@ -872,7 +872,7 @@ static int libd_drawScaledString(lua_State *L)
 {
 	INT32 stringflags = 0;
 	fixed_t scaleScale = FRACUNIT;
-	font_t *font = &hu_font;
+	font_t *font = &fonts[font_hu];
 
 	fixed_t x = luaL_checkfixed(L, 1);
 	fixed_t y = luaL_checkfixed(L, 2);
@@ -1007,7 +1007,7 @@ static int libd_stringWidth(lua_State *L)
 		font_t *font = *((font_t **)luaL_checkudata(L, 3, META_FONT));
 
 		if (!font) // I'd have no idea how this condition would be satisfied, but whatever.
-			font = &hu_font;
+			font = &fonts[font_hu];
 
 		lua_pushinteger(L, V_ScaledStringWidth(str, *font, flags, 1));
 		return 1;
@@ -1017,14 +1017,14 @@ static int libd_stringWidth(lua_State *L)
 
 	switch(widtht)
 	{
-	case widtht_normal: // hu_font
-		lua_pushinteger(L, V_ScaledStringWidth(str, hu_font, flags, 1));
+	case widtht_normal: // font_hu
+		lua_pushinteger(L, V_ScaledStringWidth(str, fonts[font_hu], flags, 1));
 		break;
-	case widtht_small: // hu_font, 0.5x scale
-		lua_pushinteger(L, V_ScaledStringWidth(str, hu_font, flags, FRACUNIT/2)>>FRACBITS);
+	case widtht_small: // font_hu, 0.5x scale
+		lua_pushinteger(L, V_ScaledStringWidth(str, fonts[font_hu], flags, FRACUNIT/2)>>FRACBITS);
 		break;
-	case widtht_thin: // tny_font
-		lua_pushinteger(L, V_ScaledStringWidth(str, tny_font, flags, 1));
+	case widtht_thin: // font_tny
+		lua_pushinteger(L, V_ScaledStringWidth(str, fonts[font_tny], flags, 1));
 		break;
 	}
 	return 1;
@@ -1043,7 +1043,7 @@ static int libd_scaledStringWidth(lua_State *L)
 		font_t *font = *((font_t **)luaL_checkudata(L, 4, META_FONT));
 
 		if (!font) // I'd have no idea how this condition would be satisfied, but whatever.
-			font = &hu_font;
+			font = &fonts[font_hu];
 
 		lua_pushfixed(L, V_ScaledStringWidth(str, *font, flags, scale));
 		return 1;
@@ -1053,14 +1053,14 @@ static int libd_scaledStringWidth(lua_State *L)
 
 	switch(widtht)
 	{
-	case widtht_normal: // hu_font
-		lua_pushfixed(L, V_ScaledStringWidth(str, hu_font, flags, scale));
+	case widtht_normal: // font_hu
+		lua_pushfixed(L, V_ScaledStringWidth(str, fonts[font_hu], flags, scale));
 		break;
-	case widtht_small: // hu_font, 0.5x scale
-		lua_pushfixed(L, V_ScaledStringWidth(str, hu_font, flags, scale/2));
+	case widtht_small: // font_hu, 0.5x scale
+		lua_pushfixed(L, V_ScaledStringWidth(str, fonts[font_hu], flags, scale/2));
 		break;
-	case widtht_thin: // tny_font
-		lua_pushfixed(L, V_ScaledStringWidth(str, tny_font, flags, scale));
+	case widtht_thin: // font_tny
+		lua_pushfixed(L, V_ScaledStringWidth(str, fonts[font_tny], flags, scale));
 		break;
 	}
 	return 1;

@@ -5375,10 +5375,10 @@ struct int_const_s const INT_CONST[] = {
 	{"VDS_INTEGER", VDS_INTEGER},
 
 	// Lua font exposure indices
-	{"hu_font", 0},
-	{"tny_font", 1},
-	{"lt_font", 2},
-	{"cred_font", 3},
+	{"font_hu", font_hu},
+	{"font_tny", font_tny},
+	{"font_lt", font_lt},
+	{"font_cred", font_cred},
 
 	//Kick Reasons
 	{"KR_KICK",KR_KICK},

@@ -1975,7 +1975,7 @@ void V_DrawCharacter(INT32 x, INT32 y, INT32 c, boolean lowercaseallowed)
 	INT32 w, flags;
 	const UINT8 *colormap = V_GetStringColormap(c);
 
-	if (!hu_font.chars)
+	if (!fonts || !fonts[font_hu].chars)
 		return;
 
 	flags = c & ~(V_CHARCOLORMASK | V_PARAMMASK);
@@ -1984,17 +1984,17 @@ void V_DrawCharacter(INT32 x, INT32 y, INT32 c, boolean lowercaseallowed)
 		c -= HU_FONTSTART;
 	else
 		c = toupper(c) - HU_FONTSTART;
-	if (c < 0 || c >= HU_FONTSIZE || !hu_font.chars[c])
+	if (c < 0 || c >= HU_FONTSIZE || !fonts[font_hu].chars[c])
 		return;
 
-	w = hu_font.chars[c]->width;
+	w = fonts[font_hu].chars[c]->width;
 	if (x + w > vid.width)
 		return;
 
 	if (colormap != NULL)
-		V_DrawMappedPatch(x, y, flags, hu_font.chars[c], colormap);
+		V_DrawMappedPatch(x, y, flags, fonts[font_hu].chars[c], colormap);
 	else
-		V_DrawScaledPatch(x, y, flags, hu_font.chars[c]);
+		V_DrawScaledPatch(x, y, flags, fonts[font_hu].chars[c]);
 }
 
 // Writes a single character for the chat. (draw WHITE if bit 7 set)
@@ -2011,14 +2011,14 @@ void V_DrawChatCharacter(INT32 x, INT32 y, INT32 c, boolean lowercaseallowed, UI
 		c -= HU_FONTSTART;
 	else
 		c = toupper(c) - HU_FONTSTART;
-	if (c < 0 || c >= HU_FONTSIZE || !hu_font.chars[c])
+	if (c < 0 || c >= HU_FONTSIZE || !fonts[font_hu].chars[c])
 		return;
 
-	w = (vid.width < 640 ) ? ((hu_font.chars[c]->width / 2)) : (hu_font.chars[c]->width);	// use normal sized characters if we're using a terribly low resolution.
+	w = (vid.width < 640 ) ? ((fonts[font_hu].chars[c]->width / 2)) : (fonts[font_hu].chars[c]->width);	// use normal sized characters if we're using a terribly low resolution.
 	if (x + w > vid.width)
 		return;
 
-	V_DrawFixedPatch(x*FRACUNIT, y*FRACUNIT, (vid.width < 640) ? (FRACUNIT) : (FRACUNIT/2), flags, hu_font.chars[c], colormap);
+	V_DrawFixedPatch(x*FRACUNIT, y*FRACUNIT, (vid.width < 640) ? (FRACUNIT) : (FRACUNIT/2), flags, fonts[font_hu].chars[c], colormap);
 
 
 }
@@ -2071,13 +2071,13 @@ char *V_WordWrap(INT32 x, INT32 w, INT32 option, const char *string)
 			c = toupper(c);
 		c -= HU_FONTSTART;
 
-		if (c < 0 || c >= HU_FONTSIZE || !hu_font.chars[c])
+		if (c < 0 || c >= HU_FONTSIZE || !fonts[font_hu].chars[c])
 		{
 			chw = spacewidth;
 			lastusablespace = i;
 		}
 		else
-			chw = (charwidth ? charwidth : hu_font.chars[c]->width);
+			chw = (charwidth ? charwidth : fonts[font_hu].chars[c]->width);
 
 		x += chw;
 
@@ -2160,7 +2160,7 @@ static void V_ProcessStringFlags(fixed_t *x, fixed_t *y, fixed_t scale, font_t f
 }
 
 //
-// Write a string using the hu_font
+// Write a string using the font_hu
 // NOTE: the text is centered for screens larger than the base width
 //
 void V_DrawScaledString(fixed_t x, fixed_t y, fixed_t scale, font_t font, INT32 stringflags, INT32 option, const char *string)
@@ -2276,140 +2276,140 @@ void V_DrawScaledString(fixed_t x, fixed_t y, fixed_t scale, font_t font, INT32 
 // can't even make these macros because of ST_drawDebugInfo in st_stuff.c
 void V_DrawString(INT32 x, INT32 y, INT32 option, const char *string)
 {
-	V_DrawScaledString(x, y, AUTOSCALE, hu_font, VDS_INTEGER, option, string);
+	V_DrawScaledString(x, y, AUTOSCALE, fonts[font_hu], VDS_INTEGER, option, string);
 }
 
 void V_DrawCenteredString(INT32 x, INT32 y, INT32 option, const char *string)
 {
-	V_DrawScaledString(x, y, AUTOSCALE, hu_font, VDS_INTEGER|VDS_CENTERALIGN, option, string);
+	V_DrawScaledString(x, y, AUTOSCALE, fonts[font_hu], VDS_INTEGER|VDS_CENTERALIGN, option, string);
 }
 
 void V_DrawRightAlignedString(INT32 x, INT32 y, INT32 option, const char *string)
 {
-	V_DrawScaledString(x, y, AUTOSCALE, hu_font, VDS_INTEGER|VDS_RIGHTALIGN, option, string);
+	V_DrawScaledString(x, y, AUTOSCALE, fonts[font_hu], VDS_INTEGER|VDS_RIGHTALIGN, option, string);
 }
 
 //
-// Write a string using the hu_font, 0.5x scale
+// Write a string using the font_hu, 0.5x scale
 // NOTE: the text is centered for screens larger than the base width
 //
 void V_DrawSmallString(INT32 x, INT32 y, INT32 option, const char *string)
 {
-	V_DrawScaledString(x, y, AUTOSCALE/2, hu_font, VDS_INTEGER, option, string);
+	V_DrawScaledString(x, y, AUTOSCALE/2, fonts[font_hu], VDS_INTEGER, option, string);
 }
 
 void V_DrawCenteredSmallString(INT32 x, INT32 y, INT32 option, const char *string)
 {
-	V_DrawScaledString(x, y, AUTOSCALE/2, hu_font, VDS_INTEGER|VDS_CENTERALIGN, option, string);
+	V_DrawScaledString(x, y, AUTOSCALE/2, fonts[font_hu], VDS_INTEGER|VDS_CENTERALIGN, option, string);
 }
 
 
 void V_DrawRightAlignedSmallString(INT32 x, INT32 y, INT32 option, const char *string)
 {
-	V_DrawScaledString(x, y, AUTOSCALE/2, hu_font, VDS_INTEGER|VDS_RIGHTALIGN, option, string);
+	V_DrawScaledString(x, y, AUTOSCALE/2, fonts[font_hu], VDS_INTEGER|VDS_RIGHTALIGN, option, string);
 }
 
 //
-// Write a string using the tny_font
+// Write a string using the font_tny
 // NOTE: the text is centered for screens larger than the base width
 //
 void V_DrawThinString(INT32 x, INT32 y, INT32 option, const char *string)
 {
-	V_DrawScaledString(x, y, AUTOSCALE, tny_font, VDS_INTEGER, option, string);
+	V_DrawScaledString(x, y, AUTOSCALE, fonts[font_tny], VDS_INTEGER, option, string);
 }
 
 void V_DrawCenteredThinString(INT32 x, INT32 y, INT32 option, const char *string)
 {
-	V_DrawScaledString(x, y, AUTOSCALE, tny_font, VDS_INTEGER|VDS_CENTERALIGN, option, string);
+	V_DrawScaledString(x, y, AUTOSCALE, fonts[font_tny], VDS_INTEGER|VDS_CENTERALIGN, option, string);
 }
 
 void V_DrawRightAlignedThinString(INT32 x, INT32 y, INT32 option, const char *string)
 {
-	V_DrawScaledString(x, y, AUTOSCALE, tny_font, VDS_INTEGER|VDS_RIGHTALIGN, option, string);
+	V_DrawScaledString(x, y, AUTOSCALE, fonts[font_tny], VDS_INTEGER|VDS_RIGHTALIGN, option, string);
 }
 
 //
-// Write a string using the tny_font, 0.5x scale
+// Write a string using the font_tny, 0.5x scale
 // NOTE: the text is centered for screens larger than the base width
 //
 // Literally a wrapper. ~Golden
 void V_DrawSmallThinString(INT32 x, INT32 y, INT32 option, const char *string)
 {
-	V_DrawScaledString(x, y, AUTOSCALE/2, tny_font, VDS_INTEGER, option, string);
+	V_DrawScaledString(x, y, AUTOSCALE/2, fonts[font_tny], VDS_INTEGER, option, string);
 }
 
 void V_DrawCenteredSmallThinString(INT32 x, INT32 y, INT32 option, const char *string)
 {
-	V_DrawScaledString(x, y, AUTOSCALE/2, tny_font, VDS_INTEGER|VDS_CENTERALIGN, option, string);
+	V_DrawScaledString(x, y, AUTOSCALE/2, fonts[font_tny], VDS_INTEGER|VDS_CENTERALIGN, option, string);
 }
 
 void V_DrawRightAlignedSmallThinString(INT32 x, INT32 y, INT32 option, const char *string)
 {
-	V_DrawScaledString(x, y, AUTOSCALE/2, tny_font, VDS_INTEGER|VDS_RIGHTALIGN, option, string);
+	V_DrawScaledString(x, y, AUTOSCALE/2, fonts[font_tny], VDS_INTEGER|VDS_RIGHTALIGN, option, string);
 }
 
 // Draws a string at a fixed_t location.
 void V_DrawStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string)
 {
-	V_DrawScaledString(x, y, FRACUNIT, hu_font, 0, option, string);
+	V_DrawScaledString(x, y, FRACUNIT, fonts[font_hu], 0, option, string);
 }
 
 void V_DrawCenteredStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string)
 {
-	V_DrawScaledString(x, y, FRACUNIT, hu_font, VDS_CENTERALIGN, option, string);
+	V_DrawScaledString(x, y, FRACUNIT, fonts[font_hu], VDS_CENTERALIGN, option, string);
 }
 
 void V_DrawRightAlignedStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string)
 {
-	V_DrawScaledString(x, y, FRACUNIT, hu_font, VDS_RIGHTALIGN, option, string);
+	V_DrawScaledString(x, y, FRACUNIT, fonts[font_hu], VDS_RIGHTALIGN, option, string);
 }
 
 // Draws a small string at a fixed_t location.
 void V_DrawSmallStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string)
 {
-	V_DrawScaledString(x, y, FRACUNIT/2, hu_font, 0, option, string);
+	V_DrawScaledString(x, y, FRACUNIT/2, fonts[font_hu], 0, option, string);
 }
 
 void V_DrawCenteredSmallStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string)
 {
-	V_DrawScaledString(x, y, FRACUNIT/2, hu_font, VDS_CENTERALIGN, option, string);
+	V_DrawScaledString(x, y, FRACUNIT/2, fonts[font_hu], VDS_CENTERALIGN, option, string);
 }
 
 void V_DrawRightAlignedSmallStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string)
 {
-	V_DrawScaledString(x, y, FRACUNIT/2, hu_font, VDS_RIGHTALIGN, option, string);
+	V_DrawScaledString(x, y, FRACUNIT/2, fonts[font_hu], VDS_RIGHTALIGN, option, string);
 }
 
 // Draws a thin string at a fixed_t location.
 void V_DrawThinStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string)
 {
-	V_DrawScaledString(x, y, FRACUNIT, tny_font, 0, option, string);
+	V_DrawScaledString(x, y, FRACUNIT, fonts[font_tny], 0, option, string);
 }
 
 void V_DrawCenteredThinStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string)
 {
-	V_DrawScaledString(x, y, FRACUNIT, tny_font, VDS_CENTERALIGN, option, string);
+	V_DrawScaledString(x, y, FRACUNIT, fonts[font_tny], VDS_CENTERALIGN, option, string);
 }
 
 void V_DrawRightAlignedThinStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string)
 {
-	V_DrawScaledString(x, y, FRACUNIT, tny_font, VDS_RIGHTALIGN, option, string);
+	V_DrawScaledString(x, y, FRACUNIT, fonts[font_tny], VDS_RIGHTALIGN, option, string);
 }
 
 // Draws a small string at a fixed_t location.
 void V_DrawSmallThinStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string)
 {
-	V_DrawScaledString(x, y, FRACUNIT/2, tny_font, 0, option, string);
+	V_DrawScaledString(x, y, FRACUNIT/2, fonts[font_tny], 0, option, string);
 }
 
 void V_DrawCenteredSmallThinStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string)
 {
-	V_DrawScaledString(x, y, FRACUNIT/2, tny_font, VDS_CENTERALIGN, option, string);
+	V_DrawScaledString(x, y, FRACUNIT/2, fonts[font_tny], VDS_CENTERALIGN, option, string);
 }
 
 void V_DrawRightAlignedSmallThinStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string)
 {
-	V_DrawScaledString(x, y, FRACUNIT/2, tny_font, VDS_RIGHTALIGN, option, string);
+	V_DrawScaledString(x, y, FRACUNIT/2, fonts[font_tny], VDS_RIGHTALIGN, option, string);
 }
 
 // Draws a tallnum.  Replaces two functions in y_inter and st_stuff
@@ -2480,10 +2480,10 @@ void V_DrawLevelActNum(INT32 x, INT32 y, INT32 flags, UINT8 num)
 void V_DrawCreditString(fixed_t x, fixed_t y, INT32 option, const char *string)
 {
 	option &= ~V_RETURN8;
-	V_DrawScaledString(x, y, FRACUNIT, cred_font, 0, option, string);
+	V_DrawScaledString(x, y, FRACUNIT, fonts[font_cred], 0, option, string);
 }
 
-// Draw a string using the nt_font
+// Draw a string using the font_nt
 // Note that the outline is a seperate font set
 static void V_DrawNameTagLine(INT32 x, INT32 y, INT32 option, fixed_t scale, UINT8 *basecolormap, UINT8 *outlinecolormap, const char *string)
 {
@@ -2530,13 +2530,13 @@ static void V_DrawNameTagLine(INT32 x, INT32 y, INT32 option, fixed_t scale, UIN
 		c -= NT_FONTSTART;
 
 		// character does not exist or is a space
-		if (c < 0 || c >= NT_FONTSIZE || !ntb_font.chars[c] || !nto_font.chars[c])
+		if (c < 0 || c >= NT_FONTSIZE || !fonts[font_ntb].chars[c] || !fonts[font_nto].chars[c])
 		{
 			cx += FixedMul((4 * dupx)*FRACUNIT, scale);
 			continue;
 		}
 
-		w = FixedMul(((ntb_font.chars[c]->width)+2 * dupx) * FRACUNIT, scale);
+		w = FixedMul((fonts[font_ntb].chars[c]->width)+2 * dupx * FRACUNIT, scale);
 
 		if (FixedInt(cx) > scrwidth)
 			continue;
@@ -2546,8 +2546,8 @@ static void V_DrawNameTagLine(INT32 x, INT32 y, INT32 option, fixed_t scale, UIN
 			continue;
 		}
 
-		V_DrawFixedPatch(cx, cy, scale, option, nto_font.chars[c], outlinecolormap);
-		V_DrawFixedPatch(cx, cy, scale, option, ntb_font.chars[c], basecolormap);
+		V_DrawFixedPatch(cx, cy, scale, option, fonts[font_nto].chars[c], outlinecolormap);
+		V_DrawFixedPatch(cx, cy, scale, option, fonts[font_ntb].chars[c], basecolormap);
 
 		cx += w;
 	}
@@ -2673,21 +2673,21 @@ INT32 V_NameTagWidth(const char *string)
 
 	for (i = 0; i < strlen(string); i++)
 	{
-		c = toupper(string[i]) - nto_font.start;
-		if (c < 0 || c >= nto_font.size || !ntb_font.chars[c] || !nto_font.chars[c])
+		c = toupper(string[i]) - fonts[font_nto].start;
+		if (c < 0 || c >= fonts[font_nto].size || !fonts[font_ntb].chars[c] || !fonts[font_nto].chars[c])
 			w += 4;
 		else
-			w += (ntb_font.chars[c]->width)+2;
+			w += fonts[font_ntb].chars[c]->width+2;
 	}
 
 	return w;
 }
 
-// Find string width from cred_font chars
+// Find string width from font_cred chars
 //
 INT32 V_CreditStringWidth(const char *string)
 {
-	return (INT32)V_ScaledStringWidth(string, cred_font, 0, 1);
+	return (INT32)V_ScaledStringWidth(string, fonts[font_cred], 0, 1);
 }
 
 // Write a string using the level title font
@@ -2697,14 +2697,14 @@ void V_DrawLevelTitle(INT32 x, INT32 y, INT32 option, const char *string)
 {
 	option &= ~V_RETURN8;
 	option |= V_ALLOWLOWERCASE;
-	V_DrawScaledString(x, y, FRACUNIT, lt_font, VDS_INTEGER, option, string);
+	V_DrawScaledString(x, y, FRACUNIT, fonts[font_lt], VDS_INTEGER, option, string);
 }
 
-// Find string width from lt_font chars
+// Find string width from font_lt chars
 //
 INT32 V_LevelNameWidth(const char *string)
 {
-	return (INT32)V_ScaledStringWidth(string, lt_font, V_ALLOWLOWERCASE, 1);
+	return (INT32)V_ScaledStringWidth(string, fonts[font_lt], V_ALLOWLOWERCASE, 1);
 }
 
 // Find max height of the string
@@ -2716,12 +2716,12 @@ INT32 V_LevelNameHeight(const char *string)
 
 	for (i = 0; i < strlen(string); i++)
 	{
-		c = string[i] - lt_font.start;
-		if (c < 0 || c >= lt_font.size || !lt_font.chars[c])
+		c = string[i] - fonts[font_lt].start;
+		if (c < 0 || c >= fonts[font_lt].size || !fonts[font_lt].chars[c])
 			continue;
 
-		if (lt_font.chars[c]->height > w)
-			w = lt_font.chars[c]->height;
+		if (fonts[font_lt].chars[c]->height > w)
+			w = fonts[font_lt].chars[c]->height;
 	}
 
 	return w;
@@ -2746,35 +2746,35 @@ INT16 V_LevelActNumWidth(UINT8 num)
 }
 
 //
-// Find string width from hu_font chars
+// Find string width from font_hu chars
 //
 INT32 V_StringWidth(const char *string, INT32 option)
 {
-	return (INT32)V_ScaledStringWidth(string, hu_font, option, 1);
+	return (INT32)V_ScaledStringWidth(string, fonts[font_hu], option, 1);
 }
 
 //
-// Find string width from hu_font chars, 0.5x scale
+// Find string width from font_hu chars, 0.5x scale
 //
 INT32 V_SmallStringWidth(const char *string, INT32 option)
 {
-	return (INT32)(V_ScaledStringWidth(string, hu_font, option, FRACUNIT/2)>>FRACBITS);
+	return (INT32)(V_ScaledStringWidth(string, fonts[font_hu], option, FRACUNIT/2)>>FRACBITS);
 }
 
 //
-// Find string width from tny_font chars
+// Find string width from font_tny chars
 //
 INT32 V_ThinStringWidth(const char *string, INT32 option)
 {
-	return (INT32)V_ScaledStringWidth(string, tny_font, option, 1);
+	return (INT32)V_ScaledStringWidth(string, fonts[font_tny], option, 1);
 }
 
 //
-// Find string width from tny_font chars, 0.5x scale
+// Find string width from font_tny chars, 0.5x scale
 //
 INT32 V_SmallThinStringWidth(const char *string, INT32 option)
 {
-	return (INT32)(V_ScaledStringWidth(string, tny_font, option, FRACUNIT/2)>>FRACBITS);
+	return (INT32)(V_ScaledStringWidth(string, fonts[font_tny], option, FRACUNIT/2)>>FRACBITS);
 }
 
 boolean *heatshifter = NULL;
