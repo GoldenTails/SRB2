@@ -97,22 +97,27 @@ extern boolean chat_on;
 // - The font definitions in hu_stuff.c
 // - The font entries in dehacked.c's LUA_CONST
 // - lua_hudlib.c's font array
-#define NUMFONTS 4
+
+#define NUMFONTFREESLOTS 128 // Surely nobody's ever gonna need more than 128 font freeslots
 
 typedef enum
 {
-	font_hu = 0,
-	font_tny,
-	font_lt,
-	font_cred,
-	font_ntb,
-	font_nto,
+	FONT_HU = 0,
+	FONT_TNY,
+	FONT_LT,
+	FONT_CRED,
+	FONT_NTB,
+	FONT_NTO,
+
+	FONT_FIRSTFREESLOT,
+	FONT_LASTFREESLOT = FONT_FIRSTFREESLOT + NUMFONTFREESLOTS - 1,
 
 	MAXFONTS
 } fontnum_t;
 
 extern font_t *luafonts[MAXFONTS];
 extern font_t fonts[MAXFONTS];
+extern INT32 numfonts;
 
 extern patch_t *tallnum[10];
 extern patch_t *nightsnum[10];

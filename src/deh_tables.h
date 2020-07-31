@@ -23,6 +23,7 @@
 extern char *FREE_STATES[NUMSTATEFREESLOTS];
 extern char *FREE_MOBJS[NUMMOBJFREESLOTS];
 extern char *FREE_SKINCOLORS[NUMCOLORFREESLOTS];
+extern char *FREE_FONTS[NUMCOLORFREESLOTS];
 extern UINT8 used_spr[(NUMSPRITEFREESLOTS / 8) + 1]; // Bitwise flag for sprite freeslot in use! I would use ceil() here if I could, but it only saves 1 byte of memory anyway.
 
 #define initfreeslots() {\
