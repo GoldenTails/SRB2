@@ -98,10 +98,8 @@ extern boolean chat_on;
 // - The font entries in dehacked.c's LUA_CONST
 // - lua_hudlib.c's font array
 #define NUMFONTS 4
-extern font_t *luafonts[NUMFONTS];
-extern font_t *fonts;
 
-enum
+typedef enum
 {
 	font_hu = 0,
 	font_tny,
@@ -110,17 +108,14 @@ enum
 	font_ntb,
 	font_nto,
 
-	font_max
-};
+	MAXFONTS
+} fontnum_t;
 
-//extern font_t font_hu;
-//extern font_t font_tny;
+extern font_t *luafonts[MAXFONTS];
+extern font_t fonts[MAXFONTS];
+
 extern patch_t *tallnum[10];
 extern patch_t *nightsnum[10];
-//extern font_t font_lt;
-//extern font_t font_cred;
-//extern font_t font_ntb;
-//extern font_t font_nto;
 extern patch_t *ttlnum[10];
 extern patch_t *emeraldpics[3][8];
 extern patch_t *rflagico;

@@ -216,45 +216,95 @@ enum {
 fixed_t V_ScaledStringWidth(const char *string, font_t font, INT32 option, fixed_t scale);
 void V_DrawScaledString(fixed_t x, fixed_t y, fixed_t scale, font_t font, INT32 stringflags, INT32 option, const char *string);
 
-// draw a string using the font_hu
-void V_DrawString(INT32 x, INT32 y, INT32 option, const char *string);
-void V_DrawCenteredString(INT32 x, INT32 y, INT32 option, const char *string);
-void V_DrawRightAlignedString(INT32 x, INT32 y, INT32 option, const char *string);
+#define V_DrawString(x, y, option, string) \
+	V_DrawScaledString(x, y, FRACUNIT, fonts[font_hu], VDS_INTEGER, option, string)
 
-// draw a string using the font_hu, 0.5x scale
-void V_DrawSmallString(INT32 x, INT32 y, INT32 option, const char *string);
-void V_DrawCenteredSmallString(INT32 x, INT32 y, INT32 option, const char *string);
-void V_DrawRightAlignedSmallString(INT32 x, INT32 y, INT32 option, const char *string);
+#define V_DrawCenteredString(x, y, option, string) \
+	V_DrawScaledString(x, y, FRACUNIT, fonts[font_hu], VDS_INTEGER|VDS_CENTERALIGN, option, string)
 
-// draw a string using the font_tny
-void V_DrawThinString(INT32 x, INT32 y, INT32 option, const char *string);
-void V_DrawCenteredThinString(INT32 x, INT32 y, INT32 option, const char *string);
-void V_DrawRightAlignedThinString(INT32 x, INT32 y, INT32 option, const char *string);
+#define V_DrawRightAlignedString(x, y, option, string) \
+	V_DrawScaledString(x, y, FRACUNIT, fonts[font_hu], VDS_INTEGER|VDS_RIGHTALIGN, option, string)
 
-// draw a string using the font_tny, 0.5x scale
-void V_DrawSmallThinString(INT32 x, INT32 y, INT32 option, const char *string);
-void V_DrawCenteredSmallThinString(INT32 x, INT32 y, INT32 option, const char *string);
-void V_DrawRightAlignedSmallThinString(INT32 x, INT32 y, INT32 option, const char *string);
+//
+// Write a string using the font_hu, 0.5x scale
+// NOTE: the text is centered for screens larger than the base width
+//
+#define V_DrawSmallString(x, y, option, string) \
+	V_DrawScaledString(x, y, FRACUNIT/2, fonts[font_hu], VDS_INTEGER, option, string)
 
-// draw a string using the font_hu at fixed_t coordinates
-void V_DrawStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string);
-void V_DrawCenteredStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string);
-void V_DrawRightAlignedStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string);
+#define V_DrawCenteredSmallString(x, y, option, string) \
+	V_DrawScaledString(x, y, FRACUNIT/2, fonts[font_hu], VDS_INTEGER|VDS_CENTERALIGN, option, string)
 
-// draw a string using the font_hu at fixed_t coordinates, 0.5x scale
-void V_DrawSmallStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string);
-void V_DrawCenteredSmallStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string);
-void V_DrawRightAlignedSmallStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string);
 
-// draw a string using the font_tny at fixed_t coordinates
-void V_DrawThinStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string);
-void V_DrawCenteredThinStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string);
-void V_DrawRightAlignedThinStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string);
+#define V_DrawRightAlignedSmallString(x, y, option, string) \
+	V_DrawScaledString(x, y, FRACUNIT/2, fonts[font_hu], VDS_INTEGER|VDS_RIGHTALIGN, option, string)
 
-// draw a string using the font_tny at fixed_t coordinates, 0.5x scale
-void V_DrawSmallThinStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string);
-void V_DrawCenteredSmallThinStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string);
-void V_DrawRightAlignedSmallThinStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string);
+//
+// Write a string using the font_tny
+// NOTE: the text is centered for screens larger than the base width
+//
+#define V_DrawThinString(x, y, option, string) \
+	V_DrawScaledString(x, y, FRACUNIT, fonts[font_tny], VDS_INTEGER, option, string)
+
+#define V_DrawCenteredThinString(x, y, option, string) \
+	V_DrawScaledString(x, y, FRACUNIT, fonts[font_tny], VDS_INTEGER|VDS_CENTERALIGN, option, string)
+
+#define V_DrawRightAlignedThinString(x, y, option, string) \
+	V_DrawScaledString(x, y, FRACUNIT, fonts[font_tny], VDS_INTEGER|VDS_RIGHTALIGN, option, string)
+
+//
+// Write a string using the font_tny, 0.5x scale
+// NOTE: the text is centered for screens larger than the base width
+//
+// Literally a wrapper. ~Golden
+#define V_DrawSmallThinString(x, y, option, string) \
+	V_DrawScaledString(x, y, FRACUNIT/2, fonts[font_tny], VDS_INTEGER, option, string)
+
+#define V_DrawCenteredSmallThinString(x, y, option, string) \
+	V_DrawScaledString(x, y, FRACUNIT/2, fonts[font_tny], VDS_INTEGER|VDS_CENTERALIGN, option, string)
+
+#define V_DrawRightAlignedSmallThinString(x, y, option, string) \
+	V_DrawScaledString(x, y, FRACUNIT/2, fonts[font_tny], VDS_INTEGER|VDS_RIGHTALIGN, option, string)
+
+// Draws a string at a fixed_t location.
+#define V_DrawStringAtFixed(x, y, option, string) \
+	V_DrawScaledString(x, y, FRACUNIT, fonts[font_hu], 0, option, string)
+
+#define V_DrawCenteredStringAtFixed(x, y, option, string) \
+	V_DrawScaledString(x, y, FRACUNIT, fonts[font_hu], VDS_CENTERALIGN, option, string)
+
+#define V_DrawRightAlignedStringAtFixed(x, y, option, string) \
+	V_DrawScaledString(x, y, FRACUNIT, fonts[font_hu], VDS_RIGHTALIGN, option, string)
+
+// Draws a small string at a fixed_t location.
+#define V_DrawSmallStringAtFixed(x, y, option, string) \
+	V_DrawScaledString(x, y, FRACUNIT/2, fonts[font_hu], 0, option, string)
+
+#define V_DrawCenteredSmallStringAtFixed(x, y, option, string) \
+	V_DrawScaledString(x, y, FRACUNIT/2, fonts[font_hu], VDS_CENTERALIGN, option, string)
+
+#define V_DrawRightAlignedSmallStringAtFixed(x, y, option, string) \
+	V_DrawScaledString(x, y, FRACUNIT/2, fonts[font_hu], VDS_RIGHTALIGN, option, string)
+
+// Draws a thin string at a fixed_t location.
+#define V_DrawThinStringAtFixed(x, y, option, string) \
+	V_DrawScaledString(x, y, FRACUNIT, fonts[font_tny], 0, option, string)
+
+#define V_DrawCenteredThinStringAtFixed(x, y, option, string) \
+	V_DrawScaledString(x, y, FRACUNIT, fonts[font_tny], VDS_CENTERALIGN, option, string)
+
+#define V_DrawRightAlignedThinStringAtFixed(x, y, option, string) \
+	V_DrawScaledString(x, y, FRACUNIT, fonts[font_tny], VDS_RIGHTALIGN, option, string)
+
+// Draws a small string at a fixed_t location.
+#define V_DrawSmallThinStringAtFixed(x, y, option, string) \
+	V_DrawScaledString(x, y, FRACUNIT/2, fonts[font_tny], 0, option, string)
+
+#define V_DrawCenteredSmallThinStringAtFixed(x, y, option, string) \
+	V_DrawScaledString(x, y, FRACUNIT/2, fonts[font_tny], VDS_CENTERALIGN, option, string)
+
+#define V_DrawRightAlignedSmallThinStringAtFixed(x, y, option, string) \
+	V_DrawScaledString(x, y, FRACUNIT/2, fonts[font_tny], VDS_RIGHTALIGN, option, string)
 
 // Draw tall nums, used for menu, HUD, intermission
 void V_DrawTallNum(INT32 x, INT32 y, INT32 flags, INT32 num);
