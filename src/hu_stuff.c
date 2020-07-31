@@ -65,8 +65,8 @@
 // - The font definitions in HU_LoadGraphics
 // - The font entries in dehacked.c's LUA_CONST
 // - lua_hudlib.c's font array
-font_t *luafonts[NUMFONTS];
-font_t *fonts;
+font_t *luafonts[MAXFONTS];
+font_t fonts[MAXFONTS];
 
 patch_t *tallnum[10]; // 0-9
 patch_t *nightsnum[10]; // 0-9
@@ -183,8 +183,6 @@ void HU_LoadGraphics(void)
 
 	if (dedicated)
 		return;
-
-	fonts = Z_Calloc(sizeof(font_t) * font_max, PU_STATIC, NULL);
 
 	fonts[font_tny].start = fonts[font_hu].start = j = HU_FONTSTART;
 	fonts[font_tny].end = fonts[font_hu].end = HU_FONTEND;
