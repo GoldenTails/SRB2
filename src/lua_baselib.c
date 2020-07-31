@@ -199,6 +199,8 @@ static const struct {
 
 	{META_HUDINFO,      "hudinfo_t"},
 	{META_PATCH,        "patch_t"},
+	{META_FONTLIST,     "font_t[]"},
+	{META_FONT,         "font_t"},
 	{META_COLORMAP,     "colormap"},
 	{META_CAMERA,       "camera_t"},
 

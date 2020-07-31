@@ -60,6 +60,13 @@
 //-------------------------------------------
 //              heads up font
 //-------------------------------------------
+
+// Note: when adding new fonts, also update:
+// - The font definitions in HU_LoadGraphics
+// - The font entries in dehacked.c's LUA_CONST
+// - lua_hudlib.c's font array
+font_t *luafonts[NUMFONTS];
+
 font_t hu_font;
 font_t tny_font;
 patch_t *tallnum[10]; // 0-9
@@ -310,6 +317,11 @@ void HU_LoadGraphics(void)
 		else
 			nto_font.chars[i] = (patch_t *)W_CachePatchName(buffer, PU_HUDGFX);
 	}
+
+	luafonts[0] = &hu_font;
+	luafonts[1] = &tny_font;
+	luafonts[2] = &lt_font;
+	luafonts[3] = &cred_font;
 
 	// cache the crosshairs, don't bother to know which one is being used,
 	// just cache all 3, they're so small anyway.

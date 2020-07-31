@@ -2092,7 +2092,7 @@ char *V_WordWrap(INT32 x, INT32 w, INT32 option, const char *string)
 	return newstring;
 }
 
-static fixed_t V_ScaledStringWidth(const char *string, font_t font, INT32 option, fixed_t scale)
+fixed_t V_ScaledStringWidth(const char *string, font_t font, INT32 option, fixed_t scale)
 {
 	fixed_t w = 0;
 	INT32 c;
@@ -2163,7 +2163,7 @@ static void V_ProcessStringFlags(fixed_t *x, fixed_t *y, fixed_t scale, font_t f
 // Write a string using the hu_font
 // NOTE: the text is centered for screens larger than the base width
 //
-static void V_DrawScaledString(fixed_t x, fixed_t y, fixed_t scale, font_t font, INT32 stringflags, INT32 option, const char *string)
+void V_DrawScaledString(fixed_t x, fixed_t y, fixed_t scale, font_t font, INT32 stringflags, INT32 option, const char *string)
 {
 	fixed_t cx = x, cy = y, w, left = 0;
 	INT32 c, dupx, dupy, scrwidth;

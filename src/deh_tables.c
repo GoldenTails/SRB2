@@ -5368,6 +5368,18 @@ struct int_const_s const INT_CONST[] = {
 	{"V_CHARCOLORSHIFT",V_CHARCOLORSHIFT},
 	{"V_ALPHASHIFT",V_ALPHASHIFT},
 
+	// Text drawing flags
+	{"VDS_LEFTALIGN", VDS_LEFTALIGN},
+	{"VDS_RIGHTALIGN", VDS_RIGHTALIGN},
+	{"VDS_CENTERALIGN", VDS_CENTERALIGN},
+	{"VDS_INTEGER", VDS_INTEGER},
+
+	// Lua font exposure indices
+	{"hu_font", 0},
+	{"tny_font", 1},
+	{"lt_font", 2},
+	{"cred_font", 3},
+
 	//Kick Reasons
 	{"KR_KICK",KR_KICK},
 	{"KR_PINGLIMIT",KR_PINGLIMIT},
