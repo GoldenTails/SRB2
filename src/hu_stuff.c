@@ -67,6 +67,7 @@
 // - lua_hudlib.c's font array
 font_t *luafonts[MAXFONTS];
 font_t fonts[MAXFONTS];
+INT32 numfonts = FONT_FIRSTFREESLOT;
 
 patch_t *tallnum[10]; // 0-9
 patch_t *nightsnum[10]; // 0-9
@@ -184,50 +185,50 @@ void HU_LoadGraphics(void)
 	if (dedicated)
 		return;
 
-	fonts[font_tny].start = fonts[font_hu].start = j = HU_FONTSTART;
-	fonts[font_tny].end = fonts[font_hu].end = HU_FONTEND;
-	fonts[font_tny].size = fonts[font_hu].size = HU_FONTSIZE;
+	fonts[FONT_TNY].start = fonts[FONT_HU].start = j = HU_FONTSTART;
+	fonts[FONT_TNY].end = fonts[FONT_HU].end = HU_FONTEND;
+	fonts[FONT_TNY].size = fonts[FONT_HU].size = HU_FONTSIZE;
 
-	fonts[font_hu].spacewidth = 4;
-	fonts[font_hu].monospacewidth = 8;
-	fonts[font_hu].charwidth = 8;
-	fonts[font_hu].sixspacewidth = 6;
+	fonts[FONT_HU].spacewidth = 4;
+	fonts[FONT_HU].monospacewidth = 8;
+	fonts[FONT_HU].charwidth = 8;
+	fonts[FONT_HU].sixspacewidth = 6;
 
-	fonts[font_tny].spacewidth = 2;
-	fonts[font_tny].monospacewidth = 5;
-	fonts[font_tny].charwidth = 5;
-	fonts[font_tny].sixspacewidth = 3;
+	fonts[FONT_TNY].spacewidth = 2;
+	fonts[FONT_TNY].monospacewidth = 5;
+	fonts[FONT_TNY].charwidth = 5;
+	fonts[FONT_TNY].sixspacewidth = 3;
 
-	fonts[font_hu].chars = Z_Calloc(fonts[font_hu].size * sizeof(patch_t *), PU_STATIC, NULL);
-	fonts[font_tny].chars = Z_Calloc(fonts[font_tny].size * sizeof(patch_t *), PU_STATIC, NULL);
+	fonts[FONT_HU].chars = Z_Calloc(fonts[FONT_HU].size * sizeof(patch_t *), PU_STATIC, NULL);
+	fonts[FONT_TNY].chars = Z_Calloc(fonts[FONT_TNY].size * sizeof(patch_t *), PU_STATIC, NULL);
 
 	for (i = 0; i < HU_FONTSIZE; i++, j++)
 	{
 		// cache the heads-up font for entire game execution
 		sprintf(buffer, "STCFN%.3d", j);
 		if (W_CheckNumForName(buffer) == LUMPERROR)
-			fonts[font_hu].chars[i] = NULL;
+			fonts[FONT_HU].chars[i] = NULL;
 		else
-			fonts[font_hu].chars[i] = (patch_t *)W_CachePatchName(buffer, PU_HUDGFX);
+			fonts[FONT_HU].chars[i] = (patch_t *)W_CachePatchName(buffer, PU_HUDGFX);
 
 		// tiny version of the heads-up font
 		sprintf(buffer, "TNYFN%.3d", j);
 		if (W_CheckNumForName(buffer) == LUMPERROR)
-			fonts[font_tny].chars[i] = NULL;
+			fonts[FONT_TNY].chars[i] = NULL;
 		else
-			fonts[font_tny].chars[i] = (patch_t *)W_CachePatchName(buffer, PU_HUDGFX);
+			fonts[FONT_TNY].chars[i] = (patch_t *)W_CachePatchName(buffer, PU_HUDGFX);
 	}
 
-	fonts[font_lt].start = j = LT_FONTSTART;
-	fonts[font_lt].end = LT_FONTEND;
-	fonts[font_lt].size = LT_FONTSIZE;
+	fonts[FONT_LT].start = j = LT_FONTSTART;
+	fonts[FONT_LT].end = LT_FONTEND;
+	fonts[FONT_LT].size = LT_FONTSIZE;
 
-	fonts[font_lt].spacewidth = 16;
-	fonts[font_lt].monospacewidth = 16;
-	fonts[font_lt].charwidth = 0; // If this is 0, it will not process V_OLDSPACING. Cool, right?
-	fonts[font_lt].sixspacewidth = 16;
+	fonts[FONT_LT].spacewidth = 16;
+	fonts[FONT_LT].monospacewidth = 16;
+	fonts[FONT_LT].charwidth = 0; // If this is 0, it will not process V_OLDSPACING. Cool, right?
+	fonts[FONT_LT].sixspacewidth = 16;
 
-	fonts[font_lt].chars = Z_Calloc(fonts[font_lt].size * sizeof(patch_t *), PU_STATIC, NULL);
+	fonts[FONT_LT].chars = Z_Calloc(fonts[FONT_LT].size * sizeof(patch_t *), PU_STATIC, NULL);
 
 	for (i = 0; i < LT_FONTSIZE; i++)
 	{
@@ -235,21 +236,21 @@ void HU_LoadGraphics(void)
 		j++;
 
 		if (W_CheckNumForName(buffer) == LUMPERROR)
-			fonts[font_lt].chars[i] = NULL;
+			fonts[FONT_LT].chars[i] = NULL;
 		else
-			fonts[font_lt].chars[i] = (patch_t *)W_CachePatchName(buffer, PU_HUDGFX);
+			fonts[FONT_LT].chars[i] = (patch_t *)W_CachePatchName(buffer, PU_HUDGFX);
 	}
 
-	fonts[font_cred].start = j = CRED_FONTSTART;
-	fonts[font_cred].end = CRED_FONTEND;
-	fonts[font_cred].size = CRED_FONTSIZE;
+	fonts[FONT_CRED].start = j = CRED_FONTSTART;
+	fonts[FONT_CRED].end = CRED_FONTEND;
+	fonts[FONT_CRED].size = CRED_FONTSIZE;
 
-	fonts[font_cred].spacewidth = 16;
-	fonts[font_cred].monospacewidth = 16;
-	fonts[font_cred].charwidth = 0; // If this is 0, it will not process V_OLDSPACING. Cool, right?
-	fonts[font_cred].sixspacewidth = 16;
+	fonts[FONT_CRED].spacewidth = 16;
+	fonts[FONT_CRED].monospacewidth = 16;
+	fonts[FONT_CRED].charwidth = 0; // If this is 0, it will not process V_OLDSPACING. Cool, right?
+	fonts[FONT_CRED].sixspacewidth = 16;
 
-	fonts[font_cred].chars = Z_Calloc(fonts[font_cred].size * sizeof(patch_t *), PU_STATIC, NULL);
+	fonts[FONT_CRED].chars = Z_Calloc(fonts[FONT_CRED].size * sizeof(patch_t *), PU_STATIC, NULL);
 
 	// cache the credits font for entire game execution (why not?)
 	for (i = 0; i < CRED_FONTSIZE; i++)
@@ -258,9 +259,9 @@ void HU_LoadGraphics(void)
 		j++;
 
 		if (W_CheckNumForName(buffer) == LUMPERROR)
-			fonts[font_cred].chars[i] = NULL;
+			fonts[FONT_CRED].chars[i] = NULL;
 		else
-			fonts[font_cred].chars[i] = (patch_t *)W_CachePatchName(buffer, PU_HUDGFX);
+			fonts[FONT_CRED].chars[i] = (patch_t *)W_CachePatchName(buffer, PU_HUDGFX);
 	}
 
 	//cache numbers too!
@@ -283,12 +284,12 @@ void HU_LoadGraphics(void)
 		ttlnum[i] = (patch_t *)W_CachePatchName(buffer, PU_HUDGFX);
 	}
 
-	fonts[font_nto].start = fonts[font_ntb].start = j = NT_FONTSTART;
-	fonts[font_nto].end = fonts[font_ntb].end = NT_FONTEND;
-	fonts[font_nto].size = fonts[font_ntb].size = NT_FONTSIZE;
+	fonts[FONT_NTO].start = fonts[FONT_NTB].start = j = NT_FONTSTART;
+	fonts[FONT_NTO].end = fonts[FONT_NTB].end = NT_FONTEND;
+	fonts[FONT_NTO].size = fonts[FONT_NTB].size = NT_FONTSIZE;
 
-	fonts[font_ntb].chars = Z_Calloc(fonts[font_ntb].size * sizeof(patch_t *), PU_STATIC, NULL);
-	fonts[font_nto].chars = Z_Calloc(fonts[font_nto].size * sizeof(patch_t *), PU_STATIC, NULL);
+	fonts[FONT_NTB].chars = Z_Calloc(fonts[FONT_NTB].size * sizeof(patch_t *), PU_STATIC, NULL);
+	fonts[FONT_NTO].chars = Z_Calloc(fonts[FONT_NTO].size * sizeof(patch_t *), PU_STATIC, NULL);
 
 	for (i = 0; i < NT_FONTSIZE; i++, j++)
 	{
@@ -296,23 +297,23 @@ void HU_LoadGraphics(void)
 
 		// cache the base name tag font for entire game execution
 		if (W_CheckNumForName(buffer) == LUMPERROR)
-			fonts[font_ntb].chars[i] = NULL;
+			fonts[FONT_NTB].chars[i] = NULL;
 		else
-			fonts[font_ntb].chars[i] = (patch_t *)W_CachePatchName(buffer, PU_HUDGFX);
+			fonts[FONT_NTB].chars[i] = (patch_t *)W_CachePatchName(buffer, PU_HUDGFX);
 
 		sprintf(buffer, "NTFNO%.3d", j);
 
 		// cache the outline name tag font for entire game execution
 		if (W_CheckNumForName(buffer) == LUMPERROR)
-			fonts[font_nto].chars[i] = NULL;
+			fonts[FONT_NTO].chars[i] = NULL;
 		else
-			fonts[font_nto].chars[i] = (patch_t *)W_CachePatchName(buffer, PU_HUDGFX);
+			fonts[FONT_NTO].chars[i] = (patch_t *)W_CachePatchName(buffer, PU_HUDGFX);
 	}
 
-	luafonts[0] = &fonts[font_hu];
-	luafonts[1] = &fonts[font_tny];
-	luafonts[2] = &fonts[font_lt];
-	luafonts[3] = &fonts[font_cred];
+	luafonts[0] = &fonts[FONT_HU];
+	luafonts[1] = &fonts[FONT_TNY];
+	luafonts[2] = &fonts[FONT_LT];
+	luafonts[3] = &fonts[FONT_CRED];
 
 	// cache the crosshairs, don't bother to know which one is being used,
 	// just cache all 3, they're so small anyway.
@@ -901,7 +902,7 @@ static inline boolean HU_keyInChatString(char *s, char ch)
 {
 	size_t l;
 
-	if ((ch >= HU_FONTSTART && ch <= HU_FONTEND && fonts[font_hu].chars[ch-HU_FONTSTART])
+	if ((ch >= HU_FONTSTART && ch <= HU_FONTEND && fonts[FONT_HU].chars[ch-HU_FONTSTART])
 	  || ch == ' ') // Allow spaces, of course
 	{
 		l = strlen(s);
@@ -1351,7 +1352,7 @@ static char *CHAT_WordWrap(INT32 x, INT32 w, INT32 option, const char *string)
 			c = toupper(c);
 		c -= HU_FONTSTART;
 
-		if (c < 0 || c >= HU_FONTSIZE || !fonts[font_hu].chars[c])
+		if (c < 0 || c >= HU_FONTSIZE || !fonts[FONT_HU].chars[c])
 		{
 			chw = spacewidth;
 			lastusablespace = i;
@@ -1833,8 +1834,8 @@ static void HU_DrawChat_Old(void)
 	size_t i = 0;
 	const char *ntalk = "Say: ", *ttalk = "Say-Team: ";
 	const char *talk = ntalk;
-	INT32 charwidth = 8 * con_scalefactor; //fonts[font_hu].chars['A'-HU_FONTSTART]->width * con_scalefactor;
-	INT32 charheight = 8 * con_scalefactor; //fonts[font_hu].chars['A'-HU_FONTSTART]->height * con_scalefactor;
+	INT32 charwidth = 8 * con_scalefactor; //fonts[FONT_HU].chars['A'-HU_FONTSTART]->width * con_scalefactor;
+	INT32 charheight = 8 * con_scalefactor; //fonts[FONT_HU].chars['A'-HU_FONTSTART]->height * con_scalefactor;
 	if (teamtalk)
 	{
 		talk = ttalk;
@@ -1855,7 +1856,7 @@ static void HU_DrawChat_Old(void)
 		}
 		else
 		{
-			//charwidth = fonts[font_hu].chars[talk[i]-HU_FONTSTART]->width * con_scalefactor;
+			//charwidth = fonts[FONT_HU].chars[talk[i]-HU_FONTSTART]->width * con_scalefactor;
 			V_DrawCharacter(HU_INPUTX + c, y, talk[i++] | cv_constextsize.value | V_NOSCALESTART, true);
 		}
 		c += charwidth;
@@ -1883,7 +1884,7 @@ static void HU_DrawChat_Old(void)
 		}
 		else
 		{
-			//charwidth = fonts[font_hu].chars[w_chat[i]-HU_FONTSTART]->width * con_scalefactor;
+			//charwidth = fonts[FONT_HU].chars[w_chat[i]-HU_FONTSTART]->width * con_scalefactor;
 			V_DrawCharacter(HU_INPUTX + c, y, w_chat[i++] | cv_constextsize.value | V_NOSCALESTART | t, true);
 		}
 

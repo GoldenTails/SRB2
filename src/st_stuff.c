@@ -503,13 +503,13 @@ static void ST_drawDebugInfo(void)
 
 #define V_DrawDebugLine(str) if (lowh && (height > lowh))\
 							{\
-								V_DrawScaledString(320,  8+lowh, FRACUNIT, fonts[font_tny], VDSFLAGS, VFLAGS|V_REDMAP, "SOME INFO NOT VISIBLE");\
+								V_DrawScaledString(320,  8+lowh, FRACUNIT, fonts[FONT_TNY], VDSFLAGS, VFLAGS|V_REDMAP, "SOME INFO NOT VISIBLE");\
 								return;\
 							}\
-							V_DrawScaledString(320, height, scale, fonts[font_hu], VDSFLAGS, VFLAGS, str);\
+							V_DrawScaledString(320, height, scale, fonts[FONT_HU], VDSFLAGS, VFLAGS, str);\
 							height += h;
 
-#define V_DrawDebugFlag(f, str) V_DrawScaledString(width, height, scale, fonts[font_hu], VDSFLAGS, VFLAGS|f, str);\
+#define V_DrawDebugFlag(f, str) V_DrawScaledString(width, height, scale, fonts[FONT_HU], VDSFLAGS, VFLAGS|f, str);\
 								width -= w
 
 	if (cv_debug & DBG_MEMORY)

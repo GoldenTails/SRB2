@@ -199,7 +199,7 @@ UINT8 *V_GetStringColormap(INT32 colorflags);
 
 void V_DrawLevelTitle(INT32 x, INT32 y, INT32 option, const char *string);
 
-// wordwrap a string using the font_hu
+// wordwrap a string using the FONT_HU
 char *V_WordWrap(INT32 x, INT32 w, INT32 option, const char *string);
 UINT8 *V_GetStringColormap(INT32 colorflags);
 
@@ -217,101 +217,101 @@ fixed_t V_ScaledStringWidth(const char *string, font_t font, INT32 option, fixed
 void V_DrawScaledString(fixed_t x, fixed_t y, fixed_t scale, font_t font, INT32 stringflags, INT32 option, const char *string);
 
 #define V_DrawString(x, y, option, string) \
-	V_DrawScaledString(x, y, FRACUNIT, fonts[font_hu], VDS_INTEGER, option, string)
+	V_DrawScaledString(x, y, FRACUNIT, fonts[FONT_HU], VDS_INTEGER, option, string)
 
 #define V_DrawCenteredString(x, y, option, string) \
-	V_DrawScaledString(x, y, FRACUNIT, fonts[font_hu], VDS_INTEGER|VDS_CENTERALIGN, option, string)
+	V_DrawScaledString(x, y, FRACUNIT, fonts[FONT_HU], VDS_INTEGER|VDS_CENTERALIGN, option, string)
 
 #define V_DrawRightAlignedString(x, y, option, string) \
-	V_DrawScaledString(x, y, FRACUNIT, fonts[font_hu], VDS_INTEGER|VDS_RIGHTALIGN, option, string)
+	V_DrawScaledString(x, y, FRACUNIT, fonts[FONT_HU], VDS_INTEGER|VDS_RIGHTALIGN, option, string)
 
 //
-// Write a string using the font_hu, 0.5x scale
+// Write a string using the FONT_HU, 0.5x scale
 // NOTE: the text is centered for screens larger than the base width
 //
 #define V_DrawSmallString(x, y, option, string) \
-	V_DrawScaledString(x, y, FRACUNIT/2, fonts[font_hu], VDS_INTEGER, option, string)
+	V_DrawScaledString(x, y, FRACUNIT/2, fonts[FONT_HU], VDS_INTEGER, option, string)
 
 #define V_DrawCenteredSmallString(x, y, option, string) \
-	V_DrawScaledString(x, y, FRACUNIT/2, fonts[font_hu], VDS_INTEGER|VDS_CENTERALIGN, option, string)
+	V_DrawScaledString(x, y, FRACUNIT/2, fonts[FONT_HU], VDS_INTEGER|VDS_CENTERALIGN, option, string)
 
 
 #define V_DrawRightAlignedSmallString(x, y, option, string) \
-	V_DrawScaledString(x, y, FRACUNIT/2, fonts[font_hu], VDS_INTEGER|VDS_RIGHTALIGN, option, string)
+	V_DrawScaledString(x, y, FRACUNIT/2, fonts[FONT_HU], VDS_INTEGER|VDS_RIGHTALIGN, option, string)
 
 //
-// Write a string using the font_tny
+// Write a string using the FONT_TNY
 // NOTE: the text is centered for screens larger than the base width
 //
 #define V_DrawThinString(x, y, option, string) \
-	V_DrawScaledString(x, y, FRACUNIT, fonts[font_tny], VDS_INTEGER, option, string)
+	V_DrawScaledString(x, y, FRACUNIT, fonts[FONT_TNY], VDS_INTEGER, option, string)
 
 #define V_DrawCenteredThinString(x, y, option, string) \
-	V_DrawScaledString(x, y, FRACUNIT, fonts[font_tny], VDS_INTEGER|VDS_CENTERALIGN, option, string)
+	V_DrawScaledString(x, y, FRACUNIT, fonts[FONT_TNY], VDS_INTEGER|VDS_CENTERALIGN, option, string)
 
 #define V_DrawRightAlignedThinString(x, y, option, string) \
-	V_DrawScaledString(x, y, FRACUNIT, fonts[font_tny], VDS_INTEGER|VDS_RIGHTALIGN, option, string)
+	V_DrawScaledString(x, y, FRACUNIT, fonts[FONT_TNY], VDS_INTEGER|VDS_RIGHTALIGN, option, string)
 
 //
-// Write a string using the font_tny, 0.5x scale
+// Write a string using the FONT_TNY, 0.5x scale
 // NOTE: the text is centered for screens larger than the base width
 //
 // Literally a wrapper. ~Golden
 #define V_DrawSmallThinString(x, y, option, string) \
-	V_DrawScaledString(x, y, FRACUNIT/2, fonts[font_tny], VDS_INTEGER, option, string)
+	V_DrawScaledString(x, y, FRACUNIT/2, fonts[FONT_TNY], VDS_INTEGER, option, string)
 
 #define V_DrawCenteredSmallThinString(x, y, option, string) \
-	V_DrawScaledString(x, y, FRACUNIT/2, fonts[font_tny], VDS_INTEGER|VDS_CENTERALIGN, option, string)
+	V_DrawScaledString(x, y, FRACUNIT/2, fonts[FONT_TNY], VDS_INTEGER|VDS_CENTERALIGN, option, string)
 
 #define V_DrawRightAlignedSmallThinString(x, y, option, string) \
-	V_DrawScaledString(x, y, FRACUNIT/2, fonts[font_tny], VDS_INTEGER|VDS_RIGHTALIGN, option, string)
+	V_DrawScaledString(x, y, FRACUNIT/2, fonts[FONT_TNY], VDS_INTEGER|VDS_RIGHTALIGN, option, string)
 
 // Draws a string at a fixed_t location.
 #define V_DrawStringAtFixed(x, y, option, string) \
-	V_DrawScaledString(x, y, FRACUNIT, fonts[font_hu], 0, option, string)
+	V_DrawScaledString(x, y, FRACUNIT, fonts[FONT_HU], 0, option, string)
 
 #define V_DrawCenteredStringAtFixed(x, y, option, string) \
-	V_DrawScaledString(x, y, FRACUNIT, fonts[font_hu], VDS_CENTERALIGN, option, string)
+	V_DrawScaledString(x, y, FRACUNIT, fonts[FONT_HU], VDS_CENTERALIGN, option, string)
 
 #define V_DrawRightAlignedStringAtFixed(x, y, option, string) \
-	V_DrawScaledString(x, y, FRACUNIT, fonts[font_hu], VDS_RIGHTALIGN, option, string)
+	V_DrawScaledString(x, y, FRACUNIT, fonts[FONT_HU], VDS_RIGHTALIGN, option, string)
 
 // Draws a small string at a fixed_t location.
 #define V_DrawSmallStringAtFixed(x, y, option, string) \
-	V_DrawScaledString(x, y, FRACUNIT/2, fonts[font_hu], 0, option, string)
+	V_DrawScaledString(x, y, FRACUNIT/2, fonts[FONT_HU], 0, option, string)
 
 #define V_DrawCenteredSmallStringAtFixed(x, y, option, string) \
-	V_DrawScaledString(x, y, FRACUNIT/2, fonts[font_hu], VDS_CENTERALIGN, option, string)
+	V_DrawScaledString(x, y, FRACUNIT/2, fonts[FONT_HU], VDS_CENTERALIGN, option, string)
 
 #define V_DrawRightAlignedSmallStringAtFixed(x, y, option, string) \
-	V_DrawScaledString(x, y, FRACUNIT/2, fonts[font_hu], VDS_RIGHTALIGN, option, string)
+	V_DrawScaledString(x, y, FRACUNIT/2, fonts[FONT_HU], VDS_RIGHTALIGN, option, string)
 
 // Draws a thin string at a fixed_t location.
 #define V_DrawThinStringAtFixed(x, y, option, string) \
-	V_DrawScaledString(x, y, FRACUNIT, fonts[font_tny], 0, option, string)
+	V_DrawScaledString(x, y, FRACUNIT, fonts[FONT_TNY], 0, option, string)
 
 #define V_DrawCenteredThinStringAtFixed(x, y, option, string) \
-	V_DrawScaledString(x, y, FRACUNIT, fonts[font_tny], VDS_CENTERALIGN, option, string)
+	V_DrawScaledString(x, y, FRACUNIT, fonts[FONT_TNY], VDS_CENTERALIGN, option, string)
 
 #define V_DrawRightAlignedThinStringAtFixed(x, y, option, string) \
-	V_DrawScaledString(x, y, FRACUNIT, fonts[font_tny], VDS_RIGHTALIGN, option, string)
+	V_DrawScaledString(x, y, FRACUNIT, fonts[FONT_TNY], VDS_RIGHTALIGN, option, string)
 
 // Draws a small string at a fixed_t location.
 #define V_DrawSmallThinStringAtFixed(x, y, option, string) \
-	V_DrawScaledString(x, y, FRACUNIT/2, fonts[font_tny], 0, option, string)
+	V_DrawScaledString(x, y, FRACUNIT/2, fonts[FONT_TNY], 0, option, string)
 
 #define V_DrawCenteredSmallThinStringAtFixed(x, y, option, string) \
-	V_DrawScaledString(x, y, FRACUNIT/2, fonts[font_tny], VDS_CENTERALIGN, option, string)
+	V_DrawScaledString(x, y, FRACUNIT/2, fonts[FONT_TNY], VDS_CENTERALIGN, option, string)
 
 #define V_DrawRightAlignedSmallThinStringAtFixed(x, y, option, string) \
-	V_DrawScaledString(x, y, FRACUNIT/2, fonts[font_tny], VDS_RIGHTALIGN, option, string)
+	V_DrawScaledString(x, y, FRACUNIT/2, fonts[FONT_TNY], VDS_RIGHTALIGN, option, string)
 
 // Draw tall nums, used for menu, HUD, intermission
 void V_DrawTallNum(INT32 x, INT32 y, INT32 flags, INT32 num);
 void V_DrawPaddedTallNum(INT32 x, INT32 y, INT32 flags, INT32 num, INT32 digits);
 void V_DrawLevelActNum(INT32 x, INT32 y, INT32 flags, UINT8 num);
 
-// Find string width from font_lt chars
+// Find string width from FONT_LT chars
 INT32 V_LevelNameWidth(const char *string);
 INT32 V_LevelNameHeight(const char *string);
 INT16 V_LevelActNumWidth(UINT8 num); // act number width
@@ -324,13 +324,13 @@ void V_DrawNameTag(INT32 x, INT32 y, INT32 option, fixed_t scale, UINT8 *basecol
 INT32 V_CountNameTagLines(const char *string);
 INT32 V_NameTagWidth(const char *string);
 
-// Find string width from font_hu chars
+// Find string width from FONT_HU chars
 INT32 V_StringWidth(const char *string, INT32 option);
-// Find string width from font_hu chars, 0.5x scale
+// Find string width from FONT_HU chars, 0.5x scale
 INT32 V_SmallStringWidth(const char *string, INT32 option);
-// Find string width from font_tny chars
+// Find string width from FONT_TNY chars
 INT32 V_ThinStringWidth(const char *string, INT32 option);
-// Find string width from font_tny chars, 0.5x scale
+// Find string width from FONT_TNY chars, 0.5x scale
 INT32 V_SmallThinStringWidth(const char *string, INT32 option);
 
 void V_DoPostProcessor(INT32 view, postimg_t type, INT32 param);

@@ -28,6 +28,7 @@
 char *FREE_STATES[NUMSTATEFREESLOTS];
 char *FREE_MOBJS[NUMMOBJFREESLOTS];
 char *FREE_SKINCOLORS[NUMCOLORFREESLOTS];
+char *FREE_FONTS[NUMCOLORFREESLOTS];
 UINT8 used_spr[(NUMSPRITEFREESLOTS / 8) + 1]; // Bitwise flag for sprite freeslot in use! I would use ceil() here if I could, but it only saves 1 byte of memory anyway.
 
 const char NIGHTSGRADE_LIST[] = {
@@ -5375,10 +5376,10 @@ struct int_const_s const INT_CONST[] = {
 	{"VDS_INTEGER", VDS_INTEGER},
 
 	// Lua font exposure indices
-	{"font_hu", font_hu},
-	{"font_tny", font_tny},
-	{"font_lt", font_lt},
-	{"font_cred", font_cred},
+	{"FONT_HU", FONT_HU},
+	{"FONT_TNY", FONT_TNY},
+	{"FONT_LT", FONT_LT},
+	{"FONT_CRED", FONT_CRED},
 
 	//Kick Reasons
 	{"KR_KICK",KR_KICK},
