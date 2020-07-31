@@ -17,19 +17,21 @@
 #include "d_think.h" // actionf_t
 #include "info.h" // Mobj, state, sprite, etc constants
 #include "lua_script.h"
+#include "hu_stuff.h" // fontnum_t
 
 // Free slot names
 // The crazy word-reading stuff uses these.
 extern char *FREE_STATES[NUMSTATEFREESLOTS];
 extern char *FREE_MOBJS[NUMMOBJFREESLOTS];
 extern char *FREE_SKINCOLORS[NUMCOLORFREESLOTS];
-extern char *FREE_FONTS[NUMCOLORFREESLOTS];
+extern char *FREE_FONTS[NUMFONTFREESLOTS];
 extern UINT8 used_spr[(NUMSPRITEFREESLOTS / 8) + 1]; // Bitwise flag for sprite freeslot in use! I would use ceil() here if I could, but it only saves 1 byte of memory anyway.
 
 #define initfreeslots() {\
 	memset(FREE_STATES,0,sizeof(char *) * NUMSTATEFREESLOTS);\
 	memset(FREE_MOBJS,0,sizeof(char *) * NUMMOBJFREESLOTS);\
 	memset(FREE_SKINCOLORS,0,sizeof(char *) * NUMCOLORFREESLOTS);\
+	memset(FREE_FONTS,0,sizeof(char *) * NUMFONTFREESLOTS);\
 	memset(used_spr,0,sizeof(UINT8) * ((NUMSPRITEFREESLOTS / 8) + 1));\
 }
 
@@ -67,6 +69,7 @@ extern const char *const PLAYERFLAG_LIST[];
 extern const char *const GAMETYPERULE_LIST[];
 extern const char *const ML_LIST[16]; // Linedef flags
 extern const char *COLOR_ENUMS[];
+extern const char *FONTS_LIST[];
 extern const char *const POWERS_LIST[];
 extern const char *const HUDITEMS_LIST[];
 extern const char *const MENUTYPES_LIST[];
