@@ -857,6 +857,13 @@ static int libd_drawString(lua_State *L)
 		}
 	}
 
+	if (!lua_isnoneornil(L, 6))
+	{
+		font_t *newfont = *((font_t **)luaL_checkudata(L, 6, META_FONT));
+		if (newfont)
+			font = newfont; // Overwrite the font chosen by the string-based alignment flags (if any)
+	}
+
 	V_DrawScaledString(x, y, scale, *font, stringflags, flags, str);
 	return 0;
 }
@@ -884,7 +891,7 @@ static int libd_drawScaledString(lua_State *L)
 
 	// please only support numeric alignment flags for 2.3, this string parser sucks
 	if (lua_isnumber(L, 6))
-		stringflags = luaL_checkinteger(L, 6);
+		stringflags |= luaL_checkinteger(L, 6);
 	else if (strlen(align) == 0)
 		;
 	else
@@ -913,6 +920,13 @@ static int libd_drawScaledString(lua_State *L)
 				cur_align = strtok(NULL, "-");
 			}
 		}
+	}
+
+	if (!lua_isnoneornil(L, 7))
+	{
+		font_t *newfont = *((font_t **)luaL_checkudata(L, 7, META_FONT));
+		if (newfont)
+			font = newfont; // Overwrite the font chosen by the string-based alignment flags (if any)
 	}
 
 	V_DrawScaledString(x, y, FixedMul(scale, scaleScale), *font, stringflags, flags, str);
@@ -985,9 +999,22 @@ static int libd_stringWidth(lua_State *L)
 {
 	const char *str = luaL_checkstring(L, 1);
 	INT32 flags = luaL_optinteger(L, 2, V_ALLOWLOWERCASE);
-	enum widtht widtht = luaL_checkoption(L, 3, "normal", widtht_opt);
+	enum widtht widtht;
 
 	HUDONLY
+
+	if (lua_isuserdata(L, 3)) {
+		font_t *font = *((font_t **)luaL_checkudata(L, 3, META_FONT));
+
+		if (!font) // I'd have no idea how this condition would be satisfied, but whatever.
+			font = &hu_font;
+
+		lua_pushinteger(L, V_ScaledStringWidth(str, *font, flags, 1));
+		return 1;
+	}
+
+	widtht = luaL_checkoption(L, 3, "normal", widtht_opt);
+
 	switch(widtht)
 	{
 	case widtht_normal: // hu_font
@@ -998,6 +1025,42 @@ static int libd_stringWidth(lua_State *L)
 		break;
 	case widtht_thin: // tny_font
 		lua_pushinteger(L, V_ScaledStringWidth(str, tny_font, flags, 1));
+		break;
+	}
+	return 1;
+}
+
+static int libd_scaledStringWidth(lua_State *L)
+{
+	const char *str = luaL_checkstring(L, 1);
+	fixed_t scale = luaL_checkfixed(L, 2);
+	INT32 flags = luaL_optinteger(L, 3, V_ALLOWLOWERCASE);
+	enum widtht widtht;
+
+	HUDONLY
+
+	if (lua_isuserdata(L, 4)) {
+		font_t *font = *((font_t **)luaL_checkudata(L, 4, META_FONT));
+
+		if (!font) // I'd have no idea how this condition would be satisfied, but whatever.
+			font = &hu_font;
+
+		lua_pushfixed(L, V_ScaledStringWidth(str, *font, flags, scale));
+		return 1;
+	}
+
+	widtht = luaL_checkoption(L, 4, "normal", widtht_opt);
+
+	switch(widtht)
+	{
+	case widtht_normal: // hu_font
+		lua_pushfixed(L, V_ScaledStringWidth(str, hu_font, flags, scale));
+		break;
+	case widtht_small: // hu_font, 0.5x scale
+		lua_pushfixed(L, V_ScaledStringWidth(str, hu_font, flags, scale/2));
+		break;
+	case widtht_thin: // tny_font
+		lua_pushfixed(L, V_ScaledStringWidth(str, tny_font, flags, scale));
 		break;
 	}
 	return 1;
@@ -1217,6 +1280,7 @@ static luaL_Reg lib_draw[] = {
 	{"fadeScreen", libd_fadeScreen},
 	// misc
 	{"stringWidth", libd_stringWidth},
+	{"scaledStringWidth", libd_scaledStringWidth},
 	{"nameTagWidth", libd_nameTagWidth},
 	// m_random
 	{"RandomFixed",libd_RandomFixed},
