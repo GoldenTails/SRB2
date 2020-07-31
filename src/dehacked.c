@@ -647,6 +647,7 @@ void DEH_Check(void)
 	const size_t dehmobjs  = sizeof(MOBJTYPE_LIST)/sizeof(const char*);
 	const size_t dehpowers = sizeof(POWERS_LIST)/sizeof(const char*);
 	const size_t dehcolors = sizeof(COLOR_ENUMS)/sizeof(const char*);
+	const size_t dehfonts  = sizeof(FONTS_LIST)/sizeof(const char*);
 
 	if (dehstates != S_FIRSTFREESLOT)
 		I_Error("You forgot to update the Dehacked states list, you dolt!\n(%d states defined, versus %s in the Dehacked list)\n", S_FIRSTFREESLOT, sizeu1(dehstates));
@@ -659,5 +660,8 @@ void DEH_Check(void)
 
 	if (dehcolors != SKINCOLOR_FIRSTFREESLOT)
 		I_Error("You forgot to update the Dehacked colors list, you dolt!\n(%d colors defined, versus %s in the Dehacked list)\n", SKINCOLOR_FIRSTFREESLOT, sizeu1(dehcolors));
+
+	if (dehfonts != FONT_FIRSTFREESLOT)
+		I_Error("You forgot to update the Dehacked fonts list, you dolt!\n(%d fonts defined, versus %s in the Dehacked list)\n", FONT_FIRSTFREESLOT, sizeu1(dehfonts));
 #endif
 }

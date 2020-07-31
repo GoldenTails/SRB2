@@ -146,6 +146,21 @@ static inline int lib_freeslot(lua_State *L)
 			if (i == NUMCOLORFREESLOTS)
 				CONS_Alert(CONS_WARNING, "Ran out of free skincolor slots!\n");
 		}
+		else if (fastcmp(type, "FONT"))
+		{
+			fontnum_t i;
+			for (i = 0; i < NUMFONTFREESLOTS; i++)
+				if (!FREE_FONTS[i]) {
+					CONS_Printf("Font FONT_%s allocated.\n",word);
+					FREE_FONTS[i] = Z_Malloc(strlen(word)+1, PU_STATIC, NULL);
+					strcpy(FREE_FONTS[i],word);
+					lua_pushinteger(L, FONT_FIRSTFREESLOT + i);
+					r++;
+					break;
+				}
+			if (i == NUMFONTFREESLOTS)
+				CONS_Alert(CONS_WARNING, "Ran out of free font slots!\n");
+		}
 		else if (fastcmp(type, "SPR2"))
 		{
 			// Search if we already have an SPR2 by that name...
@@ -497,6 +512,23 @@ static inline int lib_getenum(lua_State *L)
 				return 1;
 			}
 		return luaL_error(L, "skincolor '%s' could not be found.\n", word);
+	}
+	else if (fastncmp("FONT_",word,5)) {
+		p = word+5;
+		for (i = 0; i < NUMFONTFREESLOTS; i++) {
+			if (!FREE_FONTS[i])
+				break;
+			if (fastcmp(p, FREE_FONTS[i])) {
+				lua_pushinteger(L, FONT_FIRSTFREESLOT+i);
+				return 1;
+			}
+		}
+		for (i = 0; i < FONT_FIRSTFREESLOT; i++)
+			if (fastcmp(p, FONTS_LIST[i])) {
+				lua_pushinteger(L, i);
+				return 1;
+			}
+		return luaL_error(L, "font '%s' could not be found.\n", word);
 	}
 	else if (fastncmp("GRADE_",word,6))
 	{

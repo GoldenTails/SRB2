@@ -36,6 +36,7 @@
 #include "fastcmp.h"
 #include "lua_script.h" // Reluctantly included for LUA_EvalMath
 #include "d_clisrv.h"
+#include "hu_stuff.h" // fontnum_t
 
 #ifdef HWRENDER
 #include "hardware/hw_light.h"
@@ -60,6 +61,7 @@ menutype_t get_menutype(const char *word);
 //INT16 get_gametype(const char *word);
 //powertype_t get_power(const char *word);
 skincolornum_t get_skincolor(const char *word);
+fontnum_t get_font(const char *word);
 
 void readwipes(MYFILE *f);
 void readmaincfg(MYFILE *f);

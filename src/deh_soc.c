@@ -35,6 +35,7 @@
 #include "fastcmp.h"
 #include "lua_script.h" // Reluctantly included for LUA_EvalMath
 #include "d_clisrv.h"
+#include "hu_stuff.h" // fontnum_t
 
 #ifdef HWRENDER
 #include "hardware/hw_light.h"
@@ -435,6 +436,15 @@ void readfreeslots(MYFILE *f)
 						FREE_SKINCOLORS[i] = Z_Malloc(strlen(word)+1, PU_STATIC, NULL);
 						strcpy(FREE_SKINCOLORS[i],word);
 						M_AddMenuColor(numskincolors++);
+						break;
+					}
+			}
+			else if (fastcmp(type, "FONT"))
+			{
+				for (i = 0; i < NUMFONTFREESLOTS; i++)
+					if (!FREE_FONTS[i]) {
+						FREE_FONTS[i] = Z_Malloc(strlen(word)+1, PU_STATIC, NULL);
+						strcpy(FREE_FONTS[i],word);
 						break;
 					}
 			}
@@ -4134,6 +4144,26 @@ skincolornum_t get_skincolor(const char *word)
 	return SKINCOLOR_GREEN;
 }
 
+fontnum_t get_font(const char *word)
+{ // Returns the value of FONT_ enumerations
+	fontnum_t i;
+	if (*word >= '0' && *word <= '9')
+		return atoi(word);
+	if (fastncmp("FONT_",word,5))
+		word += 5; // take off the FONT_
+	for (i = 0; i < NUMFONTFREESLOTS; i++) {
+		if (!FREE_FONTS[i])
+			break;
+		if (fastcmp(word, FREE_FONTS[i]))
+			return FONT_FIRSTFREESLOT+i;
+	}
+	for (i = 0; i < FONT_FIRSTFREESLOT; i++)
+		if (fastcmp(word, FONTS_LIST[i]))
+			return i;
+	deh_warning("Couldn't find font named 'FONT_%s'",word);
+	return FONT_HU;
+}
+
 spritenum_t get_sprite(const char *word)
 { // Returns the value of SPR_ enumerations
 	spritenum_t i;
@@ -4430,6 +4460,11 @@ static fixed_t find_const(const char **rword)
 	}
 	else if (fastncmp("SKINCOLOR_",word,10)) {
 		r = get_skincolor(word);
+		free(word);
+		return r;
+	}
+	else if (fastncmp("FONT_",word,5)) {
+		r = get_font(word);
 		free(word);
 		return r;
 	}
