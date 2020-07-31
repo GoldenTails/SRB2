@@ -93,6 +93,13 @@ void HU_AddChatText(const char *text, boolean playsound);
 // set true when entering a chat message
 extern boolean chat_on;
 
+// Note: when adding new fonts, also update:
+// - The font definitions in hu_stuff.c
+// - The font entries in dehacked.c's LUA_CONST
+// - lua_hudlib.c's font array
+#define NUMFONTS 4
+extern font_t *luafonts[NUMFONTS];
+
 extern font_t hu_font;
 extern font_t tny_font;
 extern patch_t *tallnum[10];

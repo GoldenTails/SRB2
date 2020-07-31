@@ -17,6 +17,7 @@
 #include "doomdef.h"
 #include "doomtype.h"
 #include "r_defs.h"
+#include "hu_stuff.h"
 
 //
 // VIDEO
@@ -210,6 +211,10 @@ enum {
 
 	VDS_INTEGER		= 4 // use integers instead of fixed_t for positioning.
 };
+
+// draw a string using any font at any scale with any alignment
+fixed_t V_ScaledStringWidth(const char *string, font_t font, INT32 option, fixed_t scale);
+void V_DrawScaledString(fixed_t x, fixed_t y, fixed_t scale, font_t font, INT32 stringflags, INT32 option, const char *string);
 
 // draw a string using the hu_font
 void V_DrawString(INT32 x, INT32 y, INT32 option, const char *string);

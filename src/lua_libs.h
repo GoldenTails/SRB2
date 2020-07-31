@@ -83,6 +83,8 @@ extern boolean mousegrabbedbylua;
 
 #define META_HUDINFO "HUDINFO_T*"
 #define META_PATCH "PATCH_T*"
+#define META_FONTLIST "FONT_T[]"
+#define META_FONT "FONT_T*"
 #define META_COLORMAP "COLORMAP"
 #define META_CAMERA "CAMERA_T*"
 
