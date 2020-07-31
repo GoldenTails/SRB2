@@ -199,7 +199,7 @@ UINT8 *V_GetStringColormap(INT32 colorflags);
 
 void V_DrawLevelTitle(INT32 x, INT32 y, INT32 option, const char *string);
 
-// wordwrap a string using the hu_font
+// wordwrap a string using the font_hu
 char *V_WordWrap(INT32 x, INT32 w, INT32 option, const char *string);
 UINT8 *V_GetStringColormap(INT32 colorflags);
 
@@ -216,42 +216,42 @@ enum {
 fixed_t V_ScaledStringWidth(const char *string, font_t font, INT32 option, fixed_t scale);
 void V_DrawScaledString(fixed_t x, fixed_t y, fixed_t scale, font_t font, INT32 stringflags, INT32 option, const char *string);
 
-// draw a string using the hu_font
+// draw a string using the font_hu
 void V_DrawString(INT32 x, INT32 y, INT32 option, const char *string);
 void V_DrawCenteredString(INT32 x, INT32 y, INT32 option, const char *string);
 void V_DrawRightAlignedString(INT32 x, INT32 y, INT32 option, const char *string);
 
-// draw a string using the hu_font, 0.5x scale
+// draw a string using the font_hu, 0.5x scale
 void V_DrawSmallString(INT32 x, INT32 y, INT32 option, const char *string);
 void V_DrawCenteredSmallString(INT32 x, INT32 y, INT32 option, const char *string);
 void V_DrawRightAlignedSmallString(INT32 x, INT32 y, INT32 option, const char *string);
 
-// draw a string using the tny_font
+// draw a string using the font_tny
 void V_DrawThinString(INT32 x, INT32 y, INT32 option, const char *string);
 void V_DrawCenteredThinString(INT32 x, INT32 y, INT32 option, const char *string);
 void V_DrawRightAlignedThinString(INT32 x, INT32 y, INT32 option, const char *string);
 
-// draw a string using the tny_font, 0.5x scale
+// draw a string using the font_tny, 0.5x scale
 void V_DrawSmallThinString(INT32 x, INT32 y, INT32 option, const char *string);
 void V_DrawCenteredSmallThinString(INT32 x, INT32 y, INT32 option, const char *string);
 void V_DrawRightAlignedSmallThinString(INT32 x, INT32 y, INT32 option, const char *string);
 
-// draw a string using the hu_font at fixed_t coordinates
+// draw a string using the font_hu at fixed_t coordinates
 void V_DrawStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string);
 void V_DrawCenteredStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string);
 void V_DrawRightAlignedStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string);
 
-// draw a string using the hu_font at fixed_t coordinates, 0.5x scale
+// draw a string using the font_hu at fixed_t coordinates, 0.5x scale
 void V_DrawSmallStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string);
 void V_DrawCenteredSmallStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string);
 void V_DrawRightAlignedSmallStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string);
 
-// draw a string using the tny_font at fixed_t coordinates
+// draw a string using the font_tny at fixed_t coordinates
 void V_DrawThinStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string);
 void V_DrawCenteredThinStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string);
 void V_DrawRightAlignedThinStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string);
 
-// draw a string using the tny_font at fixed_t coordinates, 0.5x scale
+// draw a string using the font_tny at fixed_t coordinates, 0.5x scale
 void V_DrawSmallThinStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string);
 void V_DrawCenteredSmallThinStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string);
 void V_DrawRightAlignedSmallThinStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string);
@@ -261,7 +261,7 @@ void V_DrawTallNum(INT32 x, INT32 y, INT32 flags, INT32 num);
 void V_DrawPaddedTallNum(INT32 x, INT32 y, INT32 flags, INT32 num, INT32 digits);
 void V_DrawLevelActNum(INT32 x, INT32 y, INT32 flags, UINT8 num);
 
-// Find string width from lt_font chars
+// Find string width from font_lt chars
 INT32 V_LevelNameWidth(const char *string);
 INT32 V_LevelNameHeight(const char *string);
 INT16 V_LevelActNumWidth(UINT8 num); // act number width
@@ -269,18 +269,18 @@ INT16 V_LevelActNumWidth(UINT8 num); // act number width
 void V_DrawCreditString(fixed_t x, fixed_t y, INT32 option, const char *string);
 INT32 V_CreditStringWidth(const char *string);
 
-// Draw a string using the nt_font
+// Draw a string using the font_nt
 void V_DrawNameTag(INT32 x, INT32 y, INT32 option, fixed_t scale, UINT8 *basecolormap, UINT8 *outlinecolormap, const char *string);
 INT32 V_CountNameTagLines(const char *string);
 INT32 V_NameTagWidth(const char *string);
 
-// Find string width from hu_font chars
+// Find string width from font_hu chars
 INT32 V_StringWidth(const char *string, INT32 option);
-// Find string width from hu_font chars, 0.5x scale
+// Find string width from font_hu chars, 0.5x scale
 INT32 V_SmallStringWidth(const char *string, INT32 option);
-// Find string width from tny_font chars
+// Find string width from font_tny chars
 INT32 V_ThinStringWidth(const char *string, INT32 option);
-// Find string width from tny_font chars, 0.5x scale
+// Find string width from font_tny chars, 0.5x scale
 INT32 V_SmallThinStringWidth(const char *string, INT32 option);
 
 void V_DoPostProcessor(INT32 view, postimg_t type, INT32 param);

@@ -99,15 +99,28 @@ extern boolean chat_on;
 // - lua_hudlib.c's font array
 #define NUMFONTS 4
 extern font_t *luafonts[NUMFONTS];
+extern font_t *fonts;
 
-extern font_t hu_font;
-extern font_t tny_font;
+enum
+{
+	font_hu = 0,
+	font_tny,
+	font_lt,
+	font_cred,
+	font_ntb,
+	font_nto,
+
+	font_max
+};
+
+//extern font_t font_hu;
+//extern font_t font_tny;
 extern patch_t *tallnum[10];
 extern patch_t *nightsnum[10];
-extern font_t lt_font;
-extern font_t cred_font;
-extern font_t ntb_font;
-extern font_t nto_font;
+//extern font_t font_lt;
+//extern font_t font_cred;
+//extern font_t font_ntb;
+//extern font_t font_nto;
 extern patch_t *ttlnum[10];
 extern patch_t *emeraldpics[3][8];
 extern patch_t *rflagico;
