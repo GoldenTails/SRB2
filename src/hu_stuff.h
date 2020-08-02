@@ -96,7 +96,6 @@ extern boolean chat_on;
 // Note: when adding new fonts, also update:
 // - The font definitions in hu_stuff.c
 // - The font entries in dehacked.c's LUA_CONST
-// - lua_hudlib.c's font array
 
 #define NUMFONTFREESLOTS 128 // Surely nobody's ever gonna need more than 128 font freeslots
 
@@ -115,9 +114,8 @@ typedef enum
 	MAXFONTS
 } fontnum_t;
 
-extern font_t *luafonts[MAXFONTS];
 extern font_t fonts[MAXFONTS];
-extern INT32 numfonts;
+extern UINT32 numfonts;
 
 extern patch_t *tallnum[10];
 extern patch_t *nightsnum[10];
@@ -137,6 +135,8 @@ extern boolean hu_showscores;
 
 // init heads up data at game startup.
 void HU_Init(void);
+
+void HU_LoadGenericFontGraphics(font_t *font, const char *prefix, UINT8 numbers);
 
 void HU_LoadGraphics(void);
 

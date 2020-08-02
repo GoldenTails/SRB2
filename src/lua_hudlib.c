@@ -84,7 +84,8 @@ enum font {
 	font_spacewidth,
 	font_monospacewidth,
 	font_sixspacewidth,
-	font_charwidth
+	font_charwidth,
+	font_loadPatches
 };
 
 static const char *const font_opt[] = {
@@ -95,6 +96,7 @@ static const char *const font_opt[] = {
 	"monospacewidth",
 	"sixspacewidth",
 	"charwidth",
+	"loadPatches",
 	NULL};
 
 enum patch {
@@ -264,20 +266,85 @@ static int hudinfo_num(lua_State *L)
 
 static int lib_getFontList(lua_State *L)
 {
-	INT32 i;
+	UINT32 i;
 	lua_remove(L, 1);
 
 	i = luaL_checkinteger(L, 1);
 	if (i >= numfonts)
 		return luaL_error(L, "fonts[] index %d out of range (0 - %d)", i, numfonts-1);
-	LUA_PushUserdata(L, luafonts[i], META_FONT);
+	LUA_PushUserdata(L, &fonts[i], META_FONT);
 	return 1;
+}
+
+// Lua table full of data -> fonts[]
+static int lib_setFontList(lua_State *L)
+{
+	font_t *info;
+	lua_remove(L, 1); // don't care about font[] userdata.
+	{
+		UINT32 i = luaL_checkinteger(L, 1);
+		if (i >= numfonts)
+			return luaL_error(L, "fonts[] index %d out of range (0 - %d)", i, numfonts-1);
+		info = &fonts[i]; // get the font to assign to.
+	}
+	luaL_checktype(L, 2, LUA_TTABLE); // check that we've been passed a table.
+	lua_remove(L, 1); // pop mobjtype num, don't need it any more.
+	lua_settop(L, 1); // cut the stack here. the only thing left now is the table of data we're assigning to the font.
+
+	// clear the font to start with, in case of missing table elements
+	memset(info,0,sizeof(font_t));
+
+	lua_pushnil(L);
+	while (lua_next(L, 1)) {
+		lua_Integer i = 0;
+		const char *str = NULL;
+		if (lua_isnumber(L, 2))
+			i = lua_tointeger(L, 2);
+		else
+			str = luaL_checkstring(L, 2);
+
+		if (i == 1 || (str && fastcmp(str,"start"))) {
+			info->start = (INT32)luaL_checkinteger(L, 3);
+			info->size = info->end - info->start + 1;
+		} else if (i == 2 || (str && fastcmp(str,"last"))) {
+			info->end = (INT32)luaL_checkinteger(L, 3);
+			info->size = info->end - info->start + 1;
+		} else if (i == 3 || (str && fastcmp(str,"spacewidth")))
+			info->spacewidth = (INT32)luaL_checkinteger(L, 3);
+		else if (i == 4 || (str && fastcmp(str,"monospacewidth")))
+			info->monospacewidth = (INT32)luaL_checkinteger(L, 3);
+		else if (i == 5 || (str && fastcmp(str,"sixspacewidth")))
+			info->sixspacewidth = (INT32)luaL_checkinteger(L, 3);
+		else if (i == 6 || (str && fastcmp(str,"charwidth")))
+			info->charwidth = (INT32)luaL_checkinteger(L, 3);
+		lua_pop(L, 1);
+	}
+	return 0;
 }
 
 static int lib_fontslen(lua_State *L)
 {
 	lua_pushinteger(L, numfonts);
 	return 1;
+}
+
+static int lib_font_loadPatches(lua_State *L)
+{
+	font_t *font = *((font_t **)luaL_checkudata(L, 1, META_FONT));
+	const char *prefix = luaL_checkstring(L, 2);
+	INT32 numbers = luaL_checkinteger(L, 3);
+
+	if (strlen(prefix) > 7 || strlen(prefix) < 1) // Has to have at least 1 letter and at most 7
+		return luaL_error(L, "patch name length %d out of range (1 - 7)", strlen(prefix));
+
+	if (numbers < 1 || numbers > 7) // Has to have at least 1 number and at most 7
+		return luaL_error(L, "numeric suffix length %d out of range (1 - 7)", numbers);
+
+	if (strlen(prefix) + numbers > 8) // Has to have at most 8 characters total
+		return luaL_error(L, "possible patch name length %d is longer than 8 characters");
+
+	HU_LoadGenericFontGraphics(font, prefix, numbers);
+	return 0;
 }
 
 static int font_get(lua_State *L)
@@ -290,7 +357,8 @@ static int font_get(lua_State *L)
 	I_Assert(font != NULL); // huditems are always valid
 
 	if (lua_isnumber(L, 2)) {
-		HUDONLY
+		if (!hud_running)
+			return luaL_error(L, "Font patches should not be accessed outside of rendering hooks!");
 
 		i = luaL_checkinteger(L, 2) - font->start;
 
@@ -326,14 +394,50 @@ static int font_get(lua_State *L)
 	case font_charwidth:
 		lua_pushinteger(L, font->charwidth);
 		break;
+	case font_loadPatches:
+		lua_pushcfunction(L, lib_font_loadPatches);
+		break;
 	}
 	return 1;
+}
+
+static int font_set(lua_State *L)
+{
+	font_t *font = *((font_t **)luaL_checkudata(L, 1, META_FONT));
+	enum font field = luaL_checkoption(L, 2, font_opt[0], font_opt);
+	I_Assert(font != NULL);
+
+	switch(field)
+	{
+	case font_start:
+		font->start = (INT32)luaL_checkinteger(L, 3);
+		break;
+	case font_last: // "end" is a lua keyword, so using "last" instead.
+		font->end = (INT32)luaL_checkinteger(L, 3);
+		break;
+	case font_size:
+		font->size = (INT32)luaL_checkinteger(L, 3);
+		break;
+	case font_spacewidth:
+		font->spacewidth = (INT32)luaL_checkinteger(L, 3);
+		break;
+	case font_monospacewidth:
+		font->monospacewidth = (INT32)luaL_checkinteger(L, 3);
+		break;
+	case font_sixspacewidth:
+		font->sixspacewidth = (INT32)luaL_checkinteger(L, 3);
+		break;
+	case font_charwidth:
+		font->charwidth = (INT32)luaL_checkinteger(L, 3);
+		break;
+	}
+	return 0;
 }
 
 static int font_num(lua_State *L)
 {
 	font_t *info = *((font_t **)luaL_checkudata(L, 1, META_FONT));
-	lua_pushinteger(L, info-*luafonts);
+	lua_pushinteger(L, info-fonts);
 	return 1;
 }
 
@@ -1419,6 +1523,9 @@ int LUA_HudLib(lua_State *L)
 		lua_pushcfunction(L, font_get);
 		lua_setfield(L, -2, "__index");
 
+		lua_pushcfunction(L, font_set);
+		lua_setfield(L, -2, "__newindex");
+
 		lua_pushcfunction(L, font_num);
 		lua_setfield(L, -2, "__len");
 	lua_pop(L,1);
@@ -1427,6 +1534,9 @@ int LUA_HudLib(lua_State *L)
 		lua_createtable(L, 0, 2);
 			lua_pushcfunction(L, lib_getFontList);
 			lua_setfield(L, -2, "__index");
+
+			lua_pushcfunction(L, lib_setFontList);
+			lua_setfield(L, -2, "__newindex");
 
 			lua_pushcfunction(L, lib_fontslen);
 			lua_setfield(L, -2, "__len");

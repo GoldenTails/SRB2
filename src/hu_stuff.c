@@ -64,10 +64,8 @@
 // Note: when adding new fonts, also update:
 // - The font definitions in HU_LoadGraphics
 // - The font entries in dehacked.c's LUA_CONST
-// - lua_hudlib.c's font array
-font_t *luafonts[MAXFONTS];
 font_t fonts[MAXFONTS];
-INT32 numfonts = FONT_FIRSTFREESLOT;
+UINT32 numfonts = FONT_FIRSTFREESLOT;
 
 patch_t *tallnum[10]; // 0-9
 patch_t *nightsnum[10]; // 0-9
@@ -177,6 +175,38 @@ static void Command_CSay_f(void);
 static void Got_Saycmd(UINT8 **p, INT32 playernum);
 #endif
 
+void HU_LoadGenericFontGraphics(font_t *font, const char *prefix, UINT8 numbers)
+{
+	char formatstr[12];
+	char buffer[9];
+	INT32 i, j = font->start;
+
+	if (strlen(prefix) > 7 || strlen(prefix) < 1) // Has to have at least 1 letter and at most 7
+		I_Error("Invalid prefix length");
+
+	if (numbers < 1 || numbers > 7) // Has to have at least 1 number and at most 7
+		I_Error("Invalid number of numbers");
+
+	if (strlen(prefix) + numbers > 8) // Has to have at most 8 characters total
+		I_Error("Length of patch name would be too long!");
+
+	snprintf(formatstr, 12, "%s%%.%dd", prefix, numbers);
+
+	font->chars = Z_Calloc(font->size * sizeof(patch_t *), PU_STATIC, NULL);
+
+	// cache the font for entire game execution
+	for (i = 0; i < font->size; i++)
+	{
+		sprintf(buffer, formatstr, j);
+		j++;
+
+		if (W_CheckNumForName(buffer) == LUMPERROR)
+			font->chars[i] = NULL;
+		else
+			font->chars[i] = (patch_t *)W_CachePatchName(buffer, PU_HUDGFX);
+	}
+}
+
 void HU_LoadGraphics(void)
 {
 	char buffer[9];
@@ -228,18 +258,8 @@ void HU_LoadGraphics(void)
 	fonts[FONT_LT].charwidth = 0; // If this is 0, it will not process V_OLDSPACING. Cool, right?
 	fonts[FONT_LT].sixspacewidth = 16;
 
-	fonts[FONT_LT].chars = Z_Calloc(fonts[FONT_LT].size * sizeof(patch_t *), PU_STATIC, NULL);
-
-	for (i = 0; i < LT_FONTSIZE; i++)
-	{
-		sprintf(buffer, "LTFNT%.3d", j);
-		j++;
-
-		if (W_CheckNumForName(buffer) == LUMPERROR)
-			fonts[FONT_LT].chars[i] = NULL;
-		else
-			fonts[FONT_LT].chars[i] = (patch_t *)W_CachePatchName(buffer, PU_HUDGFX);
-	}
+	// cache the title card font for entire game execution
+	HU_LoadGenericFontGraphics(&fonts[FONT_LT], "LTFNT", 3);
 
 	fonts[FONT_CRED].start = j = CRED_FONTSTART;
 	fonts[FONT_CRED].end = CRED_FONTEND;
@@ -253,16 +273,7 @@ void HU_LoadGraphics(void)
 	fonts[FONT_CRED].chars = Z_Calloc(fonts[FONT_CRED].size * sizeof(patch_t *), PU_STATIC, NULL);
 
 	// cache the credits font for entire game execution (why not?)
-	for (i = 0; i < CRED_FONTSIZE; i++)
-	{
-		sprintf(buffer, "CRFNT%.3d", j);
-		j++;
-
-		if (W_CheckNumForName(buffer) == LUMPERROR)
-			fonts[FONT_CRED].chars[i] = NULL;
-		else
-			fonts[FONT_CRED].chars[i] = (patch_t *)W_CachePatchName(buffer, PU_HUDGFX);
-	}
+	HU_LoadGenericFontGraphics(&fonts[FONT_CRED], "CRFNT", 3);
 
 	//cache numbers too!
 	for (i = 0; i < 10; i++)
@@ -309,11 +320,6 @@ void HU_LoadGraphics(void)
 		else
 			fonts[FONT_NTO].chars[i] = (patch_t *)W_CachePatchName(buffer, PU_HUDGFX);
 	}
-
-	luafonts[0] = &fonts[FONT_HU];
-	luafonts[1] = &fonts[FONT_TNY];
-	luafonts[2] = &fonts[FONT_LT];
-	luafonts[3] = &fonts[FONT_CRED];
 
 	// cache the crosshairs, don't bother to know which one is being used,
 	// just cache all 3, they're so small anyway.

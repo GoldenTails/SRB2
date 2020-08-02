@@ -154,6 +154,7 @@ static inline int lib_freeslot(lua_State *L)
 					CONS_Printf("Font FONT_%s allocated.\n",word);
 					FREE_FONTS[i] = Z_Malloc(strlen(word)+1, PU_STATIC, NULL);
 					strcpy(FREE_FONTS[i],word);
+					numfonts++;
 					lua_pushinteger(L, FONT_FIRSTFREESLOT + i);
 					r++;
 					break;

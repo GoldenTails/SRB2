@@ -445,6 +445,7 @@ void readfreeslots(MYFILE *f)
 					if (!FREE_FONTS[i]) {
 						FREE_FONTS[i] = Z_Malloc(strlen(word)+1, PU_STATIC, NULL);
 						strcpy(FREE_FONTS[i],word);
+						numfonts++;
 						break;
 					}
 			}
