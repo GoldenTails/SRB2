@@ -4820,7 +4820,7 @@ static void M_DrawPauseMenu(void)
 		patch_t *pause = W_CachePatchName("M_PAUSE", PU_PATCH);
 
 		// Draw the blue part
-		V_DrawFadeFill(0, 0, 160, 200, 0, Color_Index[players[consoleplayer].skincolor - 1][5], 5);
+		V_DrawFadeFill(0, 0, 160, 200, 0, skincolors[players[consoleplayer].skincolor].ramp[5], 5);
 
 		for (int y = -zigzag->height; y < BASEVIDHEIGHT + zigzag->height; y += zigzag->height)
 		{
