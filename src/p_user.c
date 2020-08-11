@@ -5482,7 +5482,7 @@ static void P_DoJumpStuff(player_t *player, ticcmd_t *cmd)
 	{
 		if (player->homing && player->mo->tracer)
 		{
-			if (!P_Homingfire(player->mo, player->mo->tracer))
+			if (!P_HomingAttack(player->mo, player->mo->tracer))
 			{
 				P_SetObjectMomZ(player->mo, 6*FRACUNIT, false);
 				if (player->mo->eflags & MFE_UNDERWATER)
@@ -5503,7 +5503,7 @@ static void P_DoJumpStuff(player_t *player, ticcmd_t *cmd)
 			P_SpawnThokMobj(player);
 
 			// But if you don't, then stop homing.
-			if (!P_Homingfire(player->mo, player->mo->tracer))
+			if (!P_HomingAttack(player->mo, player->mo->tracer))
 			{
 				if (player->mo->eflags & MFE_UNDERWATER)
 					P_SetObjectMomZ(player->mo, FixedDiv(457*FRACUNIT,72*FRACUNIT), false);
@@ -9032,7 +9032,7 @@ void P_Earthquake(mobj_t *inflictor, mobj_t *source, fixed_t radius)
 		quake.radius = scaledradius;
 	}
 
-	P_Radiusfire(inflictor, source, radius, 0, false);
+	P_RadiusAttack(inflictor, source, radius, 0, false);
 }
 
 //
@@ -9167,7 +9167,7 @@ mobj_t *P_LookForFocusTarget(player_t *player, mobj_t *exclude, SINT8 direction,
 // If nonenemies is true, includes monitors and springs!
 // If bullet is true, you can look up and the distance is further,
 // but your total angle span you can look is limited to compensate. (Also, allows monitors.)
-// If you modify this, please also modify P_Homingfire.
+// If you modify this, please also modify P_HomingAttack.
 //
 mobj_t *P_LookForEnemies(player_t *player, boolean nonenemies, boolean bullet)
 {
@@ -9254,7 +9254,7 @@ mobj_t *P_LookForEnemies(player_t *player, boolean nonenemies, boolean bullet)
 	return closestmo;
 }
 
-boolean P_Homingfire(mobj_t *source, mobj_t *enemy) // Home in on your target
+boolean P_HomingAttack(mobj_t *source, mobj_t *enemy) // Home in on your target
 {
 	fixed_t zdist;
 	fixed_t dist;

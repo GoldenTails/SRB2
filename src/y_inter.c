@@ -396,7 +396,7 @@ dontdrawbg:
 				ST_DrawPatchFromHud(HUD_TIMECOLON, sbocolon); // Colon
 				ST_DrawPadNumFromHud(HUD_SECONDS, seconds, 2); // Seconds
 
-				if (cv_timetic.value == 1 || cv_timetic.value == 2 || modefireing || marathonmode)
+				if (cv_timetic.value == 1 || cv_timetic.value == 2 || modeattacking || marathonmode)
 				{
 					ST_DrawPatchFromHud(HUD_TIMETICCOLON, sboperiod); // Period
 					ST_DrawPadNumFromHud(HUD_TICS, tictrn, 2); // Tics
@@ -1971,7 +1971,7 @@ static void Y_AwardCoopBonuses(void)
 		}
 
 		ptlives = min(
-			(INT32)((!ultimatemode && !modefireing && players[i].lives != INFLIVES) ? max((INT32)((players[i].score/50000) - (oldscore/50000)), (INT32)0) : 0),
+			(INT32)((!ultimatemode && !modeattacking && players[i].lives != INFLIVES) ? max((INT32)((players[i].score/50000) - (oldscore/50000)), (INT32)0) : 0),
 			(INT32)(mapheaderinfo[prevmap]->maxbonuslives < 0 ? INT32_MAX : mapheaderinfo[prevmap]->maxbonuslives));
 		if (ptlives)
 			P_GivePlayerLives(&players[i], ptlives);
@@ -2027,7 +2027,7 @@ static void Y_AwardSpecialStageBonus(void)
 
 		// grant extra lives right away since tally is faked
 		ptlives = min(
-			(INT32)((!ultimatemode && !modefireing && players[i].lives != INFLIVES) ? max((INT32)((players[i].score/50000) - (oldscore/50000)), (INT32)0) : 0),
+			(INT32)((!ultimatemode && !modeattacking && players[i].lives != INFLIVES) ? max((INT32)((players[i].score/50000) - (oldscore/50000)), (INT32)0) : 0),
 			(INT32)(mapheaderinfo[prevmap]->maxbonuslives < 0 ? INT32_MAX : mapheaderinfo[prevmap]->maxbonuslives));
 		P_GivePlayerLives(&players[i], ptlives);
 
