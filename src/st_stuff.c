@@ -763,7 +763,7 @@ static void ST_drawTime(void)
 		ST_DrawPatchFromHud(HUD_TIMECOLON, sbocolon, V_HUDTRANS); // Colon
 		ST_DrawPadNumFromHud(HUD_SECONDS, seconds, 2, V_HUDTRANS); // Seconds
 
-		if (cv_timetic.value == 1 || cv_timetic.value == 2 || modeattacking || marathonmode)
+		if (cv_timetic.value == 1 || cv_timetic.value == 2 || modefireing || marathonmode)
 		{
 			ST_DrawPatchFromHud(HUD_TIMETICCOLON, sboperiod, V_HUDTRANS); // Period
 			ST_DrawPadNumFromHud(HUD_TICS, tictrn, 2, V_HUDTRANS); // Tics
@@ -787,7 +787,7 @@ static inline void ST_drawRings(void)
 	else
 		ringnum = stplyr->rings;
 
-	if (cv_timetic.value == 2) // Yes, even in modeattacking
+	if (cv_timetic.value == 2) // Yes, even in modefireing
 		ST_DrawNumFromHud(HUD_RINGSNUMTICS, ringnum, V_PERPLAYER|((stplyr->spectator) ? V_HUDTRANSHALF : V_HUDTRANS));
 	else
 		ST_DrawNumFromHud(HUD_RINGSNUM, ringnum, V_PERPLAYER|((stplyr->spectator) ? V_HUDTRANSHALF : V_HUDTRANS));
@@ -1688,7 +1688,7 @@ static void ST_drawNightsRecords(void)
 			if (P_HasGrades(gamemap, stplyr->lastmare + 1))
 			{
 				UINT8 grade = P_GetGrade(stplyr->lastmarescore, gamemap, stplyr->lastmare);
-				if (modeattacking || grade >= GRADE_A)
+				if (modefireing || grade >= GRADE_A)
 					V_DrawTranslucentPatch(BASEVIDWIDTH/2 + 60, 160, aflag, ngradeletters[grade]);
 			}
 			break;
@@ -1988,7 +1988,7 @@ static void ST_drawNiGHTSHUD(void)
 	// TODO give this its own section for Lua
 	if (!stplyr->exiting && LUA_HudEnabled(hud_nightsscore))
 	{
-		if (modeattacking == ATTACKING_NIGHTS)
+		if (modefireing == fireING_NIGHTS)
 		{
 			INT32 maretime = max(stplyr->realtime - stplyr->marebegunat, 0);
 
@@ -2621,7 +2621,7 @@ static void ST_overlayDrawer(void)
 			if (LUA_HudEnabled(hud_rings))
 				ST_drawRings();
 
-			if (!modeattacking && LUA_HudEnabled(hud_lives))
+			if (!modefireing && LUA_HudEnabled(hud_lives))
 				ST_drawLivesArea();
 		}
 	}
@@ -2747,7 +2747,7 @@ static void ST_overlayDrawer(void)
 	if (!hu_showscores && (netgame || multiplayer) && LUA_HudEnabled(hud_textspectator))
 		ST_drawTextHUD();
 
-	if (modeattacking && !(demoplayback && hu_showscores))
+	if (modefireing && !(demoplayback && hu_showscores))
 		ST_drawInput();
 
 	ST_drawDebugInfo();

@@ -189,8 +189,8 @@ fixed_t P_ReturnThrustY(mobj_t *mo, angle_t angle, fixed_t move)
 //
 boolean P_AutoPause(void)
 {
-	// Don't pause even on menu-up or focus-lost in netgames or record attack
-	if (netgame || modeattacking || gamestate == GS_TITLESCREEN)
+	// Don't pause even on menu-up or focus-lost in netgames or record fire
+	if (netgame || modefireing || gamestate == GS_TITLESCREEN)
 		return false;
 
 	return (menuactive || ( window_notinfocus && cv_pauseifunfocused.value ));
@@ -665,7 +665,7 @@ static void P_DeNightserizePlayer(player_t *player)
 	player->powers[pw_carry] = CR_NIGHTSFALL;
 
 	player->powers[pw_underwater] = 0;
-	player->pflags &= ~(PF_SPINDOWN|PF_JUMPDOWN|PF_ATTACKDOWN|PF_STARTDASH|PF_GLIDING|PF_STARTJUMP|PF_JUMPED|PF_NOJUMPDAMAGE|PF_THOKKED|PF_SPINNING|PF_DRILLING|PF_TRANSFERTOCLOSEST);
+	player->pflags &= ~(PF_SPINDOWN|PF_JUMPDOWN|PF_FIREDOWN|PF_STARTDASH|PF_GLIDING|PF_STARTJUMP|PF_JUMPED|PF_NOJUMPDAMAGE|PF_THOKKED|PF_SPINNING|PF_DRILLING|PF_TRANSFERTOCLOSEST);
 	player->secondjump = 0;
 	player->homing = 0;
 	player->climbing = 0;
@@ -795,7 +795,7 @@ void P_NightserizePlayer(player_t *player, INT32 nighttime)
 		}
 	}
 
-	player->pflags &= ~(PF_SPINDOWN|PF_JUMPDOWN|PF_ATTACKDOWN|PF_STARTDASH|PF_GLIDING|PF_JUMPED|PF_NOJUMPDAMAGE|PF_THOKKED|PF_SHIELDABILITY|PF_SPINNING|PF_DRILLING);
+	player->pflags &= ~(PF_SPINDOWN|PF_JUMPDOWN|PF_FIREDOWN|PF_STARTDASH|PF_GLIDING|PF_JUMPED|PF_NOJUMPDAMAGE|PF_THOKKED|PF_SHIELDABILITY|PF_SPINNING|PF_DRILLING);
 	player->homing = 0;
 	player->mo->fuse = 0;
 	player->speed = 0;
@@ -1206,7 +1206,7 @@ void P_GivePlayerRings(player_t *player, INT32 num_rings)
 		player->rings = 0;
 
 	// Now extra life bonuses are handled here instead of in P_MovePlayer, since why not?
-	if (!ultimatemode && !modeattacking && !G_IsSpecialStage(gamemap) && G_GametypeUsesLives() && player->lives != INFLIVES)
+	if (!ultimatemode && !modefireing && !G_IsSpecialStage(gamemap) && G_GametypeUsesLives() && player->lives != INFLIVES)
 	{
 		INT32 gainlives = 0;
 
@@ -1431,7 +1431,7 @@ void P_AddPlayerScore(player_t *player, UINT32 amount)
 		player->score = MAXSCORE;
 
 	// check for extra lives every 50000 pts
-	if (!ultimatemode && !modeattacking && player->score > oldscore && player->score % 50000 < amount && (gametyperules & GTR_LIVES))
+	if (!ultimatemode && !modefireing && player->score > oldscore && player->score % 50000 < amount && (gametyperules & GTR_LIVES))
 	{
 		P_GivePlayerLives(player, (player->score/50000) - (oldscore/50000));
 		P_PlayLivesJingle(player);
@@ -2472,7 +2472,7 @@ boolean P_PlayerHitFloor(player_t *player, boolean dorollstuff)
 			{
 				player->pflags &= ~PF_SHIELDABILITY;
 
-				if ((player->powers[pw_shield] & SH_NOSTACK) == SH_ELEMENTAL) // Elemental shield's stomp attack.
+				if ((player->powers[pw_shield] & SH_NOSTACK) == SH_ELEMENTAL) // Elemental shield's stomp fire.
 				{
 					if (player->mo->eflags & (MFE_UNDERWATER|MFE_TOUCHWATER)) // play a blunt sound
 						S_StartSound(player->mo, sfx_s3k4c);
@@ -2490,7 +2490,7 @@ boolean P_PlayerHitFloor(player_t *player, boolean dorollstuff)
 					player->mo->momx = player->mo->momy = 0;
 					clipmomz = false;
 				}
-				else if ((player->powers[pw_shield] & SH_NOSTACK) == SH_BUBBLEWRAP) // Bubble shield's bounce attack.
+				else if ((player->powers[pw_shield] & SH_NOSTACK) == SH_BUBBLEWRAP) // Bubble shield's bounce fire.
 				{
 					P_DoBubbleBounce(player);
 					clipmomz = false;
@@ -4027,20 +4027,20 @@ static void P_DoFiring(player_t *player, ticcmd_t *cmd)
 	I_Assert(player != NULL);
 	I_Assert(!P_MobjWasRemoved(player->mo));
 
-	if (!(cmd->buttons & (BT_ATTACK|BT_FIRENORMAL)))
+	if (!(cmd->buttons & (BT_FIRE|BT_FIRENORMAL)))
 	{
 		// Not holding any firing buttons anymore.
 		// Release the grenade / whatever.
-		player->pflags &= ~PF_ATTACKDOWN;
+		player->pflags &= ~PF_FIREDOWN;
 		return;
 	}
 
-	if (player->pflags & PF_ATTACKDOWN || player->climbing || (G_TagGametype() && !(player->pflags & PF_TAGIT)))
+	if (player->pflags & PF_FIREDOWN || player->climbing || (G_TagGametype() && !(player->pflags & PF_TAGIT)))
 		return;
 
 	if (((player->powers[pw_shield] & SH_STACK) == SH_FIREFLOWER) && !(player->weapondelay))
 	{
-		player->pflags |= PF_ATTACKDOWN;
+		player->pflags |= PF_FIREDOWN;
 		mo = P_SpawnPlayerMissile(player->mo, MT_FIREBALL, 0);
 		if (mo)
 			P_InstaThrust(mo, player->mo->angle, ((mo->info->speed>>FRACBITS)*player->mo->scale) + player->speed);
@@ -4052,7 +4052,7 @@ static void P_DoFiring(player_t *player, ticcmd_t *cmd)
 	if (!G_RingSlingerGametype() || player->weapondelay)
 		return;
 
-	player->pflags |= PF_ATTACKDOWN;
+	player->pflags |= PF_FIREDOWN;
 
 	if (cmd->buttons & BT_FIRENORMAL) // No powers, just a regular ring.
 		goto firenormal; //code repetition sucks.
@@ -4082,7 +4082,7 @@ static void P_DoFiring(player_t *player, ticcmd_t *cmd)
 	else if (player->currentweapon == WEP_AUTO && player->powers[pw_automaticring])
 	{
 		P_DrainWeaponAmmo(player, pw_automaticring);
-		player->pflags &= ~PF_ATTACKDOWN;
+		player->pflags &= ~PF_FIREDOWN;
 		P_SetWeaponDelay(player, 2);
 
 		mo = P_SpawnPlayerMissile(player->mo, MT_THROWNAUTOMATIC, MF2_AUTOMATIC);
@@ -5314,8 +5314,8 @@ static void P_DoJumpStuff(player_t *player, ticcmd_t *cmd)
 
 						player->drawangle = player->mo->angle;
 
-						if (player->mo->info->attacksound && !player->spectator)
-							S_StartSound(player->mo, player->mo->info->attacksound); // Play the THOK sound
+						if (player->mo->info->firesound && !player->spectator)
+							S_StartSound(player->mo, player->mo->info->firesound); // Play the THOK sound
 
 						P_SpawnThokMobj(player);
 
@@ -5482,7 +5482,7 @@ static void P_DoJumpStuff(player_t *player, ticcmd_t *cmd)
 	{
 		if (player->homing && player->mo->tracer)
 		{
-			if (!P_HomingAttack(player->mo, player->mo->tracer))
+			if (!P_Homingfire(player->mo, player->mo->tracer))
 			{
 				P_SetObjectMomZ(player->mo, 6*FRACUNIT, false);
 				if (player->mo->eflags & MFE_UNDERWATER)
@@ -5503,7 +5503,7 @@ static void P_DoJumpStuff(player_t *player, ticcmd_t *cmd)
 			P_SpawnThokMobj(player);
 
 			// But if you don't, then stop homing.
-			if (!P_HomingAttack(player->mo, player->mo->tracer))
+			if (!P_Homingfire(player->mo, player->mo->tracer))
 			{
 				if (player->mo->eflags & MFE_UNDERWATER)
 					P_SetObjectMomZ(player->mo, FixedDiv(457*FRACUNIT,72*FRACUNIT), false);
@@ -6750,10 +6750,10 @@ static void P_DoNiGHTSCapsule(player_t *player)
 			if (player->mo->state != &states[S_PLAY_NIGHTS_PULL])
 				P_SetPlayerMobjState(player->mo, S_PLAY_NIGHTS_PULL);
 		}
-		else if (player->mo->state != &states[S_PLAY_NIGHTS_ATTACK])
+		else if (player->mo->state != &states[S_PLAY_NIGHTS_fire])
 		{
 			S_StartSound(player->mo, sfx_spin);
-			P_SetPlayerMobjState(player->mo, S_PLAY_NIGHTS_ATTACK);
+			P_SetPlayerMobjState(player->mo, S_PLAY_NIGHTS_fire);
 		}
 	}
 	else
@@ -9032,7 +9032,7 @@ void P_Earthquake(mobj_t *inflictor, mobj_t *source, fixed_t radius)
 		quake.radius = scaledradius;
 	}
 
-	P_RadiusAttack(inflictor, source, radius, 0, false);
+	P_Radiusfire(inflictor, source, radius, 0, false);
 }
 
 //
@@ -9163,11 +9163,11 @@ mobj_t *P_LookForFocusTarget(player_t *player, mobj_t *exclude, SINT8 direction,
 
 //
 // P_LookForEnemies
-// Looks for something you can hit - Used for homing attack
+// Looks for something you can hit - Used for homing fire
 // If nonenemies is true, includes monitors and springs!
 // If bullet is true, you can look up and the distance is further,
 // but your total angle span you can look is limited to compensate. (Also, allows monitors.)
-// If you modify this, please also modify P_HomingAttack.
+// If you modify this, please also modify P_Homingfire.
 //
 mobj_t *P_LookForEnemies(player_t *player, boolean nonenemies, boolean bullet)
 {
@@ -9254,7 +9254,7 @@ mobj_t *P_LookForEnemies(player_t *player, boolean nonenemies, boolean bullet)
 	return closestmo;
 }
 
-boolean P_HomingAttack(mobj_t *source, mobj_t *enemy) // Home in on your target
+boolean P_Homingfire(mobj_t *source, mobj_t *enemy) // Home in on your target
 {
 	fixed_t zdist;
 	fixed_t dist;
@@ -11706,7 +11706,7 @@ void P_PlayerThink(player_t *player)
 			player->realtime = leveltime;
 	}
 
-	if (player->spectator && cmd->buttons & BT_ATTACK && !player->powers[pw_flashing] && G_GametypeHasSpectators())
+	if (player->spectator && cmd->buttons & BT_FIRE && !player->powers[pw_flashing] && G_GametypeHasSpectators())
 	{
 		if (P_SpectatorJoinGame(player))
 		{

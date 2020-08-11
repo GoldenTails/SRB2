@@ -30,7 +30,7 @@ typedef enum
 	BT_WEAPONNEXT = 1<<4,
 	BT_WEAPONPREV = 1<<5,
 
-	BT_ATTACK     = 1<<6, // shoot rings
+	BT_FIRE       = 1<<6, // shoot rings
 	BT_SPIN       = 1<<7,
 	BT_CAMLEFT    = 1<<8, // turn camera left
 	BT_CAMRIGHT   = 1<<9, // turn camera right

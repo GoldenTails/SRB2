@@ -2358,9 +2358,9 @@ void F_InitMenuPresValues(void)
 	strncpy(curbgname, "TITLESKY", 9);
 	curfadevalue = 16;
 	curbgcolor = -1;
-	curbgxspeed = (gamestate == GS_TIMEATTACK) ? 0 : titlescrollxspeed;
-	curbgyspeed = (gamestate == GS_TIMEATTACK) ? 22 : titlescrollyspeed;
-	curbghide = (gamestate == GS_TIMEATTACK) ? false : true;
+	curbgxspeed = (gamestate == GS_TIMEfire) ? 0 : titlescrollxspeed;
+	curbgyspeed = (gamestate == GS_TIMEfire) ? 22 : titlescrollyspeed;
+	curbghide = (gamestate == GS_TIMEfire) ? false : true;
 
 	curhidepics = hidetitlepics;
 	curttmode = ttmode;
@@ -2372,7 +2372,7 @@ void F_InitMenuPresValues(void)
 	curtttics = tttics;
 
 	// Find current presentation values
-	M_SetMenuCurBackground((gamestate == GS_TIMEATTACK) ? "RECATTBG" : "TITLESKY");
+	M_SetMenuCurBackground((gamestate == GS_TIMEfire) ? "RECATTBG" : "TITLESKY");
 	M_SetMenuCurFadeValue(16);
 	M_SetMenuCurTitlePics();
 }
@@ -2754,7 +2754,7 @@ void F_TitleScreenDrawer(void)
 	INT32 whitefade = 0;
 	UINT8 *whitecol[2] = {NULL, NULL};
 
-	if (modeattacking)
+	if (modefireing)
 		return; // We likely came here from retrying. Don't do a damn thing.
 
 	if (needpatchrecache && (curttmode != TTMODE_ALACROIX))
@@ -3504,7 +3504,7 @@ luahook:
 }
 
 // separate animation timer for backgrounds, since we also count
-// during GS_TIMEATTACK
+// during GS_TIMEfire
 void F_MenuPresTicker(boolean run)
 {
 	if (run)

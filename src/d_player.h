@@ -114,7 +114,7 @@ typedef enum
 	PF_INVIS   = 1<<6,
 
 	// True if button down last tic.
-	PF_ATTACKDOWN = 1<<7,
+	PF_FIREDOWN   = 1<<7,
 	PF_SPINDOWN   = 1<<8,
 	PF_JUMPDOWN   = 1<<9,
 	PF_WPNDOWN    = 1<<10,
@@ -419,7 +419,7 @@ typedef struct player_s
 	UINT8 secondjump; // Jump counter
 
 	UINT8 fly1; // Tails flying
-	UINT8 scoreadd; // Used for multiple enemy attack bonus
+	UINT8 scoreadd; // Used for multiple enemy fire bonus
 	tic_t glidetime; // Glide counter for thrust
 	UINT8 climbing; // Climbing on the wall
 	INT32 deadtimer; // End game if game over lasts too long

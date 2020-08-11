@@ -798,7 +798,7 @@ void Command_Dumplua_f(void)
 {
 	if (modifiedgame)
 	{
-		CONS_Printf(M_GetText("This command has been disabled in modified games, to prevent scripted attacks.\n"));
+		CONS_Printf(M_GetText("This command has been disabled in modified games, to prevent scripted fires.\n"));
 		return;
 	}
 
@@ -1141,23 +1141,23 @@ void OP_NightsObjectplace(player_t *player)
 	player->nightstime = 3*TICRATE;
 	player->drillmeter = TICRATE;
 
-	if (player->pflags & PF_ATTACKDOWN)
+	if (player->pflags & PF_FIREDOWN)
 	{
 		// Are ANY objectplace buttons pressed?  If no, remove flag.
 		if (!(cmd->buttons & (BT_ATTACK|BT_TOSSFLAG|BT_SPIN|BT_WEAPONNEXT|BT_WEAPONPREV)))
-			player->pflags &= ~PF_ATTACKDOWN;
+			player->pflags &= ~PF_FIREDOWN;
 
 		// Do nothing.
 		return;
 	}
 
 	// This places a hoop!
-	if (cmd->buttons & BT_ATTACK)
+	if (cmd->buttons & BT_FIRE)
 	{
 		UINT16 angle = (UINT16)(player->anotherflyangle % 360);
 		INT16 temp = (INT16)FixedInt(AngleFixed(player->mo->angle)); // Traditional 2D Angle
 
-		player->pflags |= PF_ATTACKDOWN;
+		player->pflags |= PF_FIREDOWN;
 
 		mt = OP_CreateNewMapThing(player, 1713, false);
 
@@ -1182,7 +1182,7 @@ void OP_NightsObjectplace(player_t *player)
 		UINT16 vertangle = (UINT16)(player->anotherflyangle % 360);
 		UINT16 newflags;
 
-		player->pflags |= PF_ATTACKDOWN;
+		player->pflags |= PF_FIREDOWN;
 		if (!OP_HeightOkay(player, false))
 			return;
 
@@ -1231,7 +1231,7 @@ void OP_NightsObjectplace(player_t *player)
 	// This places a sphere!
 	if (cmd->buttons & BT_WEAPONNEXT)
 	{
-		player->pflags |= PF_ATTACKDOWN;
+		player->pflags |= PF_FIREDOWN;
 		if (!OP_HeightOkay(player, false))
 			return;
 
@@ -1242,7 +1242,7 @@ void OP_NightsObjectplace(player_t *player)
 	// This places a ring!
 	if (cmd->buttons & BT_WEAPONPREV)
 	{
-		player->pflags |= PF_ATTACKDOWN;
+		player->pflags |= PF_FIREDOWN;
 		if (!OP_HeightOkay(player, false))
 			return;
 
@@ -1255,7 +1255,7 @@ void OP_NightsObjectplace(player_t *player)
 	{
 		UINT16 angle;
 
-		player->pflags |= PF_ATTACKDOWN;
+		player->pflags |= PF_FIREDOWN;
 		if (!cv_mapthingnum.value)
 		{
 			CONS_Alert(CONS_WARNING, "Set op_mapthingnum first!\n");
@@ -1359,11 +1359,11 @@ void OP_ObjectplaceMovement(player_t *player)
 		op_displayflags |= (UINT16)cv_opflags.value;
 	}
 
-	if (player->pflags & PF_ATTACKDOWN)
+	if (player->pflags & PF_FIREDOWN)
 	{
 		// Are ANY objectplace buttons pressed?  If no, remove flag.
-		if (!(cmd->buttons & (BT_ATTACK|BT_TOSSFLAG|BT_WEAPONNEXT|BT_WEAPONPREV)))
-			player->pflags &= ~PF_ATTACKDOWN;
+		if (!(cmd->buttons & (BT_FIRE|BT_TOSSFLAG|BT_WEAPONNEXT|BT_WEAPONPREV)))
+			player->pflags &= ~PF_FIREDOWN;
 
 		// Do nothing.
 		return;
@@ -1372,24 +1372,24 @@ void OP_ObjectplaceMovement(player_t *player)
 	if (cmd->buttons & BT_WEAPONPREV)
 	{
 		OP_CycleThings(-1);
-		player->pflags |= PF_ATTACKDOWN;
+		player->pflags |= PF_FIREDOWN;
 	}
 
 	if (cmd->buttons & BT_WEAPONNEXT)
 	{
 		OP_CycleThings(1);
-		player->pflags |= PF_ATTACKDOWN;
+		player->pflags |= PF_FIREDOWN;
 	}
 
 	// Place an object and add it to the maplist
-	if (cmd->buttons & BT_ATTACK)
+	if (cmd->buttons & BT_FIRE)
 	{
 		mapthing_t *mt;
 		mobjtype_t spawnmid = op_currentthing;
 		mobjtype_t spawnthing = op_currentdoomednum;
 		boolean ceiling;
 
-		player->pflags |= PF_ATTACKDOWN;
+		player->pflags |= PF_FIREDOWN;
 
 		if (cv_mapthingnum.value > 0 && cv_mapthingnum.value < 4096)
 		{

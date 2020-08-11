@@ -167,7 +167,7 @@ boolean P_DoSpring(mobj_t *spring, mobj_t *object)
 		if (!vertispeed)
 			return false;
 
-		if (object->player && object->player->homing) // Sonic Heroes and Shadow the Hedgehog are the only games to contain homing-attackable bumpers!
+		if (object->player && object->player->homing) // Sonic Heroes and Shadow the Hedgehog are the only games to contain homing-fireable bumpers!
 		{
 			horizangle = 0;
 			vertiangle = ((object->eflags & MFE_VERTICALFLIP) ? ANGLE_270 : ANGLE_90) >> ANGLETOFINESHIFT;
@@ -4037,7 +4037,7 @@ bounceback:
 }
 
 //
-// RADIUS ATTACK
+// RADIUS fire
 //
 static fixed_t bombdamage;
 static mobj_t *bombsource;
@@ -4046,11 +4046,11 @@ static UINT8 bombdamagetype;
 static boolean bombsightcheck;
 
 //
-// PIT_RadiusAttack
+// PIT_Radiusfire
 // "bombsource" is the creature
 // that caused the explosion at "bombspot".
 //
-static boolean PIT_RadiusAttack(mobj_t *thing)
+static boolean PIT_Radiusfire(mobj_t *thing)
 {
 	fixed_t dx, dy, dz, dist;
 
@@ -4097,10 +4097,10 @@ static boolean PIT_RadiusAttack(mobj_t *thing)
 }
 
 //
-// P_RadiusAttack
+// P_Radiusfire
 // Source is the creature that caused the explosion at spot.
 //
-void P_RadiusAttack(mobj_t *spot, mobj_t *source, fixed_t damagedist, UINT8 damagetype, boolean sightcheck)
+void P_Radiusfire(mobj_t *spot, mobj_t *source, fixed_t damagedist, UINT8 damagetype, boolean sightcheck)
 {
 	INT32 x, y;
 	INT32 xl, xh, yl, yh;
@@ -4122,7 +4122,7 @@ void P_RadiusAttack(mobj_t *spot, mobj_t *source, fixed_t damagedist, UINT8 dama
 
 	for (y = yl; y <= yh; y++)
 		for (x = xl; x <= xh; x++)
-			P_BlockThingsIterator(x, y, PIT_RadiusAttack);
+			P_BlockThingsIterator(x, y, PIT_Radiusfire);
 }
 
 //
