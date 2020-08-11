@@ -798,7 +798,7 @@ void Command_Dumplua_f(void)
 {
 	if (modifiedgame)
 	{
-		CONS_Printf(M_GetText("This command has been disabled in modified games, to prevent scripted fires.\n"));
+		CONS_Printf(M_GetText("This command has been disabled in modified games, to prevent scripted attacks.\n"));
 		return;
 	}
 

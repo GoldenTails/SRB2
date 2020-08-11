@@ -137,8 +137,8 @@ typedef enum
 {
 	LLM_CREATESERVER,
 	LLM_LEVELSELECT,
-	LLM_RECORDfire,
-	LLM_NIGHTSfire
+	LLM_RECORDATTACK,
+	LLM_NIGHTSATTACK
 } levellist_mode_t;
 
 levellist_mode_t levellistmode = LLM_CREATESERVER;
@@ -263,16 +263,16 @@ menu_t MISC_ScrambleTeamDef, MISC_ChangeTeamDef;
 // Single Player
 static void M_StartTutorial(INT32 choice);
 static void M_LoadGame(INT32 choice);
-static void M_HandleTimefireLevelSelect(INT32 choice);
-static void M_TimefireLevelSelect(INT32 choice);
-static void M_Timefire(INT32 choice);
-static void M_NightsfireLevelSelect(INT32 choice);
-static void M_Nightsfire(INT32 choice);
+static void M_HandleTimeAttackLevelSelect(INT32 choice);
+static void M_TimeAttackLevelSelect(INT32 choice);
+static void M_TimeAttack(INT32 choice);
+static void M_NightsAttackLevelSelect(INT32 choice);
+static void M_NightsAttack(INT32 choice);
 static void M_Statistics(INT32 choice);
-static void M_ReplayTimefire(INT32 choice);
-static void M_ChooseTimefire(INT32 choice);
-static void M_ChooseNightsfire(INT32 choice);
-static void M_ModefireEndGame(INT32 choice);
+static void M_ReplayTimeAttack(INT32 choice);
+static void M_ChooseTimeAttack(INT32 choice);
+static void M_ChooseNightsAttack(INT32 choice);
+static void M_ModeAttackEndGame(INT32 choice);
 static void M_SetGuestReplay(INT32 choice);
 static void M_HandleChoosePlayerMenu(INT32 choice);
 static void M_ChoosePlayer(INT32 choice);
@@ -281,8 +281,8 @@ static void M_Marathon(INT32 choice);
 static void M_HandleMarathonChoosePlayer(INT32 choice);
 static void M_StartMarathon(INT32 choice);
 menu_t SP_LevelStatsDef;
-static menu_t SP_TimefireDef, SP_ReplayDef, SP_GuestReplayDef, SP_GhostDef;
-static menu_t SP_NightsfireDef, SP_NightsReplayDef, SP_NightsGuestReplayDef, SP_NightsGhostDef;
+static menu_t SP_TimeAttackDef, SP_ReplayDef, SP_GuestReplayDef, SP_GhostDef;
+static menu_t SP_NightsAttackDef, SP_NightsReplayDef, SP_NightsGuestReplayDef, SP_NightsGhostDef;
 static menu_t SP_MarathonDef;
 
 // Multiplayer
@@ -364,8 +364,8 @@ static void M_DrawLevelPlatterMenu(void);
 static void M_DrawImageDef(void);
 static void M_DrawLoad(void);
 static void M_DrawLevelStats(void);
-static void M_DrawTimefireMenu(void);
-static void M_DrawNightsfireMenu(void);
+static void M_DrawTimeAttackMenu(void);
+static void M_DrawNightsAttackMenu(void);
 static void M_DrawMarathon(void);
 static void M_DrawSetupChoosePlayerMenu(void);
 static void M_DrawControlsDefMenu(void);
@@ -452,7 +452,7 @@ consvar_t cv_serversort = {"serversort", "Ping", CV_HIDEN | CV_CALL, serversort_
 // first time memory
 consvar_t cv_tutorialprompt = {"tutorialprompt", "On", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 
-// autorecord demos for time fire
+// autorecord demos for time attack
 static consvar_t cv_autorecord = {"autorecord", "Yes", 0, CV_YesNo, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 CV_PossibleValue_t ghost_cons_t[] = {{0, "Hide"}, {1, "Show"}, {2, "Show All"}, {0, NULL}};
@@ -532,15 +532,15 @@ static menuitem_t MISC_AddonsMenu[] =
 };
 
 // ---------------------------------
-// Pause Menu Mode fireing Edition
+// Pause Menu Mode attacking Edition
 // ---------------------------------
 static menuitem_t MAPauseMenu[] =
 {
 	{IT_CALL | IT_STRING,    NULL, "Emblem Hints...",      M_EmblemHints,         32},
 
 	{IT_CALL | IT_STRING,    NULL, "Continue",             M_SelectableClearMenus,48},
-	{IT_CALL | IT_STRING,    NULL, "Retry",                M_ModefireRetry,     56},
-	{IT_CALL | IT_STRING,    NULL, "Abort",                M_ModefireEndGame,   64},
+	{IT_CALL | IT_STRING,    NULL, "Retry",                M_ModeattackRetry,     56},
+	{IT_CALL | IT_STRING,    NULL, "Abort",                M_ModeattackEndGame,   64},
 };
 
 typedef enum
@@ -762,8 +762,8 @@ static menuitem_t SP_MainMenu[] =
 {
 	// Note: If changing the positions here, also change them in M_SinglePlayerMenu()
 	{IT_CALL | IT_STRING,                       NULL, "Start Game",    M_LoadGame,                 76},
-	{IT_SECRET,                                 NULL, "Record fire", M_Timefire,               84},
-	{IT_SECRET,                                 NULL, "NiGHTS Mode",   M_Nightsfire,             92},
+	{IT_SECRET,                                 NULL, "Record Attack", M_TimeAttack,               84},
+	{IT_SECRET,                                 NULL, "NiGHTS Mode",   M_NightsAttack,             92},
 	{IT_SECRET,                                 NULL, "Marathon Run",  M_Marathon,                100},
 	{IT_CALL | IT_STRING,                       NULL, "Tutorial",      M_StartTutorial,           108},
 	{IT_CALL | IT_STRING | IT_CALL_NOTMODIFIED, NULL, "Statistics",    M_Statistics,              116}
@@ -772,7 +772,7 @@ static menuitem_t SP_MainMenu[] =
 enum
 {
 	spstartgame,
-	sprecordfire,
+	sprecordattack,
 	spnightsmode,
 	spmarathon,
 	sptutorial,
@@ -791,22 +791,22 @@ static menuitem_t SP_LevelSelectMenu[] =
 	{IT_KEYHANDLER | IT_NOTHING, NULL, "", M_HandleLevelPlatter, 0},     // dummy menuitem for the control func
 };
 
-// Single Player Time fire Level Select
-static menuitem_t SP_TimefireLevelSelectMenu[] =
+// Single Player Time Attack Level Select
+static menuitem_t SP_TimeAttackLevelSelectMenu[] =
 {
 	{IT_KEYHANDLER | IT_NOTHING, NULL, "", M_HandleLevelPlatter, 0},     // dummy menuitem for the control func
 };
 
-// Single Player Time fire
-static menuitem_t SP_TimefireMenu[] =
+// Single Player Time Attack
+static menuitem_t SP_TimeAttackMenu[] =
 {
-	{IT_STRING|IT_KEYHANDLER,  NULL, "Level Select...", M_HandleTimefireLevelSelect,   62},
+	{IT_STRING|IT_KEYHANDLER,  NULL, "Level Select...", M_HandleTimeAttackLevelSelect,   62},
 	{IT_STRING|IT_CVAR,        NULL, "Character",       &cv_chooseskin,             72},
 
 	{IT_DISABLED,              NULL, "Guest Option...", &SP_GuestReplayDef, 100},
 	{IT_DISABLED,              NULL, "Replay...",       &SP_ReplayDef,      110},
 	{IT_DISABLED,              NULL, "Ghosts...",       &SP_GhostDef,       120},
-	{IT_WHITESTRING|IT_CALL|IT_CALL_NOTMODIFIED,   NULL, "Start",         M_ChooseTimefire,   130},
+	{IT_WHITESTRING|IT_CALL|IT_CALL_NOTMODIFIED,   NULL, "Start",         M_ChooseTimeAttack,   130},
 };
 
 enum
@@ -822,25 +822,25 @@ enum
 
 static menuitem_t SP_ReplayMenu[] =
 {
-	{IT_WHITESTRING|IT_CALL, NULL, "Replay Best Score", M_ReplayTimefire, 0},
-	{IT_WHITESTRING|IT_CALL, NULL, "Replay Best Time",  M_ReplayTimefire, 8},
-	{IT_WHITESTRING|IT_CALL, NULL, "Replay Best Rings", M_ReplayTimefire,16},
+	{IT_WHITESTRING|IT_CALL, NULL, "Replay Best Score", M_ReplayTimeAttack, 0},
+	{IT_WHITESTRING|IT_CALL, NULL, "Replay Best Time",  M_ReplayTimeAttack, 8},
+	{IT_WHITESTRING|IT_CALL, NULL, "Replay Best Rings", M_ReplayTimeAttack,16},
 
-	{IT_WHITESTRING|IT_CALL, NULL, "Replay Last",       M_ReplayTimefire,29},
-	{IT_WHITESTRING|IT_CALL, NULL, "Replay Guest",      M_ReplayTimefire,37},
+	{IT_WHITESTRING|IT_CALL, NULL, "Replay Last",       M_ReplayTimeAttack,29},
+	{IT_WHITESTRING|IT_CALL, NULL, "Replay Guest",      M_ReplayTimeAttack,37},
 
-	{IT_WHITESTRING|IT_SUBMENU, NULL, "Back",           &SP_TimefireDef, 50}
+	{IT_WHITESTRING|IT_SUBMENU, NULL, "Back",           &SP_TimeAttackDef, 50}
 };
 
 static menuitem_t SP_NightsReplayMenu[] =
 {
-	{IT_WHITESTRING|IT_CALL, NULL, "Replay Best Score", M_ReplayTimefire, 8},
-	{IT_WHITESTRING|IT_CALL, NULL, "Replay Best Time",  M_ReplayTimefire,16},
+	{IT_WHITESTRING|IT_CALL, NULL, "Replay Best Score", M_ReplayTimeAttack, 8},
+	{IT_WHITESTRING|IT_CALL, NULL, "Replay Best Time",  M_ReplayTimeAttack,16},
 
-	{IT_WHITESTRING|IT_CALL, NULL, "Replay Last",       M_ReplayTimefire,29},
-	{IT_WHITESTRING|IT_CALL, NULL, "Replay Guest",      M_ReplayTimefire,37},
+	{IT_WHITESTRING|IT_CALL, NULL, "Replay Last",       M_ReplayTimeAttack,29},
+	{IT_WHITESTRING|IT_CALL, NULL, "Replay Guest",      M_ReplayTimeAttack,37},
 
-	{IT_WHITESTRING|IT_SUBMENU, NULL, "Back",           &SP_NightsfireDef, 50}
+	{IT_WHITESTRING|IT_SUBMENU, NULL, "Back",           &SP_NightsAttackDef, 50}
 };
 
 static menuitem_t SP_GuestReplayMenu[] =
@@ -852,7 +852,7 @@ static menuitem_t SP_GuestReplayMenu[] =
 
 	{IT_WHITESTRING|IT_CALL, NULL, "Delete Guest Replay",      M_SetGuestReplay,37},
 
-	{IT_WHITESTRING|IT_SUBMENU, NULL, "Back",                &SP_TimefireDef, 50}
+	{IT_WHITESTRING|IT_SUBMENU, NULL, "Back",                &SP_TimeAttackDef, 50}
 };
 
 static menuitem_t SP_NightsGuestReplayMenu[] =
@@ -863,7 +863,7 @@ static menuitem_t SP_NightsGuestReplayMenu[] =
 
 	{IT_WHITESTRING|IT_CALL, NULL, "Delete Guest Replay",      M_SetGuestReplay,37},
 
-	{IT_WHITESTRING|IT_SUBMENU, NULL, "Back",                &SP_NightsfireDef, 50}
+	{IT_WHITESTRING|IT_SUBMENU, NULL, "Back",                &SP_NightsAttackDef, 50}
 };
 
 static menuitem_t SP_GhostMenu[] =
@@ -875,7 +875,7 @@ static menuitem_t SP_GhostMenu[] =
 
 	{IT_STRING|IT_CVAR,         NULL, "Guest",      &cv_ghost_guest,    37},
 
-	{IT_WHITESTRING|IT_SUBMENU, NULL, "Back",       &SP_TimefireDef,  50}
+	{IT_WHITESTRING|IT_SUBMENU, NULL, "Back",       &SP_TimeAttackDef,  50}
 };
 
 static menuitem_t SP_NightsGhostMenu[] =
@@ -886,26 +886,26 @@ static menuitem_t SP_NightsGhostMenu[] =
 
 	{IT_STRING|IT_CVAR,         NULL, "Guest",      &cv_ghost_guest,    37},
 
-	{IT_WHITESTRING|IT_SUBMENU, NULL, "Back",       &SP_NightsfireDef,  50}
+	{IT_WHITESTRING|IT_SUBMENU, NULL, "Back",       &SP_NightsAttackDef,  50}
 };
 
-// Single Player Nights fire Level Select
-static menuitem_t SP_NightsfireLevelSelectMenu[] =
+// Single Player Nights Attack Level Select
+static menuitem_t SP_NightsAttackLevelSelectMenu[] =
 {
 	{IT_KEYHANDLER | IT_NOTHING, NULL, "", M_HandleLevelPlatter, 0},     // dummy menuitem for the control func
 };
 
-// Single Player Nights fire
-static menuitem_t SP_NightsfireMenu[] =
+// Single Player Nights Attack
+static menuitem_t SP_NightsAttackMenu[] =
 {
-	{IT_STRING|IT_KEYHANDLER,        NULL, "Level Select...",  &M_HandleTimefireLevelSelect,  52},
+	{IT_STRING|IT_KEYHANDLER,        NULL, "Level Select...",  &M_HandleTimeAttackLevelSelect,  52},
 	{IT_STRING|IT_CVAR,        NULL, "Character",       &cv_chooseskin,             62},
 	{IT_STRING|IT_CVAR,        NULL, "Show Records For", &cv_dummymares,              72},
 
 	{IT_DISABLED,              NULL, "Guest Option...",  &SP_NightsGuestReplayDef,    100},
 	{IT_DISABLED,              NULL, "Replay...",        &SP_NightsReplayDef,         110},
 	{IT_DISABLED,              NULL, "Ghosts...",        &SP_NightsGhostDef,          120},
-	{IT_WHITESTRING|IT_CALL|IT_CALL_NOTMODIFIED, NULL, "Start", M_ChooseNightsfire, 130},
+	{IT_WHITESTRING|IT_CALL|IT_CALL_NOTMODIFIED, NULL, "Start", M_ChooseNightsAttack, 130},
 };
 
 enum
@@ -1836,14 +1836,14 @@ menu_t SP_LevelStatsDef =
 	NULL
 };
 
-menu_t SP_TimefireLevelSelectDef = MAPPLATTERMENUSTYLE(
-	MTREE3(MN_SP_MAIN, MN_SP_TIMEfire, MN_SP_TIMEfire_LEVELSELECT),
-	"M_fire", SP_TimefireLevelSelectMenu);
+menu_t SP_TimeAttackLevelSelectDef = MAPPLATTERMENUSTYLE(
+	MTREE3(MN_SP_MAIN, MN_SP_TIMEATTACK, MN_SP_TIMEATTACK_LEVELSELECT),
+	"M_ATTACK", SP_TimeAttackLevelSelectMenu);
 
-static menu_t SP_TimefireDef =
+static menu_t SP_TimeAttackDef =
 {
-	MTREE2(MN_SP_MAIN, MN_SP_TIMEfire),
-	"M_fire",
+	MTREE2(MN_SP_MAIN, MN_SP_TIMEATTACK),
+	"M_ATTACK",
 	sizeof (SP_TimefireMenu)/sizeof (menuitem_t),
 	&MainDef,  // Doesn't matter.
 	SP_TimefireMenu,
@@ -1854,89 +1854,89 @@ static menu_t SP_TimefireDef =
 };
 static menu_t SP_ReplayDef =
 {
-	MTREE3(MN_SP_MAIN, MN_SP_TIMEfire, MN_SP_REPLAY),
-	"M_fire",
+	MTREE3(MN_SP_MAIN, MN_SP_TIMEATTACK, MN_SP_REPLAY),
+	"M_ATTACK",
 	sizeof(SP_ReplayMenu)/sizeof(menuitem_t),
-	&SP_TimefireDef,
+	&SP_TimeAttackDef,
 	SP_ReplayMenu,
-	M_DrawTimefireMenu,
+	M_DrawTimeAttackMenu,
 	32, 120,
 	0,
 	NULL
 };
 static menu_t SP_GuestReplayDef =
 {
-	MTREE3(MN_SP_MAIN, MN_SP_TIMEfire, MN_SP_GUESTREPLAY),
-	"M_fire",
+	MTREE3(MN_SP_MAIN, MN_SP_TIMEATTACK, MN_SP_GUESTREPLAY),
+	"M_ATTACK",
 	sizeof(SP_GuestReplayMenu)/sizeof(menuitem_t),
-	&SP_TimefireDef,
+	&SP_TimeAttackDef,
 	SP_GuestReplayMenu,
-	M_DrawTimefireMenu,
+	M_DrawTimeAttackMenu,
 	32, 120,
 	0,
 	NULL
 };
 static menu_t SP_GhostDef =
 {
-	MTREE3(MN_SP_MAIN, MN_SP_TIMEfire, MN_SP_GHOST),
-	"M_fire",
+	MTREE3(MN_SP_MAIN, MN_SP_TIMEATTACK, MN_SP_GHOST),
+	"M_ATTACK",
 	sizeof(SP_GhostMenu)/sizeof(menuitem_t),
-	&SP_TimefireDef,
+	&SP_TimeAttackDef,
 	SP_GhostMenu,
-	M_DrawTimefireMenu,
+	M_DrawTimeAttackMenu,
 	32, 120,
 	0,
 	NULL
 };
 
-menu_t SP_NightsfireLevelSelectDef = MAPPLATTERMENUSTYLE(
-	MTREE3(MN_SP_MAIN, MN_SP_NIGHTSfire, MN_SP_NIGHTS_LEVELSELECT),
-	 "M_NIGHTS", SP_NightsfireLevelSelectMenu);
+menu_t SP_NightsAttackLevelSelectDef = MAPPLATTERMENUSTYLE(
+	MTREE3(MN_SP_MAIN, MN_SP_NIGHTSATTACK, MN_SP_NIGHTS_LEVELSELECT),
+	 "M_NIGHTS", SP_NightsAttackLevelSelectMenu);
 
-static menu_t SP_NightsfireDef =
+static menu_t SP_NightsAttackDef =
 {
-	MTREE2(MN_SP_MAIN, MN_SP_NIGHTSfire),
+	MTREE2(MN_SP_MAIN, MN_SP_NIGHTSATTACK),
 	"M_NIGHTS",
-	sizeof (SP_NightsfireMenu)/sizeof (menuitem_t),
+	sizeof (SP_NightsAttackMenu)/sizeof (menuitem_t),
 	&MainDef,  // Doesn't matter.
-	SP_NightsfireMenu,
-	M_DrawNightsfireMenu,
+	SP_NightsAttackMenu,
+	M_DrawNightsAttackMenu,
 	32, 40,
 	0,
 	NULL
 };
 static menu_t SP_NightsReplayDef =
 {
-	MTREE3(MN_SP_MAIN, MN_SP_NIGHTSfire, MN_SP_NIGHTS_REPLAY),
+	MTREE3(MN_SP_MAIN, MN_SP_NIGHTSATTACK, MN_SP_NIGHTS_REPLAY),
 	"M_NIGHTS",
 	sizeof(SP_NightsReplayMenu)/sizeof(menuitem_t),
-	&SP_NightsfireDef,
+	&SP_NightsAttackDef,
 	SP_NightsReplayMenu,
-	M_DrawNightsfireMenu,
+	M_DrawNightsAttackMenu,
 	32, 120,
 	0,
 	NULL
 };
 static menu_t SP_NightsGuestReplayDef =
 {
-	MTREE3(MN_SP_MAIN, MN_SP_NIGHTSfire, MN_SP_NIGHTS_GUESTREPLAY),
+	MTREE3(MN_SP_MAIN, MN_SP_NIGHTSATTACK, MN_SP_NIGHTS_GUESTREPLAY),
 	"M_NIGHTS",
 	sizeof(SP_NightsGuestReplayMenu)/sizeof(menuitem_t),
-	&SP_NightsfireDef,
+	&SP_NightsAttackDef,
 	SP_NightsGuestReplayMenu,
-	M_DrawNightsfireMenu,
+	M_DrawNightsAttackMenu,
 	32, 120,
 	0,
 	NULL
 };
 static menu_t SP_NightsGhostDef =
 {
-	MTREE3(MN_SP_MAIN, MN_SP_NIGHTSfire, MN_SP_NIGHTS_GHOST),
+	MTREE3(MN_SP_MAIN, MN_SP_NIGHTSATTACK, MN_SP_NIGHTS_GHOST),
 	"M_NIGHTS",
 	sizeof(SP_NightsGhostMenu)/sizeof(menuitem_t),
-	&SP_NightsfireDef,
+	&SP_NightsAttackDef,
 	SP_NightsGhostMenu,
-	M_DrawNightsfireMenu,
+	M_DrawNightsAttackMenu,
 	32, 120,
 	0,
 	NULL
@@ -2291,20 +2291,20 @@ void Nextmap_OnChange(void)
 	leveltitle = G_BuildMapTitle(cv_nextmap.value);
 	cv_nextmap.string = cv_nextmap.zstring = leveltitle ? leveltitle : Z_StrDup(G_BuildMapName(cv_nextmap.value));
 
-	if (currentMenu == &SP_NightsfireDef)
+	if (currentMenu == &SP_NightsAttackDef)
 	{
 		CV_StealthSetValue(&cv_dummymares, 0);
 		// Hide the record changing CVAR if only one mare is available.
 		if (!nightsrecords[cv_nextmap.value-1] || nightsrecords[cv_nextmap.value-1]->nummares < 2)
-			SP_NightsfireMenu[narecords].status = IT_DISABLED;
+			SP_NightsAttackMenu[narecords].status = IT_DISABLED;
 		else
-			SP_NightsfireMenu[narecords].status = IT_STRING|IT_CVAR;
+			SP_NightsAttackMenu[narecords].status = IT_STRING|IT_CVAR;
 
 		// Do the replay things.
 		active = false;
-		SP_NightsfireMenu[naguest].status = IT_DISABLED;
-		SP_NightsfireMenu[nareplay].status = IT_DISABLED;
-		SP_NightsfireMenu[naghost].status = IT_DISABLED;
+		SP_NightsAttackMenu[naguest].status = IT_DISABLED;
+		SP_NightsAttackMenu[nareplay].status = IT_DISABLED;
+		SP_NightsAttackMenu[naghost].status = IT_DISABLED;
 
 		// Check if file exists, if not, disable REPLAY option
 		sprintf(tabase,"%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s-%s",srb2home, timeattackfolder, G_BuildMapName(cv_nextmap.value), skins[cv_chooseskin.value-1].name);
@@ -2333,7 +2333,7 @@ void Nextmap_OnChange(void)
 			SP_NightsGuestReplayMenu[2].status = IT_WHITESTRING|IT_CALL;
 			active = true;
 		}
-		if (FIL_FileExists(va("%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s-guest.lmp", srb2home, timefirefolder, G_BuildMapName(cv_nextmap.value))))  {
+		if (FIL_FileExists(va("%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s-guest.lmp", srb2home, timeattackfolder, G_BuildMapName(cv_nextmap.value))))  {
 			SP_NightsReplayMenu[3].status = IT_WHITESTRING|IT_CALL;
 			SP_NightsGuestReplayMenu[3].status = IT_WHITESTRING|IT_CALL;
 			active = true;
@@ -2359,9 +2359,9 @@ void Nextmap_OnChange(void)
 #endif
 
 		if (active) {
-			SP_NightsfireMenu[naguest].status = IT_WHITESTRING|IT_SUBMENU;
-			SP_NightsfireMenu[nareplay].status = IT_WHITESTRING|IT_SUBMENU;
-			SP_NightsfireMenu[naghost].status = IT_WHITESTRING|IT_SUBMENU;
+			SP_NightsAttackMenu[naguest].status = IT_WHITESTRING|IT_SUBMENU;
+			SP_NightsAttackMenu[nareplay].status = IT_WHITESTRING|IT_SUBMENU;
+			SP_NightsAttackMenu[naghost].status = IT_WHITESTRING|IT_SUBMENU;
 		}
 
 		else if(itemOn == nareplay) // Reset lastOn so replay isn't still selected when not available.
@@ -2370,15 +2370,15 @@ void Nextmap_OnChange(void)
 			itemOn = nastart;
 		}
 	}
-	else if (currentMenu == &SP_TimefireDef)
+	else if (currentMenu == &SP_TimeAttackDef)
 	{
 		active = false;
-		SP_TimefireMenu[taguest].status = IT_DISABLED;
-		SP_TimefireMenu[tareplay].status = IT_DISABLED;
-		SP_TimefireMenu[taghost].status = IT_DISABLED;
+		SP_TimeAttackMenu[taguest].status = IT_DISABLED;
+		SP_TimeAttackMenu[tareplay].status = IT_DISABLED;
+		SP_TimeAttackMenu[taghost].status = IT_DISABLED;
 
 		// Check if file exists, if not, disable REPLAY option
-		sprintf(tabase,"%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s-%s",srb2home, timefirefolder, G_BuildMapName(cv_nextmap.value), skins[cv_chooseskin.value-1].name);
+		sprintf(tabase,"%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s-%s",srb2home, timeattackfolder, G_BuildMapName(cv_nextmap.value), skins[cv_chooseskin.value-1].name);
 		for (i = 0; i < 5; i++) {
 			SP_ReplayMenu[i].status = IT_DISABLED;
 			SP_GuestReplayMenu[i].status = IT_DISABLED;
@@ -2403,15 +2403,15 @@ void Nextmap_OnChange(void)
 			SP_GuestReplayMenu[3].status = IT_WHITESTRING|IT_CALL;
 			active = true;
 		}
-		if (FIL_FileExists(va("%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s-guest.lmp", srb2home, timefirefolder, G_BuildMapName(cv_nextmap.value)))) {
+		if (FIL_FileExists(va("%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s-guest.lmp", srb2home, timeattackfolder, G_BuildMapName(cv_nextmap.value)))) {
 			SP_ReplayMenu[4].status = IT_WHITESTRING|IT_CALL;
 			SP_GuestReplayMenu[4].status = IT_WHITESTRING|IT_CALL;
 			active = true;
 		}
 		if (active) {
-			SP_TimefireMenu[taguest].status = IT_WHITESTRING|IT_SUBMENU;
-			SP_TimefireMenu[tareplay].status = IT_WHITESTRING|IT_SUBMENU;
-			SP_TimefireMenu[taghost].status = IT_WHITESTRING|IT_SUBMENU;
+			SP_TimeAttackMenu[taguest].status = IT_WHITESTRING|IT_SUBMENU;
+			SP_TimeAttackMenu[tareplay].status = IT_WHITESTRING|IT_SUBMENU;
+			SP_TimeAttackMenu[taghost].status = IT_WHITESTRING|IT_SUBMENU;
 		}
 		else if(itemOn == tareplay) // Reset lastOn so replay isn't still selected when not available.
 		{
@@ -2585,9 +2585,9 @@ void M_InitMenuPresTables(void)
 		{
 			menupres[i].muslooping = true;
 		}
-		if (i == MN_SP_TIMEfire)
+		if (i == MN_SP_TIMEATTACK)
 			strncpy(menupres[i].musname, "_recat", 7);
-		else if (i == MN_SP_NIGHTSfire)
+		else if (i == MN_SP_NIGHTSATTACK)
 			strncpy(menupres[i].musname, "_nitat", 7);
 		else if (i == MN_SP_MARATHON)
 			strncpy(menupres[i].musname, "spec8", 6);
@@ -2702,8 +2702,8 @@ static boolean MIT_SetCurBackground(UINT32 menutype, INT32 level, INT32 *retval,
 		else
 		{
 			strncpy(curbgname, defaultname, 9);
-			curbgxspeed = (gamestate == GS_TIMEfire) ? 0 : titlescrollxspeed;
-			curbgyspeed = (gamestate == GS_TIMEfire) ? 0 : titlescrollyspeed;
+			curbgxspeed = (gamestate == GS_TIMEATTACK) ? 0 : titlescrollxspeed;
+			curbgyspeed = (gamestate == GS_TIMEATTACK) ? 0 : titlescrollyspeed;
 		}
 	}
 	return false;
@@ -2752,7 +2752,7 @@ static boolean MIT_SetCurFadeValue(UINT32 menutype, INT32 level, INT32 *retval, 
 		return true;
 	}
 	else if (!level)
-		curfadevalue = (gamestate == GS_TIMEfire) ? 0 : (defaultvalue % 32);
+		curfadevalue = (gamestate == GS_TIMEATTACK) ? 0 : (defaultvalue % 32);
 	return false;
 }
 
@@ -2899,7 +2899,7 @@ static void M_HandleMenuPresState(menu_t *newMenu)
 	curbgcolor = -1;
 	curbgxspeed = titlescrollxspeed;
 	curbgyspeed = titlescrollyspeed;
-	curbghide = (gamestate != GS_TIMEfire); // show in time fire, hide in other menus
+	curbghide = (gamestate != GS_TIMEATTACK); // show in time attack, hide in other menus
 
 	curttmode = ttmode;
 	curttscale = ttscale;
@@ -2910,7 +2910,7 @@ static void M_HandleMenuPresState(menu_t *newMenu)
 	curtttics = tttics;
 
 	// don't do the below during the in-game menus
-	if (gamestate != GS_TITLESCREEN && gamestate != GS_TIMEfire)
+	if (gamestate != GS_TITLESCREEN && gamestate != GS_TIMEATTACK)
 		return;
 
 	M_SetMenuCurFadeValue(16);
@@ -3047,7 +3047,7 @@ static void M_HandleMenuPresState(menu_t *newMenu)
 		(anceslevel < 0 && newMenu != &MainDef && currentMenu != &MainDef)
 	)
 	{
-		if (gamestate == GS_TIMEfire)
+		if (gamestate == GS_TIMEATTACK)
 			wipetypepre = ((exitwipe && enterlevel <= exitlevel) || anceslevel < 0) ? exitwipe : -1; // force default
 		else
 			// HACK: INT16_MAX signals to not wipe
@@ -3084,9 +3084,9 @@ static void M_GoBack(INT32 choice)
 			netgame = multiplayer = false;
 		}
 
-		if ((currentMenu->prevMenu == &MainDef) && (currentMenu == &SP_TimefireDef || currentMenu == &SP_NightsfireDef || currentMenu == &SP_MarathonDef))
+		if ((currentMenu->prevMenu == &MainDef) && (currentMenu == &SP_TimeAttackDef || currentMenu == &SP_NightsAttackDef || currentMenu == &SP_MarathonDef))
 		{
-			// D_StartTitle does its own wipe, since GS_TIMEfire is now a complete gamestate.
+			// D_StartTitle does its own wipe, since GS_TIMEATTACK is now a complete gamestate.
 
 			if (levelselect.rows)
 			{
@@ -3640,8 +3640,8 @@ void M_Drawer(void)
 	if (menuactive)
 	{
 		// now that's more readable with a faded background (yeah like Quake...)
-		if (!wipe && (curfadevalue || (gamestate != GS_TITLESCREEN && gamestate != GS_TIMEfire)))
-			V_DrawFadeScreen(0xFF00, (gamestate != GS_TITLESCREEN && gamestate != GS_TIMEfire) ? 16 : curfadevalue);
+		if (!wipe && (curfadevalue || (gamestate != GS_TITLESCREEN && gamestate != GS_TIMEATTACK)))
+			V_DrawFadeScreen(0xFF00, (gamestate != GS_TITLESCREEN && gamestate != GS_TIMEATTACK) ? 16 : curfadevalue);
 
 		if (currentMenu->drawroutine)
 			currentMenu->drawroutine(); // call current menu Draw routine
@@ -3683,7 +3683,7 @@ void M_Drawer(void)
 //
 void M_StartControlPanel(void)
 {
-	// time fire HACK
+	// time attack HACK
 	if (modefireing && demoplayback)
 	{
 		G_CheckDemoStatus();
@@ -3804,10 +3804,10 @@ void M_StartControlPanel(void)
 	CON_ToggleOff(); // move away console
 }
 
-void M_EndModefireRun(void)
+void M_EndModeAttackRun(void)
 {
-	G_ClearModefireRetryFlag();
-	M_ModefireEndGame(0);
+	G_ClearModeAttackRetryFlag();
+	M_ModeAttackEndGame(0);
 }
 
 //
@@ -3982,7 +3982,7 @@ void M_Init(void)
 	quitmsg[QUIT2MSG1] = M_GetText("Don't quit!\nThere are animals\nto save!\n\n(Press 'Y' to quit)");
 	quitmsg[QUIT2MSG2] = M_GetText("Aw c'mon, just bop\na few more robots!\n\n(Press 'Y' to quit)");
 	quitmsg[QUIT2MSG3] = M_GetText("Did you get all those Chaos Emeralds?\n\n(Press 'Y' to quit)");
-	quitmsg[QUIT2MSG4] = M_GetText("If you leave, I'll use\nmy spin fire on you!\n\n(Press 'Y' to quit)");
+	quitmsg[QUIT2MSG4] = M_GetText("If you leave, I'll use\nmy spin attack on you!\n\n(Press 'Y' to quit)");
 	quitmsg[QUIT2MSG5] = M_GetText("Don't go!\nYou might find the hidden\nlevels!\n\n(Press 'Y' to quit)");
 	quitmsg[QUIT2MSG6] = M_GetText("Hit the 'N' key, Sonic!\nThe 'N' key!\n\n(Press 'Y' to quit)");
 
@@ -5066,8 +5066,8 @@ static boolean M_LevelAvailableOnPlatter(INT32 mapnum)
 				return true;
 
 			/* FALLTHRU */
-		case LLM_RECORDfire:
-		case LLM_NIGHTSfire:
+		case LLM_RECORDATTACK:
+		case LLM_NIGHTSATTACK:
 #ifndef DEVELOP
 			if (mapvisited[mapnum] & MV_MAX)
 				return true;
@@ -5141,13 +5141,13 @@ static boolean M_CanShowLevelOnPlatter(INT32 mapnum, INT32 gt)
 				return false;
 
 			return true;
-		case LLM_RECORDfire:
-			if (!(mapheaderinfo[mapnum]->menuflags & LF2_RECORDfire))
+		case LLM_RECORDATTACK:
+			if (!(mapheaderinfo[mapnum]->menuflags & LF2_RECORDATTACK))
 				return false;
 
 			return true;
-		case LLM_NIGHTSfire:
-			if (!(mapheaderinfo[mapnum]->menuflags & LF2_NIGHTSfire))
+		case LLM_NIGHTSATTACK:
+			if (!(mapheaderinfo[mapnum]->menuflags & LF2_NIGHTSATTACK))
 				return false;
 
 			return true;
@@ -5495,7 +5495,7 @@ static void M_HandleLevelPlatter(INT32 choice)
 				ifselectvalnextmapnobrace(lscol)
 					lsoffs[0] = lsoffs[1] = 0;
 					S_StartSound(NULL,sfx_menu1);
-					if (gamestate == GS_TIMEfire)
+					if (gamestate == GS_TIMEATTACK)
 						M_SetupNextMenu(currentMenu->prevMenu);
 					else if (currentMenu == &MISC_ChangeLevelDef)
 					{
@@ -5592,7 +5592,7 @@ static void M_HandleLevelPlatter(INT32 choice)
 
 	if (exitmenu)
 	{
-		if (gamestate != GS_TIMEfire)
+		if (gamestate != GS_TIMEATTACK)
 		{
 			Z_Free(levelselect.rows);
 			levelselect.rows = NULL;
@@ -5734,7 +5734,7 @@ static void M_DrawLevelPlatterRow(UINT8 row, INT32 y)
 }
 
 // new menus
-static void M_DrawRecordfireForeground(void)
+static void M_DrawRecordAttackForeground(void)
 {
 	patch_t *fg = W_CachePatchName("RECATKFG", PU_PATCH);
 	patch_t *clock = W_CachePatchName("RECCLOCK", PU_PATCH);
@@ -5770,8 +5770,8 @@ static void M_DrawRecordfireForeground(void)
 	recatkdrawtimer++;
 }
 
-// NiGHTS fire background.
-static void M_DrawNightsfireMountains(void)
+// NiGHTS Attack background.
+static void M_DrawNightsAttackMountains(void)
 {
 	static INT32 bgscrollx;
 	INT32 dupz = (vid.dupx < vid.dupy ? vid.dupx : vid.dupy);
@@ -5794,8 +5794,8 @@ static void M_DrawNightsfireMountains(void)
 		bgscrollx &= 0xFFFF;
 }
 
-// NiGHTS fire foreground.
-static void M_DrawNightsfireBackground(void)
+// NiGHTS Attack foreground.
+static void M_DrawNightsAttackBackground(void)
 {
 	INT32 x, y = 0;
 	INT32 i;
@@ -5817,7 +5817,7 @@ static void M_DrawNightsfireBackground(void)
 	INT32 frontbottomheight = SHORT(frontbottomfg->height);
 
 	// background
-	M_DrawNightsfireMountains();
+	M_DrawNightsAttackMountains();
 
 	// back top foreground patch
 	x = 0-(ntsatkdrawtimer%backtopwidth);
@@ -5869,9 +5869,9 @@ static void M_DrawNightsfireBackground(void)
 	ntsatkdrawtimer++;
 }
 
-// NiGHTS fire floating Super Sonic.
+// NiGHTS Attack floating Super Sonic.
 static patch_t *ntssupersonic[2];
-static void M_DrawNightsfireSuperSonic(void)
+static void M_DrawNightsAttackSuperSonic(void)
 {
 	const UINT8 *colormap = R_GetTranslationColormap(TC_DEFAULT, SKINCOLOR_YELLOW, GTC_CACHE);
 	INT32 timer = (ntsatkdrawtimer/4) % 2;
@@ -5887,7 +5887,7 @@ static void M_DrawLevelPlatterMenu(void)
 	INT32 y = lsbasey + lsoffs[0] - getheadingoffset(lsrow);
 	const INT32 cursorx = (sizeselect ? 0 : (lscol*lshseperation));
 
-	if (currentMenu->prevMenu == &SP_TimefireDef)
+	if (currentMenu->prevMenu == &SP_TimeAttackDef)
 	{
 		M_SetMenuCurBackground("RECATKBG");
 
@@ -5901,14 +5901,14 @@ static void M_DrawLevelPlatterMenu(void)
 			F_SkyScroll(curbgxspeed, curbgyspeed, curbgname);
 			// Draw and animate foreground
 			if (!strncmp("RECATKBG", curbgname, 8))
-				M_DrawRecordfireForeground();
+				M_DrawRecordAttackForeground();
 		}
 
 		if (curfadevalue)
 			V_DrawFadeScreen(0xFF00, curfadevalue);
 	}
 
-	if (currentMenu->prevMenu == &SP_NightsfireDef)
+	if (currentMenu->prevMenu == &SP_NightsAttackDef)
 	{
 		M_SetMenuCurBackground("NTSATKBG");
 
@@ -5917,7 +5917,7 @@ static void M_DrawLevelPlatterMenu(void)
 		else if (!curbghide || !titlemapinaction)
 		{
 			V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 158);
-			M_DrawNightsfireMountains();
+			M_DrawNightsAttackMountains();
 		}
 		if (curfadevalue)
 			V_DrawFadeScreen(0xFF00, curfadevalue);
@@ -6134,22 +6134,22 @@ static void M_DrawMessageMenu(void)
 	max = (INT16)((UINT8)(currentMenu->lastOn & 0xFF)*8);
 
 	// hack: draw RA background in RA menus
-	if (gamestate == GS_TIMEfire)
+	if (gamestate == GS_TIMEATTACK)
 	{
 		if (curbgcolor >= 0)
 			V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, curbgcolor);
 		else if (!curbghide || !titlemapinaction)
 		{
-			if (levellistmode == LLM_NIGHTSfire)
+			if (levellistmode == LLM_NIGHTSATTACK)
 			{
 				V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 158);
-				M_DrawNightsfireMountains();
+				M_DrawNightsAttackMountains();
 			}
 			else
 			{
 				F_SkyScroll(curbgxspeed, curbgyspeed, curbgname);
 				if (!strncmp("RECATKBG", curbgname, 8))
-					M_DrawRecordfireForeground();
+					M_DrawRecordAttackForeground();
 			}
 		}
 		if (curfadevalue)
@@ -8117,24 +8117,24 @@ static void M_SinglePlayerMenu(INT32 choice)
 	// Reset the item positions, to avoid them sinking farther down every time the menu is opened if one is unavailable
 	// Note that they're reset, not simply "not moved again", in case mid-game add-ons re-enable an option
 	SP_MainMenu[spstartgame]   .alphaKey = 76;
-	SP_MainMenu[sprecordfire].alphaKey = 84;
+	SP_MainMenu[sprecordattack].alphaKey = 84;
 	SP_MainMenu[spnightsmode]  .alphaKey = 92;
 	SP_MainMenu[spmarathon]    .alphaKey = 100;
 	//SP_MainMenu[sptutorial]  .alphaKey = 108; // Not needed
 	//SP_MainMenu[spstatistics].alphaKey = 116; // Not needed
 
 
-	levellistmode = LLM_RECORDfire;
+	levellistmode = LLM_RECORDATTACK;
 	if (M_GametypeHasLevels(-1))
-		SP_MainMenu[sprecordfire].status = (M_SecretUnlocked(SECRET_RECORDfire)) ? IT_CALL|IT_STRING : IT_SECRET;
-	else // If Record fire is nonexistent in the current add-on...
+		SP_MainMenu[sprecordattack].status = (M_SecretUnlocked(SECRET_RECORDATTACK)) ? IT_CALL|IT_STRING : IT_SECRET;
+	else // If Record Attack is nonexistent in the current add-on...
 	{
-		SP_MainMenu[sprecordfire].status = IT_NOTHING|IT_DISABLED; // ...hide and disable the Record fire option...
+		SP_MainMenu[sprecordattack].status = IT_NOTHING|IT_DISABLED; // ...hide and disable the Record Attack option...
 		SP_MainMenu[spstartgame].alphaKey += 8; // ...and lower Start Game by 8 pixels to close the gap
 	}
 
 
-	levellistmode = LLM_NIGHTSfire;
+	levellistmode = LLM_NIGHTSATTACK;
 	if (M_GametypeHasLevels(-1))
 		SP_MainMenu[spnightsmode].status = (M_SecretUnlocked(SECRET_NIGHTSMODE)) ? IT_CALL|IT_STRING : IT_SECRET;
 	else // If NiGHTS Mode is nonexistent in the current add-on...
@@ -8142,11 +8142,11 @@ static void M_SinglePlayerMenu(INT32 choice)
 		SP_MainMenu[spnightsmode].status = IT_NOTHING|IT_DISABLED; // ...hide and disable the NiGHTS Mode option...
 		// ...and lower the above options' display positions by 8 pixels to close the gap
 		SP_MainMenu[spstartgame]   .alphaKey += 8;
-		SP_MainMenu[sprecordfire].alphaKey += 8;
+		SP_MainMenu[sprecordattack].alphaKey += 8;
 	}
 
 
-	// If the FIRST stage immediately leads to the ending, or itself (which gets converted to the title screen in G_DoCompleted for marathonmode only), there's no point in having this option on the menu. You should use Record fire in that circumstance, although if marathonnext is set this behaviour can be overridden if you make some weird mod that requires multiple playthroughs of the same map in sequence and has some in-level mechanism to break the cycle.
+	// If the FIRST stage immediately leads to the ending, or itself (which gets converted to the title screen in G_DoCompleted for marathonmode only), there's no point in having this option on the menu. You should use Record Attack in that circumstance, although if marathonnext is set this behaviour can be overridden if you make some weird mod that requires multiple playthroughs of the same map in sequence and has some in-level mechanism to break the cycle.
 	if (mapheaderinfo[spmarathon_start-1]
 		&& !mapheaderinfo[spmarathon_start-1]->marathonnext
 		&& (mapheaderinfo[spmarathon_start-1]->nextlevel == spmarathon_start
@@ -8155,11 +8155,11 @@ static void M_SinglePlayerMenu(INT32 choice)
 		SP_MainMenu[spmarathon].status = IT_NOTHING|IT_DISABLED; // Hide and disable the Marathon Run option...
 		// ...and lower the above options' display positions by 8 pixels to close the gap
 		SP_MainMenu[spstartgame]   .alphaKey += 8;
-		SP_MainMenu[sprecordfire].alphaKey += 8;
+		SP_MainMenu[sprecordattack].alphaKey += 8;
 		SP_MainMenu[spnightsmode]  .alphaKey += 8;
 	}
-	else // Otherwise, if Marathon Run is allowed and Record fire is unlocked, unlock Marathon Run!
-		SP_MainMenu[spmarathon].status = (M_SecretUnlocked(SECRET_RECORDfire)) ? IT_CALL|IT_STRING|IT_CALL_NOTMODIFIED : IT_SECRET;
+	else // Otherwise, if Marathon Run is allowed and Record Attack is unlocked, unlock Marathon Run!
+		SP_MainMenu[spmarathon].status = (M_SecretUnlocked(SECRET_RECORDATTACK)) ? IT_CALL|IT_STRING|IT_CALL_NOTMODIFIED : IT_SECRET;
 
 
 	if (tutorialmap) // If there's a tutorial available in the current add-on...
@@ -8169,7 +8169,7 @@ static void M_SinglePlayerMenu(INT32 choice)
 		SP_MainMenu[sptutorial].status = IT_NOTHING|IT_DISABLED; // ...hide and disable the Tutorial option...
 		// ...and lower the above options' display positions by 8 pixels to close the gap
 		SP_MainMenu[spstartgame]   .alphaKey += 8;
-		SP_MainMenu[sprecordfire].alphaKey += 8;
+		SP_MainMenu[sprecordattack].alphaKey += 8;
 		SP_MainMenu[spnightsmode]  .alphaKey += 8;
 		SP_MainMenu[spmarathon]    .alphaKey += 8;
 	}
@@ -8653,7 +8653,7 @@ static void M_ReadSavegameInfo(UINT32 slot)
 	UINT8 *end_p; // buffer end point, don't read past here
 	UINT8 *save_p;
 	INT32 fake; // Dummy variable
-	char temp[sizeof(timefirefolder)];
+	char temp[sizeof(timeattackfolder)];
 	char vcheck[VERSIONSIZE];
 
 	sprintf(savename, savegamename, slot);
@@ -8704,7 +8704,7 @@ static void M_ReadSavegameInfo(UINT32 slot)
 	CHECKPOS
 	READSTRINGN(save_p, temp, sizeof(temp)); // mod it belongs to
 
-	if (strcmp(temp, timefirefolder)) BADSAVE
+	if (strcmp(temp, timeattackfolder)) BADSAVE
 
 	// P_UnArchivePlayer()
 	CHECKPOS
@@ -9638,7 +9638,7 @@ static void M_DrawLevelStats(void)
 	{
 		boolean mapunfinished = false;
 
-		if (!mapheaderinfo[i] || !(mapheaderinfo[i]->menuflags & LF2_RECORDfire))
+		if (!mapheaderinfo[i] || !(mapheaderinfo[i]->menuflags & LF2_RECORDATTACK))
 			continue;
 
 		if (!mainrecords[i])
@@ -9735,11 +9735,11 @@ static void M_HandleLevelStats(INT32 choice)
 }
 
 // ===========
-// MODE fire
+// MODE ATTACK
 // ===========
 
-// Drawing function for Time fire
-void M_DrawTimefireMenu(void)
+// Drawing function for Time Attack
+void M_DrawTimeAttackMenu(void)
 {
 	INT32 i, x, y, empatx, empaty, cursory = 0;
 	UINT16 dispstatus;
@@ -9760,7 +9760,7 @@ void M_DrawTimefireMenu(void)
 		F_SkyScroll(curbgxspeed, curbgyspeed, curbgname);
 		// Draw and animate foreground
 		if (!strncmp("RECATKBG", curbgname, 8))
-			M_DrawRecordfireForeground();
+			M_DrawRecordAttackForeground();
 	}
 	if (curfadevalue)
 		V_DrawFadeScreen(0xFF00, curfadevalue);
@@ -9791,7 +9791,7 @@ void M_DrawTimefireMenu(void)
 			INT32 soffset = 0;
 
 			// hack to keep the menu from overlapping the player icon
-			if (currentMenu != &SP_TimefireDef)
+			if (currentMenu != &SP_TimeAttackDef)
 				soffset = 80;
 
 			// Should see nothing but strings
@@ -9855,7 +9855,7 @@ void M_DrawTimefireMenu(void)
 		V_DrawSmallScaledPatch(216, y, 0, PictureOfLevel);
 
 
-		if (currentMenu == &SP_TimefireDef)
+		if (currentMenu == &SP_TimeAttackDef)
 		{
 			if (itemOn == talevel)
 			{
@@ -9866,7 +9866,7 @@ void M_DrawTimefireMenu(void)
 				V_DrawCharacter(216 + 80 + 2 + (skullAnimCounter/5), y,
 						'\x1D' | V_YELLOWMAP, false);
 			}
-			// Draw press ESC to exit string on main record fire menu
+			// Draw press ESC to exit string on main record Attack menu
 			V_DrawString(104-72, 180, V_TRANSLUCENT, M_GetText("Press ESC to exit"));
 		}
 
@@ -9942,22 +9942,22 @@ void M_DrawTimefireMenu(void)
 	}
 
 	// ALWAYS DRAW level and skin even when not on this menu!
-	if (currentMenu != &SP_TimefireDef)
+	if (currentMenu != &SP_TimeAttackDef)
 	{
 		consvar_t *ncv;
 
-		x = SP_TimefireDef.x;
-		y = SP_TimefireDef.y;
+		x = SP_TimeAttackDef.x;
+		y = SP_TimeAttackDef.y;
 
-		V_DrawString(x, y + SP_TimefireMenu[talevel].alphaKey, V_TRANSLUCENT, SP_TimefireMenu[talevel].text);
+		V_DrawString(x, y + SP_TimeAttackMenu[talevel].alphaKey, V_TRANSLUCENT, SP_TimeAttackMenu[talevel].text);
 
-		ncv = (consvar_t *)SP_TimefireMenu[taplayer].itemaction;
-		V_DrawString(x, y + SP_TimefireMenu[taplayer].alphaKey, V_TRANSLUCENT, SP_TimefireMenu[taplayer].text);
-		V_DrawString(BASEVIDWIDTH - x - V_StringWidth(ncv->string, 0), y + SP_TimefireMenu[taplayer].alphaKey, V_YELLOWMAP|V_TRANSLUCENT, ncv->string);
+		ncv = (consvar_t *)SP_TimeAttackMenu[taplayer].itemaction;
+		V_DrawString(x, y + SP_TimeAttackMenu[taplayer].alphaKey, V_TRANSLUCENT, SP_TimeAttackMenu[taplayer].text);
+		V_DrawString(BASEVIDWIDTH - x - V_StringWidth(ncv->string, 0), y + SP_TimeAttackMenu[taplayer].alphaKey, V_YELLOWMAP|V_TRANSLUCENT, ncv->string);
 	}
 }
 
-static void M_HandleTimefireLevelSelect(INT32 choice)
+static void M_HandleTimeAttackLevelSelect(INT32 choice)
 {
 	switch (choice)
 	{
@@ -9976,10 +9976,10 @@ static void M_HandleTimefireLevelSelect(INT32 choice)
 			break;
 
 		case KEY_ENTER:
-			if (levellistmode == LLM_NIGHTSfire)
-				M_NightsfireLevelSelect(0);
+			if (levellistmode == LLM_NIGHTSATTACK)
+				M_NightsAttackLevelSelect(0);
 			else
-				M_TimefireLevelSelect(0);
+				M_TimeAttackLevelSelect(0);
 			break;
 
 		case KEY_ESCAPE:
@@ -9993,32 +9993,32 @@ static void M_HandleTimefireLevelSelect(INT32 choice)
 	S_StartSound(NULL, sfx_menu1);
 }
 
-static void M_TimefireLevelSelect(INT32 choice)
+static void M_TimeAttackLevelSelect(INT32 choice)
 {
 	(void)choice;
-	SP_TimefireLevelSelectDef.prevMenu = currentMenu;
-	M_SetupNextMenu(&SP_TimefireLevelSelectDef);
+	SP_TimeAttackLevelSelectDef.prevMenu = currentMenu;
+	M_SetupNextMenu(&SP_TimeAttackLevelSelectDef);
 }
 
-// Going to Time fire menu...
-static void M_Timefire(INT32 choice)
+// Going to Time Attack menu...
+static void M_TimeAttack(INT32 choice)
 {
 	(void)choice;
 
-	SP_TimefireDef.prevMenu = &MainDef;
-	levellistmode = LLM_RECORDfire; // Don't be dependent on cv_newgametype
+	SP_TimeAttackDef.prevMenu = &MainDef;
+	levellistmode = LLM_RECORDATTACK; // Don't be dependent on cv_newgametype
 
 	if (!M_PrepareLevelPlatter(-1, true))
 	{
-		M_StartMessage(M_GetText("No record-fireable levels found.\n"),NULL,MM_NOTHING);
+		M_StartMessage(M_GetText("No record-attackable levels found.\n"),NULL,MM_NOTHING);
 		return;
 	}
 
 	M_PatchSkinNameTable();
 
-	G_SetGamestate(GS_TIMEfire); // do this before M_SetupNextMenu so that menu meta state knows that we're switching
+	G_SetGamestate(GS_TIMEATTACK); // do this before M_SetupNextMenu so that menu meta state knows that we're switching
 	titlemapinaction = TITLEMAP_OFF; // Nope don't give us HOMs please
-	M_SetupNextMenu(&SP_TimefireDef);
+	M_SetupNextMenu(&SP_TimeAttackDef);
 	if (!M_CanShowLevelInList(cv_nextmap.value-1, -1) && levelselect.rows[0].maplist[0])
 		CV_SetValue(&cv_nextmap, levelselect.rows[0].maplist[0]);
 	else
@@ -10027,8 +10027,8 @@ static void M_Timefire(INT32 choice)
 	itemOn = tastart; // "Start" is selected.
 }
 
-// Drawing function for Nights fire
-void M_DrawNightsfireMenu(void)
+// Drawing function for Nights Attack
+void M_DrawNightsAttackMenu(void)
 {
 	INT32 i, x, y, cursory = 0;
 	UINT16 dispstatus;
@@ -10037,7 +10037,7 @@ void M_DrawNightsfireMenu(void)
 
 	M_ChangeMenuMusic("_nitat", true); // Eww, but needed for when user hits escape during demo playback
 
-	M_DrawNightsfireBackground();
+	M_DrawNightsAttackBackground();
 	if (curfadevalue)
 		V_DrawFadeScreen(0xFF00, curfadevalue);
 
@@ -10067,7 +10067,7 @@ void M_DrawNightsfireMenu(void)
 			INT32 soffset = 0;
 
 			// hack to keep the menu from overlapping the overall grade icon
-			if (currentMenu != &SP_NightsfireDef)
+			if (currentMenu != &SP_NightsAttackDef)
 				soffset = 80;
 
 			// Should see nothing but strings
@@ -10114,8 +10114,8 @@ void M_DrawNightsfireMenu(void)
 		y = 32+lsheadingheight;
 		V_DrawSmallScaledPatch(208, y, 0, PictureOfLevel);
 
-		// Draw press ESC to exit string on main nights fire menu
-		if (currentMenu == &SP_NightsfireDef)
+		// Draw press ESC to exit string on main nights Attack menu
+		if (currentMenu == &SP_NightsAttackDef)
 		{
 			if (itemOn == nalevel)
 			{
@@ -10126,12 +10126,12 @@ void M_DrawNightsfireMenu(void)
 				V_DrawCharacter(208 + 80 + 2 + (skullAnimCounter/5), y,
 						'\x1D' | V_YELLOWMAP, false);
 			}
-			// Draw press ESC to exit string on main record fire menu
+			// Draw press ESC to exit string on main record Attack menu
 			V_DrawString(104-72, 180, V_TRANSLUCENT, M_GetText("Press ESC to exit"));
 		}
 
 		// Super Sonic
-		M_DrawNightsfireSuperSonic();
+		M_DrawNightsAttackSuperSonic();
 		//if (P_HasGrades(cv_nextmap.value, 0))
 		//	V_DrawScaledPatch(235 - (SHORT((ngradeletters[bestoverall])->width)*3)/2, 135, 0, ngradeletters[bestoverall]);
 
@@ -10193,36 +10193,36 @@ void M_DrawNightsfireMenu(void)
 	}
 
 	// ALWAYS DRAW level even when not on this menu!
-	if (currentMenu != &SP_NightsfireDef)
-		V_DrawString(SP_NightsfireDef.x, SP_NightsfireDef.y + SP_TimefireMenu[nalevel].alphaKey, V_TRANSLUCENT, SP_NightsfireMenu[nalevel].text);
+	if (currentMenu != &SP_NightsAttackDef)
+		V_DrawString(SP_NightsAttackDef.x, SP_NightsAttackDef.y + SP_TimeAttackMenu[nalevel].alphaKey, V_TRANSLUCENT, SP_NightsAttackMenu[nalevel].text);
 }
 
-static void M_NightsfireLevelSelect(INT32 choice)
+static void M_NightsAttackLevelSelect(INT32 choice)
 {
 	(void)choice;
-	SP_NightsfireLevelSelectDef.prevMenu = currentMenu;
-	M_SetupNextMenu(&SP_NightsfireLevelSelectDef);
+	SP_NightsAttackLevelSelectDef.prevMenu = currentMenu;
+	M_SetupNextMenu(&SP_NightsAttackLevelSelectDef);
 }
 
-// Going to Nights fire menu...
-static void M_Nightsfire(INT32 choice)
+// Going to Nights Attack menu...
+static void M_NightsAttack(INT32 choice)
 {
 	(void)choice;
 
-	SP_NightsfireDef.prevMenu = &MainDef;
-	levellistmode = LLM_NIGHTSfire; // Don't be dependent on cv_newgametype
+	SP_NightsAttackDef.prevMenu = &MainDef;
+	levellistmode = LLM_NIGHTSAttack; // Don't be dependent on cv_newgametype
 
 	if (!M_PrepareLevelPlatter(-1, true))
 	{
-		M_StartMessage(M_GetText("No NiGHTS-fireable levels found.\n"),NULL,MM_NOTHING);
+		M_StartMessage(M_GetText("No NiGHTS-Attackable levels found.\n"),NULL,MM_NOTHING);
 		return;
 	}
 	// This is really just to make sure Sonic is the played character, just in case
 	M_PatchSkinNameTable();
 
-	G_SetGamestate(GS_TIMEfire); // do this before M_SetupNextMenu so that menu meta state knows that we're switching
+	G_SetGamestate(GS_TIMEAttack); // do this before M_SetupNextMenu so that menu meta state knows that we're switching
 	titlemapinaction = TITLEMAP_OFF; // Nope don't give us HOMs please
-	M_SetupNextMenu(&SP_NightsfireDef);
+	M_SetupNextMenu(&SP_NightsAttackDef);
 	if (!M_CanShowLevelInList(cv_nextmap.value-1, -1) && levelselect.rows[0].maplist[0])
 		CV_SetValue(&cv_nextmap, levelselect.rows[0].maplist[0]);
 	else
@@ -10231,25 +10231,25 @@ static void M_Nightsfire(INT32 choice)
 	itemOn = nastart; // "Start" is selected.
 }
 
-// Player has selected the "START" from the nights fire screen
-static void M_ChooseNightsfire(INT32 choice)
+// Player has selected the "START" from the nights Attack screen
+static void M_ChooseNightsAttack(INT32 choice)
 {
 	char *gpath;
-	const size_t glen = strlen("replay")+1+strlen(timefirefolder)+1+strlen("MAPXX")+1;
+	const size_t glen = strlen("replay")+1+strlen(timeattackfolder)+1+strlen("MAPXX")+1;
 	char nameofdemo[256];
 	(void)choice;
 	emeralds = 0;
 	memset(&luabanks, 0, sizeof(luabanks));
 	M_ClearMenus(true);
-	modefireing = fireING_NIGHTS;
+	modeattacking = ATTACKING_NIGHTS;
 
 	I_mkdir(va("%s"PATHSEP"replay", srb2home), 0755);
-	I_mkdir(va("%s"PATHSEP"replay"PATHSEP"%s", srb2home, timefirefolder), 0755);
+	I_mkdir(va("%s"PATHSEP"replay"PATHSEP"%s", srb2home, timeattackfolder), 0755);
 
 	if ((gpath = malloc(glen)) == NULL)
 		I_Error("Out of memory for replay filepath\n");
 
-	sprintf(gpath,"replay"PATHSEP"%s"PATHSEP"%s", timefirefolder, G_BuildMapName(cv_nextmap.value));
+	sprintf(gpath,"replay"PATHSEP"%s"PATHSEP"%s", timeattackfolder, G_BuildMapName(cv_nextmap.value));
 	snprintf(nameofdemo, sizeof nameofdemo, "%s-%s-last", gpath, skins[cv_chooseskin.value-1].name);
 
 	if (!cv_autorecord.value)
@@ -10260,25 +10260,25 @@ static void M_ChooseNightsfire(INT32 choice)
 	G_DeferedInitNew(false, G_BuildMapName(cv_nextmap.value), (UINT8)(cv_chooseskin.value-1), false, false);
 }
 
-// Player has selected the "START" from the time fire screen
-static void M_ChooseTimefire(INT32 choice)
+// Player has selected the "START" from the time attack screen
+static void M_ChooseTimeAttack(INT32 choice)
 {
 	char *gpath;
-	const size_t glen = strlen("replay")+1+strlen(timefirefolder)+1+strlen("MAPXX")+1;
+	const size_t glen = strlen("replay")+1+strlen(timeattackfolder)+1+strlen("MAPXX")+1;
 	char nameofdemo[256];
 	(void)choice;
 	emeralds = 0;
 	memset(&luabanks, 0, sizeof(luabanks));
 	M_ClearMenus(true);
-	modefireing = fireING_RECORD;
+	modeattacking = ATTACKING_RECORD;
 
 	I_mkdir(va("%s"PATHSEP"replay", srb2home), 0755);
-	I_mkdir(va("%s"PATHSEP"replay"PATHSEP"%s", srb2home, timefirefolder), 0755);
+	I_mkdir(va("%s"PATHSEP"replay"PATHSEP"%s", srb2home, timeattackfolder), 0755);
 
 	if ((gpath = malloc(glen)) == NULL)
 		I_Error("Out of memory for replay filepath\n");
 
-	sprintf(gpath,"replay"PATHSEP"%s"PATHSEP"%s", timefirefolder, G_BuildMapName(cv_nextmap.value));
+	sprintf(gpath,"replay"PATHSEP"%s"PATHSEP"%s", timeattackfolder, G_BuildMapName(cv_nextmap.value));
 	snprintf(nameofdemo, sizeof nameofdemo, "%s-%s-last", gpath, skins[cv_chooseskin.value-1].name);
 
 	if (!cv_autorecord.value)
@@ -10289,13 +10289,13 @@ static void M_ChooseTimefire(INT32 choice)
 	G_DeferedInitNew(false, G_BuildMapName(cv_nextmap.value), (UINT8)(cv_chooseskin.value-1), false, false);
 }
 
-// Player has selected the "REPLAY" from the time fire screen
-static void M_ReplayTimefire(INT32 choice)
+// Player has selected the "REPLAY" from the time attack screen
+static void M_ReplayTimeAttack(INT32 choice)
 {
 	const char *which;
 	char *demoname;
 	M_ClearMenus(true);
-	modefireing = fireING_RECORD; // set modefireing before G_DoPlayDemo so the map loader knows
+	modeattacking = ATTACKING_RECORD; // set modeattacking before G_DoPlayDemo so the map loader knows
 
 	if (currentMenu == &SP_ReplayDef)
 	{
@@ -10315,11 +10315,11 @@ static void M_ReplayTimefire(INT32 choice)
 			break;
 		case 4: // guest
 			// srb2/replay/main/map01-guest.lmp
-			G_DoPlayDemo(va("%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s-guest.lmp", srb2home, timefirefolder, G_BuildMapName(cv_nextmap.value)));
+			G_DoPlayDemo(va("%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s-guest.lmp", srb2home, timeattackfolder, G_BuildMapName(cv_nextmap.value)));
 			return;
 		}
 		// srb2/replay/main/map01-sonic-time-best.lmp
-		G_DoPlayDemo(va("%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s-%s-%s.lmp", srb2home, timefirefolder, G_BuildMapName(cv_nextmap.value), skins[cv_chooseskin.value-1].name, which));
+		G_DoPlayDemo(va("%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s-%s-%s.lmp", srb2home, timeattackfolder, G_BuildMapName(cv_nextmap.value), skins[cv_chooseskin.value-1].name, which));
 	}
 	else if (currentMenu == &SP_NightsReplayDef)
 	{
@@ -10335,15 +10335,15 @@ static void M_ReplayTimefire(INT32 choice)
 			which = "last";
 			break;
 		case 3: // guest
-			G_DoPlayDemo(va("%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s-guest.lmp", srb2home, timefirefolder, G_BuildMapName(cv_nextmap.value)));
+			G_DoPlayDemo(va("%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s-guest.lmp", srb2home, timeattackfolder, G_BuildMapName(cv_nextmap.value)));
 			return;
 		}
 
-		demoname = va("%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s-%s-%s.lmp", srb2home, timefirefolder, G_BuildMapName(cv_nextmap.value), skins[cv_chooseskin.value-1].name, which);
+		demoname = va("%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s-%s-%s.lmp", srb2home, timeattackfolder, G_BuildMapName(cv_nextmap.value), skins[cv_chooseskin.value-1].name, which);
 
 #ifdef OLDNREPLAYNAME // Check for old style named NiGHTS replay if a new style replay doesn't exist.
 		if (!FIL_FileExists(demoname))
-			demoname = va("%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s-%s.lmp", srb2home, timefirefolder, G_BuildMapName(cv_nextmap.value), which);
+			demoname = va("%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s-%s.lmp", srb2home, timeattackfolder, G_BuildMapName(cv_nextmap.value), which);
 #endif
 
 		G_DoPlayDemo(demoname);
@@ -10352,7 +10352,7 @@ static void M_ReplayTimefire(INT32 choice)
 
 static void M_EraseGuest(INT32 choice)
 {
-	const char *rguest = va("%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s-guest.lmp", srb2home, timefirefolder, G_BuildMapName(cv_nextmap.value));
+	const char *rguest = va("%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s-guest.lmp", srb2home, timeattackfolder, G_BuildMapName(cv_nextmap.value));
 
 	if (choice == 'y' || choice == KEY_ENTER)
 	{
@@ -10366,10 +10366,10 @@ static void M_EraseGuest(INT32 choice)
 
 static void M_OverwriteGuest(const char *which)
 {
-	char *rguest = Z_StrDup(va("%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s-guest.lmp", srb2home, timefirefolder, G_BuildMapName(cv_nextmap.value)));
+	char *rguest = Z_StrDup(va("%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s-guest.lmp", srb2home, timeattackfolder, G_BuildMapName(cv_nextmap.value)));
 	UINT8 *buf;
 	size_t len;
-	len = FIL_ReadFile(va("%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s-%s-%s.lmp", srb2home, timefirefolder, G_BuildMapName(cv_nextmap.value), skins[cv_chooseskin.value-1].name, which), &buf);
+	len = FIL_ReadFile(va("%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s-%s-%s.lmp", srb2home, timeattackfolder, G_BuildMapName(cv_nextmap.value), skins[cv_chooseskin.value-1].name, which), &buf);
 
 	if (!len) {
 		return;
@@ -10381,9 +10381,9 @@ static void M_OverwriteGuest(const char *which)
 	FIL_WriteFile(rguest, buf, len);
 	Z_Free(rguest);
 	if (currentMenu == &SP_NightsGuestReplayDef)
-		M_SetupNextMenu(&SP_NightsfireDef);
+		M_SetupNextMenu(&SP_NightsAttackDef);
 	else
-		M_SetupNextMenu(&SP_TimefireDef);
+		M_SetupNextMenu(&SP_TimeAttackDef);
 	Nextmap_OnChange();
 	M_StartMessage(M_GetText("Guest replay data saved.\n"),NULL,MM_NOTHING);
 }
@@ -10436,24 +10436,24 @@ static void M_SetGuestReplay(INT32 choice)
 		M_StartMessage(M_GetText("Are you sure you want to\ndelete the guest replay data?\n\n(Press 'Y' to confirm)\n"),M_EraseGuest,MM_YESNO);
 		return;
 	}
-	if (FIL_FileExists(va("%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s-guest.lmp", srb2home, timefirefolder, G_BuildMapName(cv_nextmap.value))))
+	if (FIL_FileExists(va("%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s-guest.lmp", srb2home, timeattackfolder, G_BuildMapName(cv_nextmap.value))))
 		M_StartMessage(M_GetText("Are you sure you want to\noverwrite the guest replay data?\n\n(Press 'Y' to confirm)\n"),which,MM_YESNO);
 	else
 		which(0);
 }
 
-void M_ModefireRetry(INT32 choice)
+void M_ModeAttackRetry(INT32 choice)
 {
 	(void)choice;
 	// todo -- maybe seperate this out and G_SetRetryFlag() here instead? is just calling this from the menu 100% safe?
 	G_CheckDemoStatus(); // Cancel recording
-	if (modefireing == fireING_RECORD)
-		M_ChooseTimefire(0);
-	else if (modefireing == fireING_NIGHTS)
-		M_ChooseNightsfire(0);
+	if (modeattacking == ATTACKING_RECORD)
+		M_ChooseTimeAttack(0);
+	else if (modeattacking == ATTACKING_NIGHTS)
+		M_ChooseNightsAttack(0);
 }
 
-static void M_ModefireEndGame(INT32 choice)
+static void M_ModeAttackEndGame(INT32 choice)
 {
 	(void)choice;
 	G_CheckDemoStatus(); // Cancel recording
@@ -10462,21 +10462,21 @@ static void M_ModefireEndGame(INT32 choice)
 		Command_ExitGame_f();
 
 	M_StartControlPanel();
-	switch(modefireing)
+	switch(modeattacking)
 	{
 	default:
-	case fireING_RECORD:
-		currentMenu = &SP_TimefireDef;
-		wipetypepost = menupres[MN_SP_TIMEfire].enterwipe;
+	case ATTACKING_RECORD:
+		currentMenu = &SP_TimeAttackDef;
+		wipetypepost = menupres[MN_SP_TIMEATTACK].enterwipe;
 		break;
-	case fireING_NIGHTS:
-		currentMenu = &SP_NightsfireDef;
-		wipetypepost = menupres[MN_SP_NIGHTSfire].enterwipe;
+	case ATTACKING_NIGHTS:
+		currentMenu = &SP_NightsAttackDef;
+		wipetypepost = menupres[MN_SP_NIGHTSATTACK].enterwipe;
 		break;
 	}
 	itemOn = currentMenu->lastOn;
-	G_SetGamestate(GS_TIMEfire);
-	modefireing = fireING_NONE;
+	G_SetGamestate(GS_TIMEATTACK);
+	modeattacking = ATTACKING_NONE;
 	M_ChangeMenuMusic("_title", true);
 	Nextmap_OnChange();
 }
@@ -10551,7 +10551,7 @@ static void M_Marathon(INT32 choice)
 	M_ChangeMenuMusic("spec8", true);
 
 	SP_MarathonDef.prevMenu = &MainDef;
-	G_SetGamestate(GS_TIMEfire); // do this before M_SetupNextMenu so that menu meta state knows that we're switching
+	G_SetGamestate(GS_TIMEATTACK); // do this before M_SetupNextMenu so that menu meta state knows that we're switching
 	titlemapinaction = TITLEMAP_OFF; // Nope don't give us HOMs please
 	M_SetupNextMenu(&SP_MarathonDef);
 	itemOn = marathonstart; // "Start" is selected.
@@ -10633,7 +10633,7 @@ void M_DrawMarathon(void)
 	V_DrawFill(-diffx, -diffy, diffx+(BASEVIDWIDTH-190)/2, yspan, 158);
 	V_DrawFill((BASEVIDWIDTH-190)/2, -diffy, 190, yspan, 31);
 	V_DrawFill((BASEVIDWIDTH+190)/2, -diffy, diffx+(BASEVIDWIDTH-190)/2, yspan, 158);
-	//M_DrawRecordfireForeground();
+	//M_DrawRecordAttackForeground();
 	if (curfadevalue)
 		V_DrawFadeScreen(0xFF00, curfadevalue);
 
@@ -10838,7 +10838,7 @@ void M_DrawMarathon(void)
 	V_DrawScaledPatch(currentMenu->x - 24, cursory, 0, W_CachePatchName("M_CURSOR", PU_PATCH));
 	V_DrawString(currentMenu->x, cursory, V_YELLOWMAP, currentMenu->menuitems[itemOn].text);
 
-	// Draw press ESC to exit string on main record fire menu
+	// Draw press ESC to exit string on main record Attack menu
 	V_DrawString(104-72, 180, V_TRANSLUCENT, M_GetText("Press ESC to exit"));
 }
 
@@ -12381,7 +12381,7 @@ static void M_EraseData(INT32 choice)
 	erasecontext = (UINT8)choice;
 
 	if (choice == 0)
-		eschoice = M_GetText("Record fire data");
+		eschoice = M_GetText("Record Attack data");
 	else if (choice == 1)
 		eschoice = M_GetText("Extras data");
 	else
@@ -12861,7 +12861,7 @@ static void M_ChangecontrolResponse(event_t *ev)
 		menu_t *prev = currentMenu->prevMenu;
 
 		if (controltochange == gc_pause)
-			sprintf(tmp, M_GetText("The \x82Pause Key \x80is enabled, but \nit cannot be used to retry runs \nduring Record fire. \n\nHit another key for\n%s\nESC for Cancel"),
+			sprintf(tmp, M_GetText("The \x82Pause Key \x80is enabled, but \nit cannot be used to retry runs \nduring Record Attack. \n\nHit another key for\n%s\nESC for Cancel"),
 				controltochangetext);
 		else
 			sprintf(tmp, M_GetText("The \x82Pause Key \x80is enabled, but \nit is not configurable. \n\nHit another key for\n%s\nESC for Cancel"),

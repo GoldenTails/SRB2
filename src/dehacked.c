@@ -6445,7 +6445,7 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_ARROW",
 	"S_ARROWBONK",
 
-	// Glaregoyle Demon ATTACK
+	// Glaregoyle Demon fire
 	"S_DEMONFIRE",
 
 	// The letter
@@ -8246,7 +8246,7 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_CANARIVORE", // Canarivore
 	"MT_CANARIVORE_GAS", // Canarivore gas
 	"MT_PYREFLY", // Pyre Fly
-	"MT_PYREFLY_FIRE", // Pyre Fly ATTACK
+	"MT_PYREFLY_FIRE", // Pyre Fly fire
 	"MT_PTERABYTESPAWNER", // Pterabyte spawner
 	"MT_PTERABYTEWAYPOINT", // Pterabyte waypoint
 	"MT_PTERABYTE", // Pterabyte
@@ -8460,7 +8460,7 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_CANNONBALL", // Cannonball
 	"MT_CANNONBALLDECOR", // Decorative/still cannonball
 	"MT_ARROW", // Arrow
-	"MT_DEMONFIRE", // Glaregoyle ATTACK
+	"MT_DEMONFIRE", // Glaregoyle fire
 
 	// The letter
 	"MT_LETTER",
@@ -9028,8 +9028,8 @@ static const char *const MOBJFLAG2_LIST[] = {
 	"DEBRIS",		  // Splash ring from explosion ring
 	"NIGHTSPULL",	  // Attracted from a paraloop
 	"JUSTATTACKED",	  // can be pushed by other moving mobjs
-	"FIRING",		  // turret ATTACK
-	"SUPERFIRE",	  // Firing something with Super Sonic-stopping properties. Or, if mobj has MF_MISSILE, this is the actual ATTACK from it.
+	"FIRING",		  // turret fire
+	"SUPERFIRE",	  // Firing something with Super Sonic-stopping properties. Or, if mobj has MF_MISSILE, this is the actual fire from it.
 	"SHADOW",		  // Fuzzy draw, makes targeting harder.
 	"STRONGBOX",	  // Flag used for "strong" random monitors.
 	"OBJECTFLIP",	  // Flag for objects that always have flipped gravity.
