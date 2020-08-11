@@ -189,8 +189,8 @@ fixed_t P_ReturnThrustY(mobj_t *mo, angle_t angle, fixed_t move)
 //
 boolean P_AutoPause(void)
 {
-	// Don't pause even on menu-up or focus-lost in netgames or record fire
-	if (netgame || modefireing || gamestate == GS_TITLESCREEN)
+	// Don't pause even on menu-up or focus-lost in netgames or record attack
+	if (netgame || modeattacking || gamestate == GS_TITLESCREEN)
 		return false;
 
 	return (menuactive || ( window_notinfocus && cv_pauseifunfocused.value ));
@@ -1206,7 +1206,7 @@ void P_GivePlayerRings(player_t *player, INT32 num_rings)
 		player->rings = 0;
 
 	// Now extra life bonuses are handled here instead of in P_MovePlayer, since why not?
-	if (!ultimatemode && !modefireing && !G_IsSpecialStage(gamemap) && G_GametypeUsesLives() && player->lives != INFLIVES)
+	if (!ultimatemode && !modeattacking && !G_IsSpecialStage(gamemap) && G_GametypeUsesLives() && player->lives != INFLIVES)
 	{
 		INT32 gainlives = 0;
 
@@ -1431,7 +1431,7 @@ void P_AddPlayerScore(player_t *player, UINT32 amount)
 		player->score = MAXSCORE;
 
 	// check for extra lives every 50000 pts
-	if (!ultimatemode && !modefireing && player->score > oldscore && player->score % 50000 < amount && (gametyperules & GTR_LIVES))
+	if (!ultimatemode && !modeattacking && player->score > oldscore && player->score % 50000 < amount && (gametyperules & GTR_LIVES))
 	{
 		P_GivePlayerLives(player, (player->score/50000) - (oldscore/50000));
 		P_PlayLivesJingle(player);
@@ -2472,7 +2472,7 @@ boolean P_PlayerHitFloor(player_t *player, boolean dorollstuff)
 			{
 				player->pflags &= ~PF_SHIELDABILITY;
 
-				if ((player->powers[pw_shield] & SH_NOSTACK) == SH_ELEMENTAL) // Elemental shield's stomp fire.
+				if ((player->powers[pw_shield] & SH_NOSTACK) == SH_ELEMENTAL) // Elemental shield's stomp attack.
 				{
 					if (player->mo->eflags & (MFE_UNDERWATER|MFE_TOUCHWATER)) // play a blunt sound
 						S_StartSound(player->mo, sfx_s3k4c);
@@ -2490,7 +2490,7 @@ boolean P_PlayerHitFloor(player_t *player, boolean dorollstuff)
 					player->mo->momx = player->mo->momy = 0;
 					clipmomz = false;
 				}
-				else if ((player->powers[pw_shield] & SH_NOSTACK) == SH_BUBBLEWRAP) // Bubble shield's bounce fire.
+				else if ((player->powers[pw_shield] & SH_NOSTACK) == SH_BUBBLEWRAP) // Bubble shield's bounce attack.
 				{
 					P_DoBubbleBounce(player);
 					clipmomz = false;
@@ -5314,8 +5314,8 @@ static void P_DoJumpStuff(player_t *player, ticcmd_t *cmd)
 
 						player->drawangle = player->mo->angle;
 
-						if (player->mo->info->firesound && !player->spectator)
-							S_StartSound(player->mo, player->mo->info->firesound); // Play the THOK sound
+						if (player->mo->info->attacksound && !player->spectator)
+							S_StartSound(player->mo, player->mo->info->attacksound); // Play the THOK sound
 
 						P_SpawnThokMobj(player);
 
@@ -6750,10 +6750,10 @@ static void P_DoNiGHTSCapsule(player_t *player)
 			if (player->mo->state != &states[S_PLAY_NIGHTS_PULL])
 				P_SetPlayerMobjState(player->mo, S_PLAY_NIGHTS_PULL);
 		}
-		else if (player->mo->state != &states[S_PLAY_NIGHTS_fire])
+		else if (player->mo->state != &states[S_PLAY_NIGHTS_ATTACK])
 		{
 			S_StartSound(player->mo, sfx_spin);
-			P_SetPlayerMobjState(player->mo, S_PLAY_NIGHTS_fire);
+			P_SetPlayerMobjState(player->mo, S_PLAY_NIGHTS_ATTACK);
 		}
 	}
 	else

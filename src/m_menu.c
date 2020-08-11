@@ -532,15 +532,15 @@ static menuitem_t MISC_AddonsMenu[] =
 };
 
 // ---------------------------------
-// Pause Menu Mode attacking Edition
+// Pause Menu Mode Attacking Edition
 // ---------------------------------
 static menuitem_t MAPauseMenu[] =
 {
 	{IT_CALL | IT_STRING,    NULL, "Emblem Hints...",      M_EmblemHints,         32},
 
 	{IT_CALL | IT_STRING,    NULL, "Continue",             M_SelectableClearMenus,48},
-	{IT_CALL | IT_STRING,    NULL, "Retry",                M_ModeattackRetry,     56},
-	{IT_CALL | IT_STRING,    NULL, "Abort",                M_ModeattackEndGame,   64},
+	{IT_CALL | IT_STRING,    NULL, "Retry",                M_ModeAttackRetry,     56},
+	{IT_CALL | IT_STRING,    NULL, "Abort",                M_ModeAttackEndGame,   64},
 };
 
 typedef enum
@@ -1844,10 +1844,10 @@ static menu_t SP_TimeAttackDef =
 {
 	MTREE2(MN_SP_MAIN, MN_SP_TIMEATTACK),
 	"M_ATTACK",
-	sizeof (SP_TimefireMenu)/sizeof (menuitem_t),
+	sizeof (SP_TimeAttackMenu)/sizeof (menuitem_t),
 	&MainDef,  // Doesn't matter.
-	SP_TimefireMenu,
-	M_DrawTimefireMenu,
+	SP_TimeAttackMenu,
+	M_DrawTimeAttackMenu,
 	32, 40,
 	0,
 	NULL
@@ -3225,7 +3225,7 @@ static boolean noFurtherInput = false;
 
 static void Command_Manual_f(void)
 {
-	if (modefireing)
+	if (modeattacking)
 		return;
 	M_StartControlPanel();
 	currentMenu = &MISC_HelpDef;
@@ -3402,7 +3402,7 @@ boolean M_Responder(event_t *ev)
 				return true;
 
 			case KEY_F4: // Sound Volume
-				if (modefireing)
+				if (modeattacking)
 					return true;
 				M_StartControlPanel();
 				M_Options(0);
@@ -3412,7 +3412,7 @@ boolean M_Responder(event_t *ev)
 				return true;
 
 			case KEY_F5: // Video Mode
-				if (modefireing)
+				if (modeattacking)
 					return true;
 				M_StartControlPanel();
 				M_Options(0);
@@ -3423,7 +3423,7 @@ boolean M_Responder(event_t *ev)
 				return true;
 
 			case KEY_F7: // Options
-				if (modefireing)
+				if (modeattacking)
 					return true;
 				M_StartControlPanel();
 				M_Options(0);
@@ -3684,7 +3684,7 @@ void M_Drawer(void)
 void M_StartControlPanel(void)
 {
 	// time attack HACK
-	if (modefireing && demoplayback)
+	if (modeattacking && demoplayback)
 	{
 		G_CheckDemoStatus();
 		return;
@@ -3709,7 +3709,7 @@ void M_StartControlPanel(void)
 		currentMenu = &MainDef;
 		itemOn = singleplr;
 	}
-	else if (modefireing)
+	else if (modeattacking)
 	{
 		currentMenu = &MAPauseDef;
 		MAPauseMenu[mapause_hints].status = (M_SecretUnlocked(SECRET_EMBLEMHINTS)) ? (IT_STRING | IT_CALL) : (IT_DISABLED);
@@ -10210,17 +10210,17 @@ static void M_NightsAttack(INT32 choice)
 	(void)choice;
 
 	SP_NightsAttackDef.prevMenu = &MainDef;
-	levellistmode = LLM_NIGHTSAttack; // Don't be dependent on cv_newgametype
+	levellistmode = LLM_NIGHTSATTACK; // Don't be dependent on cv_newgametype
 
 	if (!M_PrepareLevelPlatter(-1, true))
 	{
-		M_StartMessage(M_GetText("No NiGHTS-Attackable levels found.\n"),NULL,MM_NOTHING);
+		M_StartMessage(M_GetText("No NiGHTS-attackable levels found.\n"),NULL,MM_NOTHING);
 		return;
 	}
 	// This is really just to make sure Sonic is the played character, just in case
 	M_PatchSkinNameTable();
 
-	G_SetGamestate(GS_TIMEAttack); // do this before M_SetupNextMenu so that menu meta state knows that we're switching
+	G_SetGamestate(GS_TIMEATTACK); // do this before M_SetupNextMenu so that menu meta state knows that we're switching
 	titlemapinaction = TITLEMAP_OFF; // Nope don't give us HOMs please
 	M_SetupNextMenu(&SP_NightsAttackDef);
 	if (!M_CanShowLevelInList(cv_nextmap.value-1, -1) && levelselect.rows[0].maplist[0])

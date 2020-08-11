@@ -3954,12 +3954,12 @@ static void P_ProcessLineSpecial(line_t *line, mobj_t *mo, sector_t *callsec)
 			}
 			break;
 
-		case 462: // Stop clock (and end level in record fire)
+		case 462: // Stop clock (and end level in record attack)
 			if (G_PlatformGametype())
 			{
 				stoppedclock = true;
 				CONS_Debug(DBG_GAMELOGIC, "Clock stopped!\n");
-				if (modefireing)
+				if (modeattacking)
 				{
 					UINT8 i;
 					for (i = 0; i < MAXPLAYERS; i++)
@@ -4755,7 +4755,7 @@ DoneSection2:
 					mo->flags &= ~MF_SPECIAL;
 					mo->fuse = TICRATE;
 					mo->spawnpoint = bflagpoint;
-					mo->flags2 |= MF2_JUSTfireED;
+					mo->flags2 |= MF2_JUSTATTACKED;
 					redscore += 1;
 					P_AddPlayerScore(player, 250);
 				}
@@ -4788,7 +4788,7 @@ DoneSection2:
 					mo->flags &= ~MF_SPECIAL;
 					mo->fuse = TICRATE;
 					mo->spawnpoint = rflagpoint;
-					mo->flags2 |= MF2_JUSTfireED;
+					mo->flags2 |= MF2_JUSTATTACKED;
 					bluescore += 1;
 					P_AddPlayerScore(player, 250);
 				}
@@ -4816,7 +4816,7 @@ DoneSection2:
 			{
 				player->pflags |= PF_SPINNING;
 				P_SetPlayerMobjState(player->mo, S_PLAY_ROLL);
-				S_StartfireSound(player->mo, sfx_spin);
+				S_StartAttackSound(player->mo, sfx_spin);
 
 				if (abs(player->rmomx) < FixedMul(5*FRACUNIT, player->mo->scale)
 				&& abs(player->rmomy) < FixedMul(5*FRACUNIT, player->mo->scale))
@@ -8605,7 +8605,7 @@ static inline boolean PIT_PushThing(mobj_t *thing)
 		// If speed <= 0, you're outside the effective radius. You also have
 		// to be able to see the push/pull source point.
 
-		// Written with bits and pieces of P_Homingfire
+		// Written with bits and pieces of P_HomingAttack
 		if ((speed > 0) && (P_CheckSight(thing, tmpusher->source)))
 		{
 			if (thing->player->powers[pw_carry] != CR_NIGHTSMODE)
