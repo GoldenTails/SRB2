@@ -218,12 +218,12 @@ INT32 spawnhealth;   Hit points = 3232        100,            // spawnhealth
 INT32 seestate;      First moving frame = 32  "PLAY_RUN1",    // seestate
 INT32 seesound;      Alert sound = 32         sfx_None,       // seesound
 INT32 reactiontime;  Reaction time = 3232     0,              // reactiontime
-INT32 firesound;   fire sound = 32        sfx_None,       // firesound
+INT32 attacksound;   Attack sound = 32        sfx_None,       // attacksound
 INT32 painstate;     Injury frame = 32        "PLAY_PAIN",    // painstate
 INT32 painchance;    Pain chance = 3232       255,            // painchance
 INT32 painsound;     Pain sound = 32          sfx_plpain,     // painsound
-INT32 meleestate;    Close fire frame = 32  "NULL",         // meleestate
-INT32 missilestate;  Far fire frame = 32    "PLAY_ATK1",    // missilestate
+INT32 meleestate;    Close attack frame = 32  "NULL",         // meleestate
+INT32 missilestate;  Far attack frame = 32    "PLAY_ATK1",    // missilestate
 INT32 deathstate;    Death frame = 32         "PLAY_DIE1",    // deathstate
 INT32 xdeathstate;   Exploding frame = 32     "PLAY_XDIE1",   // xdeathstate
 INT32 deathsound;    Death sound = 32         sfx_pldeth,     // deathsound
@@ -680,9 +680,9 @@ static void readthing(MYFILE *f, INT32 num)
 			{
 				mobjinfo[num].reactiontime = (INT32)get_number(word2);
 			}
-			else if (fastcmp(word, "fireSOUND"))
+			else if (fastcmp(word, "ATTACKSOUND"))
 			{
-				mobjinfo[num].firesound = get_number(word2);
+				mobjinfo[num].attacksound = get_number(word2);
 			}
 			else if (fastcmp(word, "PAINSTATE"))
 			{
@@ -1949,8 +1949,8 @@ static void readlevelheader(MYFILE *f, INT32 num)
 						mapheaderinfo[num-1]->levelflags &= ~LF_NOTITLECARDFIRST;
 					else if (fastcmp(tmp, "RESPAWN"))
 						mapheaderinfo[num-1]->levelflags &= ~LF_NOTITLECARDRESPAWN;
-					else if (fastcmp(tmp, "RECORDfire"))
-						mapheaderinfo[num-1]->levelflags &= ~LF_NOTITLECARDRECORDfire;
+					else if (fastcmp(tmp, "RECORDATTACK"))
+						mapheaderinfo[num-1]->levelflags &= ~LF_NOTITLECARDRECORDATTACK;
 					else if (fastcmp(tmp, "ALL"))
 						mapheaderinfo[num-1]->levelflags &= ~LF_NOTITLECARD;
 					else if (!fastcmp(tmp, "NONE"))
@@ -1974,19 +1974,19 @@ static void readlevelheader(MYFILE *f, INT32 num)
 				else
 					mapheaderinfo[num-1]->menuflags &= ~LF2_HIDEINSTATS;
 			}
-			else if (fastcmp(word, "RECORDfire") || fastcmp(word, "TIMEfire"))
-			{ // TIMEfire is an accepted alias
+			else if (fastcmp(word, "RECORDATTACK") || fastcmp(word, "TIMEATTACK"))
+			{ // TIMEATTACK is an accepted alias
 				if (i || word2[0] == 'T' || word2[0] == 'Y')
-					mapheaderinfo[num-1]->menuflags |= LF2_RECORDfire;
+					mapheaderinfo[num-1]->menuflags |= LF2_RECORDATTACK;
 				else
-					mapheaderinfo[num-1]->menuflags &= ~LF2_RECORDfire;
+					mapheaderinfo[num-1]->menuflags &= ~LF2_RECORDATTACK;
 			}
-			else if (fastcmp(word, "NIGHTSfire"))
+			else if (fastcmp(word, "NIGHTSATTACK"))
 			{
 				if (i || word2[0] == 'T' || word2[0] == 'Y')
-					mapheaderinfo[num-1]->menuflags |= LF2_NIGHTSfire;
+					mapheaderinfo[num-1]->menuflags |= LF2_NIGHTSATTACK;
 				else
-					mapheaderinfo[num-1]->menuflags &= LF2_NIGHTSfire;
+					mapheaderinfo[num-1]->menuflags &= LF2_NIGHTSATTACK;
 			}
 			else if (fastcmp(word, "NOVISITNEEDED"))
 			{
@@ -3019,7 +3019,7 @@ static actionpointer_t actionpointers[] =
 	{{A_VultureFly},             "A_VULTUREFLY"},
 	{{A_SkimChase},              "A_SKIMCHASE"},
 	{{A_1upThinker},             "A_1UPTHINKER"},
-	{{A_Skullfire},            "A_SKULLfire"},
+	{{A_SkullAttack},            "A_SKULLATTACK"},
 	{{A_LobShot},                "A_LOBSHOT"},
 	{{A_FireShot},               "A_FIRESHOT"},
 	{{A_SuperFireShot},          "A_SUPERFIRESHOT"},
@@ -3040,7 +3040,7 @@ static actionpointer_t actionpointers[] =
 	{{A_Boss3ShockThink},        "A_BOSS3SHOCKTHINK"},
 	{{A_LinedefExecute},         "A_LINEDEFEXECUTE"},
 	{{A_PlaySeeSound},           "A_PLAYSEESOUND"},
-	{{A_PlayfireSound},        "A_PLAYfireSOUND"},
+	{{A_PlayAttackSound},        "A_PLAYATTACKSOUND"},
 	{{A_PlayActiveSound},        "A_PLAYACTIVESOUND"},
 	{{A_SpawnObjectAbsolute},    "A_SPAWNOBJECTABSOLUTE"},
 	{{A_SpawnObjectRelative},    "A_SPAWNOBJECTRELATIVE"},
@@ -3108,7 +3108,7 @@ static actionpointer_t actionpointers[] =
 	{{A_HomingChase},            "A_HOMINGCHASE"},
 	{{A_TrapShot},               "A_TRAPSHOT"},
 	{{A_VileTarget},             "A_VILETARGET"},
-	{{A_Vilefire},             "A_VILEfire"},
+	{{A_VileAttack},             "A_VILEATTACK"},
 	{{A_VileFire},               "A_VILEFIRE"},
 	{{A_BrakChase},              "A_BRAKCHASE"},
 	{{A_BrakFireShot},           "A_BRAKFIRESHOT"},
@@ -3675,8 +3675,8 @@ static void readunlockable(MYFILE *f, INT32 num)
 						unlockables[num].type = SECRET_PANDORA;
 					else if (fastcmp(word2, "CREDITS"))
 						unlockables[num].type = SECRET_CREDITS;
-					else if (fastcmp(word2, "RECORDfire"))
-						unlockables[num].type = SECRET_RECORDfire;
+					else if (fastcmp(word2, "RECORDATTACK"))
+						unlockables[num].type = SECRET_RECORDATTACK;
 					else if (fastcmp(word2, "NIGHTSMODE"))
 						unlockables[num].type = SECRET_NIGHTSMODE;
 					else if (fastcmp(word2, "HEADER"))
@@ -4327,17 +4327,17 @@ static void readmaincfg(MYFILE *f)
 				strlwr(gamedatafilename);
 				savemoddata = true;
 
-				// Also save a time fire folder
+				// Also save a time attack folder
 				filenamelen = strlen(gamedatafilename)-4;  // Strip off the extension
-				strncpy(timefirefolder, gamedatafilename, min(filenamelen, sizeof (timefirefolder)));
-				timefirefolder[min(filenamelen, sizeof (timefirefolder) - 1)] = '\0';
+				strncpy(timeattackfolder, gamedatafilename, min(filenamelen, sizeof (timeattackfolder)));
+				timeattackfolder[min(filenamelen, sizeof (timeattackfolder) - 1)] = '\0';
 
-				strcpy(savegamename, timefirefolder);
+				strcpy(savegamename, timeattackfolder);
 				strlcat(savegamename, "%u.ssg", sizeof(savegamename));
 				// can't use sprintf since there is %u in savegamename
 				strcatbf(savegamename, srb2home, PATHSEP);
 
-				strcpy(liveeventbackup, va("live%s.bkp", timefirefolder));
+				strcpy(liveeventbackup, va("live%s.bkp", timeattackfolder));
 				strcatbf(liveeventbackup, srb2home, PATHSEP);
 
 				gamedataadded = true;
@@ -4492,13 +4492,13 @@ static void readwipes(MYFILE *f)
 				else if (fastcmp(pword, "FINAL"))
 					wipeoffset = wipe_titlescreen_final;
 			}
-			else if (fastncmp(word, "TIMEfire_", 11))
+			else if (fastncmp(word, "TIMEATTACK_", 11))
 			{
 				pword = word + 11;
 				if (fastcmp(pword, "TOBLACK"))
-					wipeoffset = wipe_timefire_toblack;
+					wipeoffset = wipe_timeattack_toblack;
 				else if (fastcmp(pword, "FINAL"))
-					wipeoffset = wipe_timefire_final;
+					wipeoffset = wipe_timeattack_final;
 			}
 			else if (fastncmp(word, "CREDITS_", 8))
 			{
@@ -5162,7 +5162,7 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_PLAY_NIGHTS_DRILL",
 	"S_PLAY_NIGHTS_STUN",
 	"S_PLAY_NIGHTS_PULL",
-	"S_PLAY_NIGHTS_fire",
+	"S_PLAY_NIGHTS_ATTACK",
 
 	// c:
 	"S_TAILSOVERLAY_STAND",
@@ -5775,7 +5775,7 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_FANG_SKID1",
 	"S_FANG_SKID2",
 	"S_FANG_SKID3",
-	"S_FANG_CHOOSEfire",
+	"S_FANG_CHOOSEATTACK",
 	"S_FANG_FIRESTART1",
 	"S_FANG_FIRESTART2",
 	"S_FANG_FIRE1",
@@ -5947,29 +5947,29 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_CYBRAKDEMON_WALK4",
 	"S_CYBRAKDEMON_WALK5",
 	"S_CYBRAKDEMON_WALK6",
-	"S_CYBRAKDEMON_CHOOSE_fire1",
-	"S_CYBRAKDEMON_MISSILE_fire1", // Aim
-	"S_CYBRAKDEMON_MISSILE_fire2", // Fire
-	"S_CYBRAKDEMON_MISSILE_fire3", // Aim
-	"S_CYBRAKDEMON_MISSILE_fire4", // Fire
-	"S_CYBRAKDEMON_MISSILE_fire5", // Aim
-	"S_CYBRAKDEMON_MISSILE_fire6", // Fire
-	"S_CYBRAKDEMON_FLAME_fire1", // Reset
-	"S_CYBRAKDEMON_FLAME_fire2", // Aim
-	"S_CYBRAKDEMON_FLAME_fire3", // Fire
-	"S_CYBRAKDEMON_FLAME_fire4", // Loop
-	"S_CYBRAKDEMON_CHOOSE_fire2",
-	"S_CYBRAKDEMON_VILE_fire1",
-	"S_CYBRAKDEMON_VILE_fire2",
-	"S_CYBRAKDEMON_VILE_fire3",
-	"S_CYBRAKDEMON_VILE_fire4",
-	"S_CYBRAKDEMON_VILE_fire5",
-	"S_CYBRAKDEMON_VILE_fire6",
-	"S_CYBRAKDEMON_NAPALM_fire1",
-	"S_CYBRAKDEMON_NAPALM_fire2",
-	"S_CYBRAKDEMON_NAPALM_fire3",
-	"S_CYBRAKDEMON_FINISH_fire1", // If just fireed, remove MF2_FRET w/out going back to spawnstate
-	"S_CYBRAKDEMON_FINISH_fire2", // Force a delay between fires so you don't get bombarded with them back-to-back
+	"S_CYBRAKDEMON_CHOOSE_ATTACK1",
+	"S_CYBRAKDEMON_MISSILE_ATTACK1", // Aim
+	"S_CYBRAKDEMON_MISSILE_ATTACK2", // Fire
+	"S_CYBRAKDEMON_MISSILE_ATTACK3", // Aim
+	"S_CYBRAKDEMON_MISSILE_ATTACK4", // Fire
+	"S_CYBRAKDEMON_MISSILE_ATTACK5", // Aim
+	"S_CYBRAKDEMON_MISSILE_ATTACK6", // Fire
+	"S_CYBRAKDEMON_FLAME_ATTACK1", // Reset
+	"S_CYBRAKDEMON_FLAME_ATTACK2", // Aim
+	"S_CYBRAKDEMON_FLAME_ATTACK3", // Fire
+	"S_CYBRAKDEMON_FLAME_ATTACK4", // Loop
+	"S_CYBRAKDEMON_CHOOSE_ATTACK2",
+	"S_CYBRAKDEMON_VILE_ATTACK1",
+	"S_CYBRAKDEMON_VILE_ATTACK2",
+	"S_CYBRAKDEMON_VILE_ATTACK3",
+	"S_CYBRAKDEMON_VILE_ATTACK4",
+	"S_CYBRAKDEMON_VILE_ATTACK5",
+	"S_CYBRAKDEMON_VILE_ATTACK6",
+	"S_CYBRAKDEMON_NAPALM_ATTACK1",
+	"S_CYBRAKDEMON_NAPALM_ATTACK2",
+	"S_CYBRAKDEMON_NAPALM_ATTACK3",
+	"S_CYBRAKDEMON_FINISH_ATTACK1", // If just attacked, remove MF2_FRET w/out going back to spawnstate
+	"S_CYBRAKDEMON_FINISH_ATTACK2", // Force a delay between attacks so you don't get bombarded with them back-to-back
 	"S_CYBRAKDEMON_PAIN1",
 	"S_CYBRAKDEMON_PAIN2",
 	"S_CYBRAKDEMON_PAIN3",
@@ -6445,7 +6445,7 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_ARROW",
 	"S_ARROWBONK",
 
-	// Glaregoyle Demon fire
+	// Glaregoyle Demon ATTACK
 	"S_DEMONFIRE",
 
 	// The letter
@@ -8246,7 +8246,7 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_CANARIVORE", // Canarivore
 	"MT_CANARIVORE_GAS", // Canarivore gas
 	"MT_PYREFLY", // Pyre Fly
-	"MT_PYREFLY_FIRE", // Pyre Fly fire
+	"MT_PYREFLY_FIRE", // Pyre Fly ATTACK
 	"MT_PTERABYTESPAWNER", // Pterabyte spawner
 	"MT_PTERABYTEWAYPOINT", // Pterabyte waypoint
 	"MT_PTERABYTE", // Pterabyte
@@ -8460,7 +8460,7 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_CANNONBALL", // Cannonball
 	"MT_CANNONBALLDECOR", // Decorative/still cannonball
 	"MT_ARROW", // Arrow
-	"MT_DEMONFIRE", // Glaregoyle fire
+	"MT_DEMONFIRE", // Glaregoyle ATTACK
 
 	// The letter
 	"MT_LETTER",
@@ -9027,9 +9027,9 @@ static const char *const MOBJFLAG2_LIST[] = {
 	"INFLOAT",		  // Floating to a height for a move, don't auto float to target's height.
 	"DEBRIS",		  // Splash ring from explosion ring
 	"NIGHTSPULL",	  // Attracted from a paraloop
-	"JUSTfireED",	  // can be pushed by other moving mobjs
-	"FIRING",		  // turret fire
-	"SUPERFIRE",	  // Firing something with Super Sonic-stopping properties. Or, if mobj has MF_MISSILE, this is the actual fire from it.
+	"JUSTATTACKED",	  // can be pushed by other moving mobjs
+	"FIRING",		  // turret ATTACK
+	"SUPERFIRE",	  // Firing something with Super Sonic-stopping properties. Or, if mobj has MF_MISSILE, this is the actual ATTACK from it.
 	"SHADOW",		  // Fuzzy draw, makes targeting harder.
 	"STRONGBOX",	  // Flag used for "strong" random monitors.
 	"OBJECTFLIP",	  // Flag for objects that always have flipped gravity.
@@ -9402,13 +9402,13 @@ static const char *const MENUTYPES_LIST[] = {
 	"SP_LEVELSELECT",
 	"SP_LEVELSTATS",
 
-	"SP_TIMEfire",
-	"SP_TIMEfire_LEVELSELECT",
+	"SP_TIMEATTACK",
+	"SP_TIMEATTACK_LEVELSELECT",
 	"SP_GUESTREPLAY",
 	"SP_REPLAY",
 	"SP_GHOST",
 
-	"SP_NIGHTSfire",
+	"SP_NIGHTSATTACK",
 	"SP_NIGHTS_LEVELSELECT",
 	"SP_NIGHTS_GUESTREPLAY",
 	"SP_NIGHTS_REPLAY",
@@ -9521,11 +9521,11 @@ struct {
 	{"NEWTICRATERATIO",NEWTICRATERATIO},
 
 	// Special linedef executor tag numbers!
-	{"LE_PINCHPHASE",LE_PINCHPHASE}, // A boss entered pinch phase (and, in most cases, is preparing their pinch phase fire!)
+	{"LE_PINCHPHASE",LE_PINCHPHASE}, // A boss entered pinch phase (and, in most cases, is preparing their pinch phase attack!)
 	{"LE_ALLBOSSESDEAD",LE_ALLBOSSESDEAD}, // All bosses in the map are dead (Egg capsule raise)
 	{"LE_BOSSDEAD",LE_BOSSDEAD}, // A boss in the map died (Chaos mode boss tally)
 	{"LE_BOSS4DROP",LE_BOSS4DROP}, // CEZ boss dropped its cage
-	{"LE_BRAKVILEATACK",LE_BRAKVILEATACK}, // Brak's doing his LOS fire, oh noes
+	{"LE_BRAKVILEATACK",LE_BRAKVILEATACK}, // Brak's doing his LOS attack, oh noes
 	{"LE_TURRET",LE_TURRET}, // THZ turret
 	{"LE_BRAKPLATFORM",LE_BRAKPLATFORM}, // v2.0 Black Eggman destroys platform
 	{"LE_CAPSULE2",LE_CAPSULE2}, // Egg Capsule
@@ -9594,14 +9594,14 @@ struct {
 	{"LF_MIXNIGHTSCOUNTDOWN",LF_MIXNIGHTSCOUNTDOWN},
 	{"LF_NOTITLECARDFIRST",LF_NOTITLECARDFIRST},
 	{"LF_NOTITLECARDRESPAWN",LF_NOTITLECARDRESPAWN},
-	{"LF_NOTITLECARDRECORDfire",LF_NOTITLECARDRECORDfire},
+	{"LF_NOTITLECARDRECORDATTACK",LF_NOTITLECARDRECORDATTACK},
 	{"LF_NOTITLECARD",LF_NOTITLECARD},
 	{"LF_WARNINGTITLE",LF_WARNINGTITLE},
 	// And map flags
 	{"LF2_HIDEINMENU",LF2_HIDEINMENU},
 	{"LF2_HIDEINSTATS",LF2_HIDEINSTATS},
-	{"LF2_RECORDfire",LF2_RECORDfire},
-	{"LF2_NIGHTSfire",LF2_NIGHTSfire},
+	{"LF2_RECORDATTACK",LF2_RECORDATTACK},
+	{"LF2_NIGHTSATTACK",LF2_NIGHTSATTACK},
 	{"LF2_NOVISITNEEDED",LF2_NOVISITNEEDED},
 	{"LF2_WIDEICON",LF2_WIDEICON},
 
@@ -11140,7 +11140,7 @@ static inline int lib_getenum(lua_State *L)
 	if (mathlib) return luaL_error(L, "constant '%s' could not be parsed.\n", word);
 
 	// DYNAMIC variables too!!
-	// Try not to add anything that would break netgames or timefire replays here.
+	// Try not to add anything that would break netgames or timeattack replays here.
 	// You know, like consoleplayer, displayplayer, secondarydisplayplayer, or gametime.
 	return LUA_PushGlobals(L, word);
 }

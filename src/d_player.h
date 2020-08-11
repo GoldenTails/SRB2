@@ -419,7 +419,7 @@ typedef struct player_s
 	UINT8 secondjump; // Jump counter
 
 	UINT8 fly1; // Tails flying
-	UINT8 scoreadd; // Used for multiple enemy fire bonus
+	UINT8 scoreadd; // Used for multiple enemy attack bonus
 	tic_t glidetime; // Glide counter for thrust
 	UINT8 climbing; // Climbing on the wall
 	INT32 deadtimer; // End game if game over lasts too long
