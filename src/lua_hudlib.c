@@ -291,6 +291,10 @@ static int lib_setFontList(lua_State *L)
 	lua_remove(L, 1); // pop mobjtype num, don't need it any more.
 	lua_settop(L, 1); // cut the stack here. the only thing left now is the table of data we're assigning to the font.
 
+	// Free chars just in case they're defined
+	if (info->chars)
+		Z_Free(info->chars);
+
 	// clear the font to start with, in case of missing table elements
 	memset(info,0,sizeof(font_t));
 

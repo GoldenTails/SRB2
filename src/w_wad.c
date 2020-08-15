@@ -1066,6 +1066,8 @@ lumpnum_t W_CheckNumForName(const char *name)
 	if (!*name) // some doofus gave us an empty string?
 		return LUMPERROR;
 
+	printf("%s %s\n", "W_CheckNumForName: Caching", name);
+
 	// Check the lumpnumcache first. Loop backwards so that we check
 	// most recent entries first
 	for (i = lumpnumcacheindex + LUMPNUMCACHESIZE; i > lumpnumcacheindex; i--)

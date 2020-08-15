@@ -4607,10 +4607,12 @@ const char *COLOR_ENUMS[] = {
 };
 
 const char *FONTS_LIST[] = {
-	"HU",	// FONT_HU
-	"TNY",	// FONT_TNY
-	"LT",	// FONT_LT
-	"CRED"	// FONT_CRED
+	"HU", // FONT_HU
+	"TNY", // FONT_TNY
+	"LT", // FONT_LT
+	"CRED", // FONT_CRED
+	"NTB", // FONT_NTB
+	"NTO" // FONT_NTO
 };
 
 const char *const POWERS_LIST[] = {
