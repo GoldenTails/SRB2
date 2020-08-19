@@ -17,6 +17,7 @@
 
 #include "lauxlib.h"
 #include "lualib.h"
+#include "liolib.h"
 #include "../i_system.h"
 #include "../g_game.h"
 #include "../d_netfil.h"
@@ -175,8 +176,7 @@ void MakePathDirs(char *path)
 		}
 }
 
-
-static int CheckFileName(lua_State *L, const char *filename)
+int CheckFileName(lua_State *L, const char *filename)
 {
 	int length = strlen(filename);
 	boolean pass = false;

@@ -344,6 +344,7 @@
     <ClCompile Include="..\blua\lmem.c" />
     <ClCompile Include="..\blua\lobject.c" />
     <ClCompile Include="..\blua\lopcodes.c" />
+    <ClCompile Include="..\blua\loslib.c" />
     <ClCompile Include="..\blua\lparser.c" />
     <ClCompile Include="..\blua\lstate.c" />
     <ClCompile Include="..\blua\lstring.c" />

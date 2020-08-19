@@ -293,6 +293,7 @@ set(SRB2_BLUA_SOURCES
 	blua/lmem.c
 	blua/lobject.c
 	blua/lopcodes.c
+	blua/loslib.c
 	blua/lparser.c
 	blua/lstate.c
 	blua/lstring.c
@@ -312,6 +313,7 @@ set(SRB2_BLUA_HEADERS
 	blua/ldo.h
 	blua/lfunc.h
 	blua/lgc.h
+	blua/liolib.h
 	blua/llex.h
 	blua/llimits.h
 	blua/lmem.h

@@ -552,6 +552,9 @@
     <ClCompile Include="..\blua\lopcodes.c">
       <Filter>BLUA</Filter>
     </ClCompile>
+    <ClCompile Include="..\blua\loslib.c">
+      <Filter>BLUA</Filter>
+    </ClCompile>
     <ClCompile Include="..\blua\lparser.c">
       <Filter>BLUA</Filter>
     </ClCompile>

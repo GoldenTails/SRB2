@@ -5487,6 +5487,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\blua\loslib.c"
+				>
+			</File>
+			<File
 				RelativePath="..\blua\lparser.c"
 				>
 			</File>
