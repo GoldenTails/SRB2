@@ -470,10 +470,37 @@ void LUA_ClearExtVars(void)
 // (i.e. they were called in hooks or coroutines etc)
 INT32 lua_lumploading = 0;
 
+// Use to pcall a file loaded as a lua chunk at a certain index.
+static inline void LUA_RunBuffer(lua_State *L, boolean noresults) {
+	int errorhandlerindex;
+
+	CONS_Printf("LUA_RunBuffer...\n");
+
+	lua_lumploading++; // turn on loading flag
+
+	lua_pushcfunction(L, LUA_GetErrorMessage);
+	errorhandlerindex = lua_gettop(L);
+
+	lua_pushvalue(L, errorhandlerindex - 1); // copy lua chunk to top of stack
+	lua_remove(L, errorhandlerindex - 1); // remove lua chunk from original location
+
+	if (lua_pcall(L, 0, noresults ? 0 : LUA_MULTRET, lua_gettop(L) - 1)) {
+		CONS_Alert(CONS_WARNING,"%s\n",lua_tostring(L,-1));
+		lua_pop(L,1);
+	}
+
+	lua_gc(L, LUA_GCCOLLECT, 0);
+	lua_remove(L, errorhandlerindex);
+
+	lua_lumploading--; // turn off again
+}
+
 // Load a script from a MYFILE
-static inline void LUA_LoadFile(MYFILE *f, char *name, boolean noresults)
+static inline void LUA_LoadFile(MYFILE *f, char *name)
 {
 	int errorhandlerindex;
+
+	CONS_Printf("LUA_LoadFile...\n");
 
 	if (!name)
 		name = wadfiles[f->wad]->filename;
@@ -487,14 +514,16 @@ static inline void LUA_LoadFile(MYFILE *f, char *name, boolean noresults)
 
 	lua_pushcfunction(gL, LUA_GetErrorMessage);
 	errorhandlerindex = lua_gettop(gL);
-	if (luaL_loadbuffer(gL, f->data, f->size, va("@%s",name)) || lua_pcall(gL, 0, noresults ? 0 : LUA_MULTRET, lua_gettop(gL) - 1)) {
+
+	if (luaL_loadbuffer(gL, f->data, f->size, va("@%s",name))) {
 		CONS_Alert(CONS_WARNING,"%s\n",lua_tostring(gL,-1));
 		lua_pop(gL,1);
 	}
+
 	lua_gc(gL, LUA_GCCOLLECT, 0);
 	lua_remove(gL, errorhandlerindex);
 
-	lua_lumploading--; // turn off again
+	lua_lumploading--; // turn on loading flag
 }
 
 // Load a script from a lump
@@ -525,7 +554,8 @@ void LUA_LoadLump(UINT16 wad, UINT16 lump, boolean noresults)
 		name[len] = '\0';
 	}
 
-	LUA_LoadFile(&f, name, noresults); // actually load file!
+	LUA_LoadFile(&f, name); // actually load file!
+	LUA_RunBuffer(gL, noresults);
 
 	free(name);
 	Z_Free(f.data);
