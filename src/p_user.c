@@ -9163,7 +9163,7 @@ mobj_t *P_LookForFocusTarget(player_t *player, mobj_t *exclude, SINT8 direction,
 
 //
 // P_LookForEnemies
-// Looks for something you can hit - Used for homing fire
+// Looks for something you can hit - Used for homing attack
 // If nonenemies is true, includes monitors and springs!
 // If bullet is true, you can look up and the distance is further,
 // but your total angle span you can look is limited to compensate. (Also, allows monitors.)

@@ -9866,7 +9866,7 @@ void M_DrawTimeAttackMenu(void)
 				V_DrawCharacter(216 + 80 + 2 + (skullAnimCounter/5), y,
 						'\x1D' | V_YELLOWMAP, false);
 			}
-			// Draw press ESC to exit string on main record Attack menu
+			// Draw press ESC to exit string on main record attack menu
 			V_DrawString(104-72, 180, V_TRANSLUCENT, M_GetText("Press ESC to exit"));
 		}
 
@@ -10114,7 +10114,7 @@ void M_DrawNightsAttackMenu(void)
 		y = 32+lsheadingheight;
 		V_DrawSmallScaledPatch(208, y, 0, PictureOfLevel);
 
-		// Draw press ESC to exit string on main nights Attack menu
+		// Draw press ESC to exit string on main nights attack menu
 		if (currentMenu == &SP_NightsAttackDef)
 		{
 			if (itemOn == nalevel)
@@ -10126,7 +10126,7 @@ void M_DrawNightsAttackMenu(void)
 				V_DrawCharacter(208 + 80 + 2 + (skullAnimCounter/5), y,
 						'\x1D' | V_YELLOWMAP, false);
 			}
-			// Draw press ESC to exit string on main record Attack menu
+			// Draw press ESC to exit string on main record attack menu
 			V_DrawString(104-72, 180, V_TRANSLUCENT, M_GetText("Press ESC to exit"));
 		}
 
@@ -10231,7 +10231,7 @@ static void M_NightsAttack(INT32 choice)
 	itemOn = nastart; // "Start" is selected.
 }
 
-// Player has selected the "START" from the nights Attack screen
+// Player has selected the "START" from the nights attack screen
 static void M_ChooseNightsAttack(INT32 choice)
 {
 	char *gpath;
@@ -10838,7 +10838,7 @@ void M_DrawMarathon(void)
 	V_DrawScaledPatch(currentMenu->x - 24, cursory, 0, W_CachePatchName("M_CURSOR", PU_PATCH));
 	V_DrawString(currentMenu->x, cursory, V_YELLOWMAP, currentMenu->menuitems[itemOn].text);
 
-	// Draw press ESC to exit string on main record Attack menu
+	// Draw press ESC to exit string on main record attack menu
 	V_DrawString(104-72, 180, V_TRANSLUCENT, M_GetText("Press ESC to exit"));
 }
 

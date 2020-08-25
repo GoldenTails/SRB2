@@ -63,7 +63,7 @@ JoyType_t Joystick2;
 #define SAVEGAMESIZE (1024)
 
 char gamedatafilename[64] = "gamedata.dat";
-char timefirefolder[64] = "main";
+char timeattackfolder[64] = "main";
 char customversionstring[32] = "\0";
 
 static void G_DoCompleted(void);
@@ -94,7 +94,7 @@ UINT16 mainwads = 0;
 boolean modifiedgame; // Set if homebrew PWAD stuff has been added.
 boolean savemoddata = false;
 UINT8 paused;
-UINT8 modefireing = fireING_NONE;
+UINT8 modeattacking = ATTACKING_NONE;
 boolean disableSpeedAdjust = false;
 boolean imcontinuing = false;
 boolean runemeraldmanager = false;
@@ -167,7 +167,7 @@ mapheader_t* mapheaderinfo[NUMMAPS] = {NULL};
 
 static boolean exitgame = false;
 static boolean retrying = false;
-static boolean retryingmodefire = false;
+static boolean retryingmodeattack = false;
 
 UINT8 stagefailed; // Used for GEMS BONUS? Also to see if you beat the stage.
 
@@ -184,7 +184,7 @@ INT32 sstimer; // Time allotted in the special stage
 tic_t totalplaytime;
 boolean gamedataloaded = false;
 
-// Time fire data for levels
+// Time attack data for levels
 // These are dynamically allocated for space reasons now
 recorddata_t *mainrecords[NUMMAPS]   = {NULL};
 nightsdata_t *nightsrecords[NUMMAPS] = {NULL};
@@ -562,12 +562,12 @@ void G_AddTempNightsRecords(UINT32 pscore, tic_t ptime, UINT8 mare)
 //
 // G_UpdateRecordReplays
 //
-// Update replay files/data, etc. for Record fire
-// See G_SetNightsRecords for NiGHTS fire.
+// Update replay files/data, etc. for Record Attack
+// See G_SetNightsRecords for NiGHTS Attack.
 //
 static void G_UpdateRecordReplays(void)
 {
-	const size_t glen = strlen(srb2home)+1+strlen("replay")+1+strlen(timefirefolder)+1+strlen("MAPXX")+1;
+	const size_t glen = strlen(srb2home)+1+strlen("replay")+1+strlen(timeattackfolder)+1+strlen("MAPXX")+1;
 	char *gpath;
 	char lastdemo[256], bestdemo[256];
 	UINT8 earnedEmblems;
@@ -592,12 +592,12 @@ static void G_UpdateRecordReplays(void)
 	G_CheckDemoStatus();
 
 	I_mkdir(va("%s"PATHSEP"replay", srb2home), 0755);
-	I_mkdir(va("%s"PATHSEP"replay"PATHSEP"%s", srb2home, timefirefolder), 0755);
+	I_mkdir(va("%s"PATHSEP"replay"PATHSEP"%s", srb2home, timeattackfolder), 0755);
 
 	if ((gpath = malloc(glen)) == NULL)
 		I_Error("Out of memory for replay filepath\n");
 
-	sprintf(gpath,"%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s", srb2home, timefirefolder, G_BuildMapName(gamemap));
+	sprintf(gpath,"%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s", srb2home, timeattackfolder, G_BuildMapName(gamemap));
 	snprintf(lastdemo, 255, "%s-%s-last.lmp", gpath, skins[cv_chooseskin.value-1].name);
 
 	if (FIL_FileExists(lastdemo))
@@ -640,9 +640,9 @@ static void G_UpdateRecordReplays(void)
 
 	// Check emblems when level data is updated
 	if ((earnedEmblems = M_CheckLevelEmblems()))
-		CONS_Printf(M_GetText("\x82" "Earned %hu emblem%s for Record fire records.\n"), (UINT16)earnedEmblems, earnedEmblems > 1 ? "s" : "");
+		CONS_Printf(M_GetText("\x82" "Earned %hu emblem%s for Record Attack records.\n"), (UINT16)earnedEmblems, earnedEmblems > 1 ? "s" : "");
 
-	// Update timefire menu's replay availability.
+	// Update timeattack menu's replay availability.
 	Nextmap_OnChange();
 }
 
@@ -653,7 +653,7 @@ void G_SetNightsRecords(void)
 	tic_t totaltime = 0;
 	UINT8 earnedEmblems;
 
-	const size_t glen = strlen(srb2home)+1+strlen("replay")+1+strlen(timefirefolder)+1+strlen("MAPXX")+1;
+	const size_t glen = strlen(srb2home)+1+strlen("replay")+1+strlen(timeattackfolder)+1+strlen("MAPXX")+1;
 	char *gpath;
 	char lastdemo[256], bestdemo[256];
 
@@ -714,12 +714,12 @@ void G_SetNightsRecords(void)
 	G_CheckDemoStatus();
 
 	I_mkdir(va("%s"PATHSEP"replay", srb2home), 0755);
-	I_mkdir(va("%s"PATHSEP"replay"PATHSEP"%s", srb2home, timefirefolder), 0755);
+	I_mkdir(va("%s"PATHSEP"replay"PATHSEP"%s", srb2home, timeattackfolder), 0755);
 
 	if ((gpath = malloc(glen)) == NULL)
 		I_Error("Out of memory for replay filepath\n");
 
-	sprintf(gpath,"%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s", srb2home, timefirefolder, G_BuildMapName(gamemap));
+	sprintf(gpath,"%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s", srb2home, timeattackfolder, G_BuildMapName(gamemap));
 	snprintf(lastdemo, 255, "%s-%s-last.lmp", gpath, skins[cv_chooseskin.value-1].name);
 
 	if (FIL_FileExists(lastdemo))
@@ -770,9 +770,9 @@ void G_SetGameModified(boolean silent)
 	if (!silent)
 		CONS_Alert(CONS_NOTICE, M_GetText("Game must be restarted to record statistics.\n"));
 
-	// If in record fire recording, cancel it.
-	if (modefireing)
-		M_EndModefireRun();
+	// If in record attack recording, cancel it.
+	if (modeattacking)
+		M_EndModeAttackRun();
 	else if (marathonmode)
 		Command_ExitGame_f();
 }
@@ -1924,8 +1924,8 @@ boolean G_IsTitleCardAvailable(void)
 	// The current level header explicitly disabled the title card.
 	UINT16 titleflag = LF_NOTITLECARDFIRST;
 
-	if (modefireing != fireING_NONE)
-		titleflag = LF_NOTITLECARDRECORDfire;
+	if (modeattacking != ATTACKING_NONE)
+		titleflag = LF_NOTITLECARDRECORDATTACK;
 	else if (titlecardforreload)
 		titleflag = LF_NOTITLECARDRESPAWN;
 
@@ -1956,7 +1956,7 @@ boolean G_Responder(event_t *ev)
 {
 	// any other key pops up menu if in demos
 	if (gameaction == ga_nothing && !singledemo &&
-		((demoplayback && !modefireing && !titledemo) || gamestate == GS_TITLESCREEN))
+		((demoplayback && !modeattacking && !titledemo) || gamestate == GS_TITLESCREEN))
 	{
 		if (ev->type == ev_keydown && ev->data1 != 301 && !(gamestate == GS_TITLESCREEN && finalecount < TICRATE))
 		{
@@ -2111,7 +2111,7 @@ boolean G_Responder(event_t *ev)
 				|| ev->data1 == gamecontrol[gc_pause][1]
 				|| ev->data1 == KEY_PAUSE)
 			{
-				if (modefireing && !demoplayback && (gamestate == GS_LEVEL))
+				if (modeattacking && !demoplayback && (gamestate == GS_LEVEL))
 				{
 					pausebreakkey = (ev->data1 == KEY_PAUSE);
 					if (menuactive || pausedelay < 0 || leveltime < 2)
@@ -2121,7 +2121,7 @@ boolean G_Responder(event_t *ev)
 						pausedelay = 1+(NEWTICRATE/2);
 					else if (++pausedelay > 1+(NEWTICRATE/2)+(NEWTICRATE/3))
 					{
-						G_SetModefireRetryFlag();
+						G_SetModeAttackRetryFlag();
 						return true;
 					}
 					pausedelay++; // counteract subsequent subtraction this frame
@@ -2200,10 +2200,10 @@ void G_Ticker(boolean run)
 		{
 			G_ClearRetryFlag();
 
-			if (modefireing)
+			if (modeattacking)
 			{
 				pausedelay = INT32_MIN;
-				M_ModefireRetry(0);
+				M_ModeAttackRetry(0);
 			}
 			else
 			{
@@ -2274,7 +2274,7 @@ void G_Ticker(boolean run)
 			HU_Ticker();
 			break;
 
-		case GS_TIMEfire:
+		case GS_TIMEATTACK:
 			F_MenuPresTicker(run);
 			break;
 
@@ -2906,9 +2906,9 @@ void G_DoReborn(INT32 playernum)
 	boolean resetlevel = false;
 	INT32 i;
 
-	if (modefireing)
+	if (modeattacking)
 	{
-		M_EndModefireRun();
+		M_EndModeAttackRun();
 		return;
 	}
 
@@ -3507,7 +3507,7 @@ INT32 G_GetGametypeByName(const char *gametypestr)
 //
 boolean G_IsSpecialStage(INT32 mapnum)
 {
-	if (gametype != GT_COOP || modefireing == fireING_RECORD)
+	if (gametype != GT_COOP || modeattacking == ATTACKING_RECORD)
 		return false;
 	if (mapnum >= sstage_start && mapnum <= sstage_end)
 		return true;
@@ -3527,7 +3527,7 @@ boolean G_GametypeUsesLives(void)
 {
 	// Coop, Competitive
 	if ((gametyperules & GTR_LIVES)
-	 && !(modefireing || metalrecording) // No lives in Time fire
+	 && !(modeattacking || metalrecording) // No lives in Time Attack
 	 && !G_IsSpecialStage(gamemap)
 	 && !(maptol & TOL_NIGHTS)) // No lives in NiGHTS
 		return true;
@@ -3696,7 +3696,7 @@ static void G_UpdateVisited(void)
 		if (nummaprings > 0 && players[consoleplayer].rings >= nummaprings)
 		{
 			mapvisited[gamemap-1] |= MV_PERFECT;
-			if (modefireing)
+			if (modeattacking)
 				mapvisited[gamemap-1] |= MV_PERFECTRA;
 		}
 		if (!spec)
@@ -3706,9 +3706,9 @@ static void G_UpdateVisited(void)
 				mapvisited[gamemap-1] |= MV_ALLEMERALDS;
 		}
 
-		if (modefireing == fireING_RECORD)
+		if (modeattacking == ATTACKING_RECORD)
 			G_UpdateRecordReplays();
-		else if (modefireing == fireING_NIGHTS)
+		else if (modeattacking == ATTACKING_NIGHTS)
 			G_SetNightsRecords();
 
 		if ((earnedEmblems = M_CompletionEmblems()))
@@ -3750,12 +3750,12 @@ static void G_HandleSaveLevel(void)
 					remove(liveeventbackup);
 				cursaveslot = 0;
 			}
-			else if ((!modifiedgame || savemoddata) && !(netgame || multiplayer || ultimatemode || demorecording || metalrecording || modefireing))
+			else if ((!modifiedgame || savemoddata) && !(netgame || multiplayer || ultimatemode || demorecording || metalrecording || modeattacking))
 				G_SaveGame((UINT32)cursaveslot, spstage_start);
 		}
 	}
 	// and doing THIS here means you don't lose your progress if you close the game mid-intermission
-	else if (!(ultimatemode || netgame || multiplayer || demoplayback || demorecording || metalrecording || modefireing)
+	else if (!(ultimatemode || netgame || multiplayer || demoplayback || demorecording || metalrecording || modeattacking)
 		&& (!modifiedgame || savemoddata) && cursaveslot > 0 && CanSaveLevel(lastmap+1))
 		G_SaveGame((UINT32)cursaveslot, lastmap+1); // not nextmap+1 to route around special stages
 }
@@ -3770,7 +3770,7 @@ static void G_DoCompleted(void)
 
 	tokenlist = 0; // Reset the list
 
-	if (modefireing && pausedelay)
+	if (modeattacking && pausedelay)
 		pausedelay = 0;
 
 	gameaction = ga_nothing;
@@ -3903,7 +3903,7 @@ static void G_DoCompleted(void)
 	// If the current gametype has no intermission screen set, then don't start it.
 	Y_DetermineIntermissionType();
 
-	if ((skipstats && !modefireing) || (spec && modefireing && stagefailed) || (intertype == int_none))
+	if ((skipstats && !modeattacking) || (spec && modeattacking && stagefailed) || (intertype == int_none))
 	{
 		G_UpdateVisited();
 		G_HandleSaveLevel();
@@ -3923,9 +3923,9 @@ void G_AfterIntermission(void)
 {
 	Y_CleanupScreenBuffer();
 
-	if (modefireing)
+	if (modeattacking)
 	{
-		M_EndModefireRun();
+		M_EndModeAttackRun();
 		return;
 	}
 
@@ -3934,7 +3934,7 @@ void G_AfterIntermission(void)
 
 	HU_ClearCEcho();
 
-	if ((gametyperules & GTR_CUTSCENES) && mapheaderinfo[gamemap-1]->cutscenenum && !modefireing && skipstats <= 1 && (gamecomplete || !(marathonmode & MA_NOCUTSCENES))) // Start a custom cutscene.
+	if ((gametyperules & GTR_CUTSCENES) && mapheaderinfo[gamemap-1]->cutscenenum && !modeattacking && skipstats <= 1 && (gamecomplete || !(marathonmode & MA_NOCUTSCENES))) // Start a custom cutscene.
 		F_StartCustomCutscene(mapheaderinfo[gamemap-1]->cutscenenum-1, false, false);
 	else
 	{
@@ -4020,7 +4020,7 @@ static void G_DoContinued(void)
 	tokenlist = 0;
 	token = 0;
 
-	if (!(netgame || multiplayer || demoplayback || demorecording || metalrecording || modefireing) && (!modifiedgame || savemoddata) && cursaveslot > 0)
+	if (!(netgame || multiplayer || demoplayback || demorecording || metalrecording || modeattacking) && (!modifiedgame || savemoddata) && cursaveslot > 0)
 		G_SaveGameOver((UINT32)cursaveslot, true);
 
 	// Reset # of lives
@@ -4553,7 +4553,7 @@ void G_SaveGameOver(UINT32 slot, boolean modifylives)
 	}
 
 	{
-		char temp[sizeof(timefirefolder)];
+		char temp[sizeof(timeattackfolder)];
 		UINT8 *end_p = savebuffer + length;
 		UINT8 *lives_p;
 		SINT8 pllives;
@@ -4571,7 +4571,7 @@ void G_SaveGameOver(UINT32 slot, boolean modifylives)
 		(void)READUINT16(save_p); // emeralds
 		CHECKPOS
 		READSTRINGN(save_p, temp, sizeof(temp)); // mod it belongs to
-		if (strcmp(temp, timefirefolder)) BADSAVE
+		if (strcmp(temp, timeattackfolder)) BADSAVE
 
 		// P_UnArchivePlayer()
 		CHECKPOS
@@ -4766,7 +4766,7 @@ void G_InitNew(UINT8 pultmode, const char *mapname, boolean resetplayer, boolean
 	automapactive = false;
 	imcontinuing = false;
 
-	if ((gametyperules & GTR_CUTSCENES) && !skipprecutscene && mapheaderinfo[gamemap-1]->precutscenenum && !modefireing && !(marathonmode & MA_NOCUTSCENES)) // Start a custom cutscene.
+	if ((gametyperules & GTR_CUTSCENES) && !skipprecutscene && mapheaderinfo[gamemap-1]->precutscenenum && !modeattacking && !(marathonmode & MA_NOCUTSCENES)) // Start a custom cutscene.
 		F_StartCustomCutscene(mapheaderinfo[gamemap-1]->precutscenenum-1, true, resetplayer);
 	else
 		G_DoLoadLevel(resetplayer);
@@ -5106,20 +5106,20 @@ boolean G_GetRetryFlag(void)
 	return retrying;
 }
 
-void G_SetModefireRetryFlag(void)
+void G_SetModeAttackRetryFlag(void)
 {
-	retryingmodefire = true;
+	retryingmodeattack = true;
 	G_SetRetryFlag();
 }
 
-void G_ClearModefireRetryFlag(void)
+void G_ClearModeAttackRetryFlag(void)
 {
-	retryingmodefire = false;
+	retryingmodeattack = false;
 }
 
-boolean G_GetModefireRetryFlag(void)
+boolean G_GetModeAttackRetryFlag(void)
 {
-	return retryingmodefire;
+	return retryingmodeattack;
 }
 
 // Time utility functions

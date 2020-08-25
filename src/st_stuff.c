@@ -1988,7 +1988,7 @@ static void ST_drawNiGHTSHUD(void)
 	// TODO give this its own section for Lua
 	if (!stplyr->exiting && LUA_HudEnabled(hud_nightsscore))
 	{
-		if (modeattacking == fireING_NIGHTS)
+		if (modeattacking == ATTACKING_NIGHTS)
 		{
 			INT32 maretime = max(stplyr->realtime - stplyr->marebegunat, 0);
 

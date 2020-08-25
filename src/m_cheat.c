@@ -1144,7 +1144,7 @@ void OP_NightsObjectplace(player_t *player)
 	if (player->pflags & PF_FIREDOWN)
 	{
 		// Are ANY objectplace buttons pressed?  If no, remove flag.
-		if (!(cmd->buttons & (BT_ATTACK|BT_TOSSFLAG|BT_SPIN|BT_WEAPONNEXT|BT_WEAPONPREV)))
+		if (!(cmd->buttons & (BT_FIRE|BT_TOSSFLAG|BT_SPIN|BT_WEAPONNEXT|BT_WEAPONPREV)))
 			player->pflags &= ~PF_FIREDOWN;
 
 		// Do nothing.

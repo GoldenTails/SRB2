@@ -10848,15 +10848,15 @@ static inline int lib_getenum(lua_State *L)
 			lua_pushinteger(L, (lua_Integer)PF_SPINDOWN);
 			return 1;
 		}
-		if (mathlib) return luaL_error(L, "playerflag '%s' could not be found.\n", word);
-		return 0;
-	}
-	else if (fastcmp(p, "ATTACKDOWN")) // Remove case when 2.3 nears release...
+		else if (fastcmp(p, "ATTACKDOWN")) // Remove case when 2.3 nears release...
 		{
 			LUA_Deprecated(L, "PF_ATTACKDOWN", "PF_FIREDOWN");
 			lua_pushinteger(L, (lua_Integer)PF_FIREDOWN);
 			return 1;
 		}
+		if (mathlib) return luaL_error(L, "playerflag '%s' could not be found.\n", word);
+		return 0;
+	}
 	else if (fastncmp("GT_", word, 3)) {
 		p = word;
 		for (i = 0; Gametype_ConstantNames[i]; i++)
@@ -11124,7 +11124,8 @@ static inline int lib_getenum(lua_State *L)
 	{
 		LUA_Deprecated(L, "BT_USE", "BT_SPIN");
 		lua_pushinteger(L, (lua_Integer)BT_SPIN);
-	if (fastcmp(word, "BT_ATTACK")) // Remove case when 2.3 nears release...
+	}
+	else if (fastcmp(word, "BT_ATTACK")) // Remove case when 2.3 nears release...
 	{
 		LUA_Deprecated(L, "BT_ATTACK", "BT_FIRE");
 		lua_pushinteger(L, (lua_Integer)BT_FIRE);
