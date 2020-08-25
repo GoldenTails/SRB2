@@ -3435,7 +3435,9 @@ void HWR_InitTextureMapping(void)
 // sprite translucency effects apply on the rendered view (instead of the background sky!!)
 
 static UINT32 gl_visspritecount;
-static gl_vissprite_t *gl_visspritechunks[MAXVISSPRITES >> VISSPRITECHUNKBITS] = {NULL};
+static UINT32 gl_visspriteamount = 0;
+static gl_vissprite_t *gl_vissprites = NULL;
+static UINT32 gl_maxvissprites = MAXVISSPRITES;
 
 // --------------------------------------------------------------------------
 // HWR_ClearSprites
@@ -3444,30 +3446,47 @@ static gl_vissprite_t *gl_visspritechunks[MAXVISSPRITES >> VISSPRITECHUNKBITS] =
 static void HWR_ClearSprites(void)
 {
 	gl_visspritecount = 0;
+
+	if (gl_vissprites != NULL)
+		free(gl_vissprites);
+
+	gl_vissprites = calloc(gl_maxvissprites, sizeof(gl_vissprite_t));
+
+	if (!gl_vissprites)
+		I_Error("HWR_ClearSprites: Out of memory!");
 }
 
 // --------------------------------------------------------------------------
 // HWR_NewVisSprite
 // --------------------------------------------------------------------------
-static gl_vissprite_t gl_overflowsprite;
-
 static gl_vissprite_t *HWR_GetVisSprite(UINT32 num)
 {
-		UINT32 chunk = num >> VISSPRITECHUNKBITS;
+	gl_vissprite_t *gl_vissprite;
 
-		// Allocate chunk if necessary
-		if (!gl_visspritechunks[chunk])
-			Z_Malloc(sizeof(gl_vissprite_t) * VISSPRITESPERCHUNK, PU_LEVEL, &gl_visspritechunks[chunk]);
+	if (num > gl_visspritecount)
+		I_Error("Vissprite number out of range! Use HWR_NewVisSprite first!");
 
-		return gl_visspritechunks[chunk] + (num & VISSPRITEINDEXMASK);
+	gl_vissprite = &gl_vissprites[num];
+
+	(void)gl_vissprite->precip;
+
+	return gl_vissprite;
 }
 
 static gl_vissprite_t *HWR_NewVisSprite(void)
 {
-	if (gl_visspritecount == MAXVISSPRITES)
-		return &gl_overflowsprite;
+	if (gl_visspritecount == gl_maxvissprites) {
+		gl_maxvissprites *= 2;
+		CONS_Printf("Too many vissprites! Allocating up to %d slots.", gl_maxvissprites);
+		gl_vissprites = realloc(gl_vissprites, gl_maxvissprites * sizeof(gl_vissprite_t));
 
-	return HWR_GetVisSprite(gl_visspritecount++);
+		if (gl_vissprites == NULL)
+			I_Error("HWR_NewVisSprite: Out of memory!");
+	}
+
+	memset(&gl_vissprites[gl_visspritecount], 0, sizeof(vissprite_t));
+
+	return &gl_vissprites[gl_visspritecount++];
 }
 
 // A hack solution for transparent surfaces appearing on top of linkdraw sprites.
