@@ -639,13 +639,13 @@ static void D_Display(void)
 			snprintf(s, sizeof s - 1, "bsptime %d", rs_bsptime / divisor);
 			V_DrawThinString(20, 30, V_MONOSPACE | V_YELLOWMAP, s);
 			snprintf(s, sizeof s - 1, "bspcall %d", rs_numbspcalls);
-			V_DrawThinString(95, 10, V_MONOSPACE | V_BLUEMAP, s);
+			V_DrawThinString(90, 10, V_MONOSPACE | V_BLUEMAP, s);
 			snprintf(s, sizeof s - 1, "sprites %d", rs_numsprites);
-			V_DrawThinString(95, 20, V_MONOSPACE | V_BLUEMAP, s);
+			V_DrawThinString(90, 20, V_MONOSPACE | V_BLUEMAP, s);
 			snprintf(s, sizeof s - 1, "drwnode %d", rs_numdrawnodes);
-			V_DrawThinString(95, 30, V_MONOSPACE | V_BLUEMAP, s);
+			V_DrawThinString(90, 30, V_MONOSPACE | V_BLUEMAP, s);
 			snprintf(s, sizeof s - 1, "plyobjs %d", rs_numpolyobjects);
-			V_DrawThinString(95, 40, V_MONOSPACE | V_BLUEMAP, s);
+			V_DrawThinString(90, 40, V_MONOSPACE | V_BLUEMAP, s);
 			if (rendermode == render_opengl) // OpenGL specific stats
 			{
 #ifdef HWRENDER
@@ -662,24 +662,24 @@ static void D_Display(void)
 				if (cv_glbatching.value)
 				{
 					snprintf(s, sizeof s - 1, "batsort %d", rs_hw_batchsorttime / divisor);
-					V_DrawThinString(95, 55, V_MONOSPACE | V_REDMAP, s);
+					V_DrawThinString(90, 55, V_MONOSPACE | V_REDMAP, s);
 					snprintf(s, sizeof s - 1, "batdraw %d", rs_hw_batchdrawtime / divisor);
-					V_DrawThinString(95, 65, V_MONOSPACE | V_REDMAP, s);
+					V_DrawThinString(90, 65, V_MONOSPACE | V_REDMAP, s);
 
 					snprintf(s, sizeof s - 1, "polygon %d", rs_hw_numpolys);
-					V_DrawThinString(170, 10, V_MONOSPACE | V_PURPLEMAP, s);
+					V_DrawThinString(155, 10, V_MONOSPACE | V_PURPLEMAP, s);
 					snprintf(s, sizeof s - 1, "drwcall %d", rs_hw_numcalls);
-					V_DrawThinString(170, 20, V_MONOSPACE | V_PURPLEMAP, s);
+					V_DrawThinString(155, 20, V_MONOSPACE | V_PURPLEMAP, s);
 					snprintf(s, sizeof s - 1, "shaders %d", rs_hw_numshaders);
-					V_DrawThinString(170, 30, V_MONOSPACE | V_PURPLEMAP, s);
+					V_DrawThinString(155, 30, V_MONOSPACE | V_PURPLEMAP, s);
 					snprintf(s, sizeof s - 1, "vertex  %d", rs_hw_numverts);
-					V_DrawThinString(170, 40, V_MONOSPACE | V_PURPLEMAP, s);
+					V_DrawThinString(155, 40, V_MONOSPACE | V_PURPLEMAP, s);
 					snprintf(s, sizeof s - 1, "texture %d", rs_hw_numtextures);
-					V_DrawThinString(245, 10, V_MONOSPACE | V_PURPLEMAP, s);
+					V_DrawThinString(220, 10, V_MONOSPACE | V_PURPLEMAP, s);
 					snprintf(s, sizeof s - 1, "polyflg %d", rs_hw_numpolyflags);
-					V_DrawThinString(245, 20, V_MONOSPACE | V_PURPLEMAP, s);
+					V_DrawThinString(220, 20, V_MONOSPACE | V_PURPLEMAP, s);
 					snprintf(s, sizeof s - 1, "colors  %d", rs_hw_numcolors);
-					V_DrawThinString(245, 30, V_MONOSPACE | V_PURPLEMAP, s);
+					V_DrawThinString(220, 30, V_MONOSPACE | V_PURPLEMAP, s);
 				}
 #endif
 			}
