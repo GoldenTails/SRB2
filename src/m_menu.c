@@ -599,9 +599,10 @@ typedef enum
 static menuitem_t SPauseMenu[] =
 {
 	// Pandora's Box will be shifted up if both options are available
-	{IT_CALL | IT_STRING,    NULL, "Pandora's Box...",     M_PandorasBox,         16},
-	{IT_CALL | IT_STRING,    NULL, "Emblem Hints...",      M_EmblemHints,         24},
-	{IT_CALL | IT_STRING,    NULL, "Level Select...",      M_LoadGameLevelSelect, 32},
+	{IT_CALL | IT_STRING,    NULL, "Pandora's Box...",     M_PandorasBox,          8},
+	{IT_CALL | IT_STRING,    NULL, "Emblem Hints...",      M_EmblemHints,         16},
+	{IT_CALL | IT_STRING,    NULL, "Level Select...",      M_LoadGameLevelSelect, 24},
+	{IT_CALL | IT_STRING,    NULL, "Add-ons...",           M_Addons,              32},
 
 	{IT_CALL | IT_STRING,    NULL, "Continue",             M_SelectableClearMenus,48},
 	{IT_CALL | IT_STRING,    NULL, "Retry",                M_Retry,               56},
@@ -616,6 +617,7 @@ typedef enum
 	spause_pandora = 0,
 	spause_hints,
 	spause_levelselect,
+	spause_addons,
 
 	spause_continue,
 	spause_retry,
@@ -675,18 +677,16 @@ static menuitem_t MISC_HelpMenu[] =
 // Pause Menu Pandora's Box Options
 static menuitem_t SR_PandorasBox[] =
 {
-	{IT_STRING | IT_CALL, NULL, "Mid-game add-ons...", M_Addons,             0},
+	{IT_STRING | IT_CVAR, NULL, "Rings",               &cv_dummyrings,       0},
+	{IT_STRING | IT_CVAR, NULL, "Lives",               &cv_dummylives,      10},
+	{IT_STRING | IT_CVAR, NULL, "Continues",           &cv_dummycontinues,  20},
 
-	{IT_STRING | IT_CVAR, NULL, "Rings",               &cv_dummyrings,      20},
-	{IT_STRING | IT_CVAR, NULL, "Lives",               &cv_dummylives,      30},
-	{IT_STRING | IT_CVAR, NULL, "Continues",           &cv_dummycontinues,  40},
+	{IT_STRING | IT_CVAR, NULL, "Gravity",             &cv_gravity,         40},
+	{IT_STRING | IT_CVAR, NULL, "Throw Rings",         &cv_ringslinger,     50},
 
-	{IT_STRING | IT_CVAR, NULL, "Gravity",             &cv_gravity,         60},
-	{IT_STRING | IT_CVAR, NULL, "Throw Rings",         &cv_ringslinger,     70},
-
-	{IT_STRING | IT_CALL, NULL, "Enable Super form",   M_AllowSuper,        90},
-	{IT_STRING | IT_CALL, NULL, "Get All Emeralds",    M_GetAllEmeralds,   100},
-	{IT_STRING | IT_CALL, NULL, "Destroy All Robots",  M_DestroyRobots,    110},
+	{IT_STRING | IT_CALL, NULL, "Enable Super form",   M_AllowSuper,        70},
+	{IT_STRING | IT_CALL, NULL, "Get All Emeralds",    M_GetAllEmeralds,    80},
+	{IT_STRING | IT_CALL, NULL, "Destroy All Robots",  M_DestroyRobots,     90},
 
 	{IT_STRING | IT_CALL, NULL, "Ultimate Cheat",      M_UltimateCheat,    130},
 };
