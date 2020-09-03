@@ -651,6 +651,12 @@ endif
 endif
 	$(call echo,Build is done$(,) please look for $(EXENAME) in $(BIN)$(,) (checking for post steps))
 
+ifdef APPIMAGE
+	@echo Building AppImage...
+	@../AppImage_build.sh -q $(BIN) $(EXENAME).AppImage ..
+	@echo AppImage build complete!
+endif
+
 reobjdump:
 	$(call echo,Redumping debugging info)
 	$(OBJDUMP) $(OBJDUMP_OPTS) $(BIN)/$(DBGNAME) > $(BIN)/$(DBGNAME).txt
