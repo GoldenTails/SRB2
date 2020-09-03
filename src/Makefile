@@ -626,7 +626,7 @@ endif
 
 ifdef APPIMAGE
 	@echo Building AppImage...
-	@../AppImage_build.sh -q $(BIN) $(EXENAME).AppImage ..
+	@../AppImage_build.sh -q $(BIN) $(EXENAME).AppImage .. appimagetool
 	@echo AppImage build complete!
 endif
 
