@@ -2317,12 +2317,9 @@ static int lib_evCrumbleChain(lua_State *L)
 	INLEVEL
 	if (!lua_isnone(L, 2))
 	{
-		if (!lua_isnil(L, 1))
-		{
-			sec = *((sector_t **)luaL_checkudata(L, 1, META_SECTOR));
-			if (!sec)
-				return LUA_ErrInvalid(L, "sector_t");
-		}
+		sec = *((sector_t **)luaL_checkudata(L, 1, META_SECTOR));
+		if (!sec)
+			return LUA_ErrInvalid(L, "sector_t");
 		rover = *((ffloor_t **)luaL_checkudata(L, 2, META_FFLOOR));
 	}
 	else
