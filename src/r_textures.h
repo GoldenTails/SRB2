@@ -95,6 +95,7 @@ void R_CheckFlatLength(size_t size);
 
 // Returns the texture number for the texture name.
 INT32 R_TextureNumForName(const char *name);
+char *R_TextureNameForNum(INT32 num);
 INT32 R_CheckTextureNumForName(const char *name);
 lumpnum_t R_GetFlatNumForName(const char *name);
 

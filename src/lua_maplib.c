@@ -959,14 +959,32 @@ static int side_get(lua_State *L)
 		lua_pushfixed(L, side->rowoffset);
 		return 1;
 	case side_toptexture:
-		lua_pushinteger(L, side->toptexture);
-		return 1;
+		{
+			char *texture;
+			texture = R_TextureNameForNum(side->toptexture);
+			if (!texture)
+				return 0;
+			lua_pushstring(L, texture);
+			return 1;
+		}
 	case side_bottomtexture:
-		lua_pushinteger(L, side->bottomtexture);
-		return 1;
+		{
+			char *texture;
+			texture = R_TextureNameForNum(side->bottomtexture);
+			if (!texture)
+				return 0;
+			lua_pushstring(L, texture);
+			return 1;
+		}
 	case side_midtexture:
-		lua_pushinteger(L, side->midtexture);
-		return 1;
+		{
+			char *texture;
+			texture = R_TextureNameForNum(side->midtexture);
+			if (!texture)
+				return 0;
+			lua_pushstring(L, texture);
+			return 1;
+		}
 	case side_line:
 		LUA_PushUserdata(L, side->line, META_LINE);
 		return 1;

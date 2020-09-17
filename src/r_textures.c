@@ -1646,3 +1646,13 @@ INT32 R_TextureNumForName(const char *name)
 	}
 	return i;
 }
+
+char *R_TextureNameForNum(INT32 num)
+{
+	printf("%d\n", tidcachelen);
+
+	if (num < 0 || num > tidcachelen)
+		return NULL;
+
+	return tidcache[num].name;
+}
