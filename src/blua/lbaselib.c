@@ -267,6 +267,25 @@ static int luaB_ipairs (lua_State *L) {
 }
 
 
+static int load_aux (lua_State *L, int status) {
+  if (status == 0)  /* OK? */
+    return 1;
+  else {
+    lua_pushnil(L);
+    lua_insert(L, -2);  /* put before error message */
+    return 2;  /* return nil plus error message */
+  }
+}
+
+
+static int luaB_loadstring (lua_State *L) {
+  size_t l;
+  const char *s = luaL_checklstring(L, 1, &l);
+  const char *chunkname = luaL_optstring(L, 2, s);
+  return load_aux(L, luaL_loadbuffer(L, s, l, chunkname));
+}
+
+
 // Edited to load PK3 entries instead
 static int luaB_dofile (lua_State *L) {
 	const char *filename = luaL_checkstring(L, 1);
@@ -409,6 +428,7 @@ static const luaL_Reg base_funcs[] = {
   {"gcinfo", luaB_gcinfo},
   {"getfenv", luaB_getfenv},
   {"getmetatable", luaB_getmetatable},
+  {"loadstring", luaB_loadstring},
   {"next", luaB_next},
   {"pcall", luaB_pcall},
   {"print", luaB_print},
