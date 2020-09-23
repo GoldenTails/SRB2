@@ -1545,7 +1545,9 @@ void V_DrawFillMap(INT32 x, INT32 y, INT32 w, INT32 h, INT32 c, skincolor_t colo
 #ifdef HWRENDER
 	if (rendermode == render_opengl)
 	{
-		UINT32 hwcolor = V_GetHWConsBackColor();
+		// behold the ultimate hack for hardware renderer support
+		UINT16 index = color.ramp[7] * 3; // Index into `pal`
+		UINT32 hwcolor = (pal[index] << 24) + (pal[index+1] << 16) + (pal[index+2] << 8);
 		HWR_DrawConsoleFill(x, y, w, h, c, hwcolor);	// we still use the regular color stuff but only for flags. actual draw color is "hwcolor" for this.
 		return;
 	}
