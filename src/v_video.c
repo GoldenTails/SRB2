@@ -1229,6 +1229,18 @@ void V_DrawFill(INT32 x, INT32 y, INT32 w, INT32 h, INT32 c)
 	if (!(c & V_NOSCALESTART))
 	{
 		INT32 dupx = vid.dupx, dupy = vid.dupy;
+		INT32 scrwidth = vid.width, scrheight = vid.height;
+
+		if (c & V_NOSCALEPATCH)
+		{
+			scrwidth *= vid.dupx;
+			scrheight *= vid.dupy;
+			x /= dupx;
+			y /= dupx;
+			w /= dupy;
+			h /= dupy;
+			dupx = dupy = 1;
+		}
 
 		if (x == 0 && y == 0 && w == BASEVIDWIDTH && h == BASEVIDHEIGHT)
 		{ // Clear the entire screen, from dest to deststop. Yes, this really works.
