@@ -1525,6 +1525,212 @@ void V_DrawFillConsoleMap(INT32 x, INT32 y, INT32 w, INT32 h, INT32 c)
 	}
 }
 
+void V_DrawFillMap(INT32 x, INT32 y, INT32 w, INT32 h, INT32 c, skincolor_t color)
+{
+	UINT8 *dest;
+	const UINT8 *deststop;
+	INT32 u;
+	UINT8 *fadetable;
+	UINT32 alphalevel = 0;
+	UINT8 perplayershuffle = 0;
+
+	UINT16 i, palsum;
+	UINT8 j;
+	UINT8 *pal = W_CacheLumpName(GetPalette(), PU_CACHE);
+	UINT8 *colorbgmap = NULL;
+
+	if (rendermode == render_none)
+		return;
+
+#ifdef HWRENDER
+	if (rendermode == render_opengl)
+	{
+		UINT32 hwcolor = V_GetHWConsBackColor();
+		HWR_DrawConsoleFill(x, y, w, h, c, hwcolor);	// we still use the regular color stuff but only for flags. actual draw color is "hwcolor" for this.
+		return;
+	}
+#endif
+
+	if ((alphalevel = ((c & V_ALPHAMASK) >> V_ALPHASHIFT)))
+	{
+		if (alphalevel == 13)
+			alphalevel = hudminusalpha[st_translucency];
+		else if (alphalevel == 14)
+			alphalevel = 10 - st_translucency;
+		else if (alphalevel == 15)
+			alphalevel = hudplusalpha[st_translucency];
+
+		if (alphalevel >= 10)
+			return; // invis
+	}
+
+	if (splitscreen && (c & V_PERPLAYER))
+	{
+		fixed_t adjusty = ((c & V_NOSCALESTART) ? vid.height : BASEVIDHEIGHT)>>1;
+		h >>= 1;
+		y >>= 1;
+#ifdef QUADS
+		if (splitscreen > 1) // 3 or 4 players
+		{
+			fixed_t adjustx = ((c & V_NOSCALESTART) ? vid.height : BASEVIDHEIGHT)>>1;
+			w >>= 1;
+			x >>= 1;
+			if (stplyr == &players[displayplayer])
+			{
+				if (!(c & (V_SNAPTOTOP|V_SNAPTOBOTTOM)))
+					perplayershuffle |= 1;
+				if (!(c & (V_SNAPTOLEFT|V_SNAPTORIGHT)))
+					perplayershuffle |= 4;
+				c &= ~V_SNAPTOBOTTOM|V_SNAPTORIGHT;
+			}
+			else if (stplyr == &players[secondarydisplayplayer])
+			{
+				if (!(c & (V_SNAPTOTOP|V_SNAPTOBOTTOM)))
+					perplayershuffle |= 1;
+				if (!(c & (V_SNAPTOLEFT|V_SNAPTORIGHT)))
+					perplayershuffle |= 8;
+				x += adjustx;
+				c &= ~V_SNAPTOBOTTOM|V_SNAPTOLEFT;
+			}
+			else if (stplyr == &players[thirddisplayplayer])
+			{
+				if (!(c & (V_SNAPTOTOP|V_SNAPTOBOTTOM)))
+					perplayershuffle |= 2;
+				if (!(c & (V_SNAPTOLEFT|V_SNAPTORIGHT)))
+					perplayershuffle |= 4;
+				y += adjusty;
+				c &= ~V_SNAPTOTOP|V_SNAPTORIGHT;
+			}
+			else //if (stplyr == &players[fourthdisplayplayer])
+			{
+				if (!(c & (V_SNAPTOTOP|V_SNAPTOBOTTOM)))
+					perplayershuffle |= 2;
+				if (!(c & (V_SNAPTOLEFT|V_SNAPTORIGHT)))
+					perplayershuffle |= 8;
+				x += adjustx;
+				y += adjusty;
+				c &= ~V_SNAPTOTOP|V_SNAPTOLEFT;
+			}
+		}
+		else
+#endif
+		// 2 players
+		{
+			if (stplyr == &players[displayplayer])
+			{
+				if (!(c & (V_SNAPTOTOP|V_SNAPTOBOTTOM)))
+					perplayershuffle |= 1;
+				c &= ~V_SNAPTOBOTTOM;
+			}
+			else //if (stplyr == &players[secondarydisplayplayer])
+			{
+				if (!(c & (V_SNAPTOTOP|V_SNAPTOBOTTOM)))
+					perplayershuffle |= 2;
+				y += adjusty;
+				c &= ~V_SNAPTOTOP;
+			}
+		}
+	}
+
+	if (!(c & V_NOSCALESTART))
+	{
+		INT32 dupx = vid.dupx, dupy = vid.dupy;
+
+		x *= dupx;
+		y *= dupy;
+		w *= dupx;
+		h *= dupy;
+
+		// Center it if necessary
+		if (vid.width != BASEVIDWIDTH * dupx)
+		{
+			// dupx adjustments pretend that screen width is BASEVIDWIDTH * dupx,
+			// so center this imaginary screen
+			if (c & V_SNAPTORIGHT)
+				x += (vid.width - (BASEVIDWIDTH * dupx));
+			else if (!(c & V_SNAPTOLEFT))
+				x += (vid.width - (BASEVIDWIDTH * dupx)) / 2;
+			if (perplayershuffle & 4)
+				x -= (vid.width - (BASEVIDWIDTH * dupx)) / 4;
+			else if (perplayershuffle & 8)
+				x += (vid.width - (BASEVIDWIDTH * dupx)) / 4;
+		}
+		if (vid.height != BASEVIDHEIGHT * dupy)
+		{
+			// same thing here
+			if (c & V_SNAPTOBOTTOM)
+				y += (vid.height - (BASEVIDHEIGHT * dupy));
+			else if (!(c & V_SNAPTOTOP))
+				y += (vid.height - (BASEVIDHEIGHT * dupy)) / 2;
+			if (perplayershuffle & 1)
+				y -= (vid.height - (BASEVIDHEIGHT * dupy)) / 4;
+			else if (perplayershuffle & 2)
+				y += (vid.height - (BASEVIDHEIGHT * dupy)) / 4;
+		}
+	}
+
+	if (x >= vid.width || y >= vid.height)
+		return; // off the screen
+	if (x < 0) {
+		w += x;
+		x = 0;
+	}
+	if (y < 0) {
+		h += y;
+		y = 0;
+	}
+
+	if (w <= 0 || h <= 0)
+		return; // zero width/height wouldn't draw anything
+	if (x + w > vid.width)
+		w = vid.width-x;
+	if (y + h > vid.height)
+		h = vid.height-y;
+
+	dest = screens[0] + y*vid.width + x;
+	deststop = screens[0] + vid.rowbytes * vid.height;
+
+	colorbgmap = (UINT8 *)Z_Malloc(256, PU_STATIC, NULL);
+
+	// setup background colormap
+	for (i = 0, j = 0; i < (256 * 3); i += 3, j++)
+	{
+		palsum = (pal[i] + pal[i+1] + pal[i+2]) >> 6;
+		colorbgmap[j] = color.ramp[(15 - 4) - palsum];
+	}
+
+	c &= 255;
+
+	// Jimita (12-04-2018)
+	if (alphalevel)
+	{
+		fadetable = ((UINT8 *)transtables + ((alphalevel-1)<<FF_TRANSSHIFT) + (c*256));
+		for (;(--h >= 0) && dest < deststop; dest += vid.width)
+		{
+			u = 0;
+			while (u < w)
+			{
+				dest[u] = fadetable[colorbgmap[dest[u]]];
+				u++;
+			}
+		}
+	}
+	else
+	{
+		for (;(--h >= 0) && dest < deststop; dest += vid.width)
+		{
+			u = 0;
+			while (u < w)
+			{
+				dest[u] = colorbgmap[dest[u]];
+				u++;
+			}
+		}
+	}
+
+	Z_Free(colorbgmap);
+}
+
 //
 // If color is 0x00 to 0xFF, draw transtable (strength range 0-9).
 // Else, use COLORMAP lump (strength range 0-31).

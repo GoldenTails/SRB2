@@ -4819,13 +4819,11 @@ static void M_DrawPauseMenu(void)
 		patch_t *zigzag = W_CachePatchName("PAUSEZIG", PU_PATCH);
 		patch_t *pause = W_CachePatchName("M_PAUSE", PU_PATCH);
 
-		// Draw the blue part
-		V_DrawFadeFill(0, 0, 160, 200, 0, skincolors[players[consoleplayer].skincolor].ramp[5], 5);
+		// Draw the colored part
+		V_DrawFillMap(0, 0, 160, 200, 0, skincolors[players[consoleplayer].skincolor]);
 
 		for (int y = -zigzag->height; y < BASEVIDHEIGHT + zigzag->height; y += zigzag->height)
-		{
-			V_DrawScaledPatch(152, y - (pausescroll % zigzag->height), 0, zigzag);
-		}
+			V_DrawMappedPatch(152, y - (pausescroll % zigzag->height), 0, zigzag, R_GetTranslationColormap(TC_DEFAULT, players[consoleplayer].skincolor, GTC_CACHE));
 
 		V_DrawScaledPatch(80 - pause->width/2, 8, 0, pause);
 
