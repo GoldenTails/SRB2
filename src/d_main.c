@@ -930,10 +930,10 @@ void D_StartTitle(void)
 
 	players[consoleplayer].availabilities = players[1].availabilities = R_GetSkinAvailabilities(); // players[1] is supposed to be for 2p
 
-	splitscreen = false;
-	SplitScreen_OnChange();
-	botingame = false;
-	botskin = 0;
+	//splitscreen = false;
+	//SplitScreen_OnChange();
+	//botingame = false;
+	//botskin = 0;
 	cv_debug = 0;
 	emeralds = 0;
 	memset(&luabanks, 0, sizeof(luabanks));

@@ -290,6 +290,7 @@ static void M_SetupMultiPlayer(INT32 choice);
 static void M_SetupMultiPlayer2(INT32 choice);
 static void M_StartSplitServerMenu(INT32 choice);
 static void M_StartServer(INT32 choice);
+static void M_StartSplitscreenServer(INT32 choice);
 static void M_ServerOptions(INT32 choice);
 #ifndef NONET
 static void M_StartServerMenu(INT32 choice);
@@ -951,13 +952,14 @@ static menuitem_t SP_PlayerMenu[] =
 // Separated splitscreen and normal servers.
 static menuitem_t MP_SplitServerMenu[] =
 {
-	{IT_STRING|IT_CALL,              NULL, "Select Gametype/Level...", M_MapChange,         100},
+	{IT_STRING|IT_CALL,              NULL, "Select Gametype/Level...", M_MapChange     ,         100},
 #ifdef NONET // In order to keep player setup accessible.
-	{IT_STRING|IT_CALL,              NULL, "Player 1 setup...",        M_SetupMultiPlayer,  110},
-	{IT_STRING|IT_CALL,              NULL, "Player 2 setup...",        M_SetupMultiPlayer2, 120},
+	{IT_STRING|IT_CALL,              NULL, "Player 1 setup...",        M_SetupMultiPlayer,       110},
+	{IT_STRING|IT_CALL,              NULL, "Player 2 setup...",        M_SetupMultiPlayer2,      120},
 #endif
-	{IT_STRING|IT_CALL,              NULL, "More Options...",          M_ServerOptions,     130},
-	{IT_WHITESTRING|IT_CALL,         NULL, "Start",                    M_StartServer,       140},
+	{IT_STRING|IT_CALL,              NULL, "More Options...",          M_ServerOptions,          130},
+	{IT_WHITESTRING|IT_CALL,         NULL, "Start",                    M_StartServer,            140},
+	{IT_WHITESTRING|IT_CALL,         NULL, "Start (Splitscreen)",      M_StartSplitscreenServer, 150},
 };
 
 #ifndef NONET
@@ -977,13 +979,14 @@ static menuitem_t MP_MainMenu[] =
 
 static menuitem_t MP_ServerMenu[] =
 {
-	{IT_STRING|IT_CALL,              NULL, "Room...",                  M_RoomMenu,          10},
-	{IT_STRING|IT_CVAR|IT_CV_STRING, NULL, "Server Name",              &cv_servername,      20},
-	{IT_STRING|IT_CVAR,              NULL, "Max Players",              &cv_maxplayers,      46},
-	{IT_STRING|IT_CVAR,              NULL, "Allow Add-on Downloading", &cv_downloading,     56},
-	{IT_STRING|IT_CALL,              NULL, "Select Gametype/Level...", M_MapChange,        100},
-	{IT_STRING|IT_CALL,              NULL, "More Options...",          M_ServerOptions,    130},
-	{IT_WHITESTRING|IT_CALL,         NULL, "Start",                    M_StartServer,      140},
+	{IT_STRING|IT_CALL,              NULL, "Room...",                  M_RoomMenu,                10},
+	{IT_STRING|IT_CVAR|IT_CV_STRING, NULL, "Server Name",              &cv_servername,            20},
+	{IT_STRING|IT_CVAR,              NULL, "Max Players",              &cv_maxplayers,            46},
+	{IT_STRING|IT_CVAR,              NULL, "Allow Add-on Downloading", &cv_downloading,           56},
+	{IT_STRING|IT_CALL,              NULL, "Select Gametype/Level...", M_MapChange,              100},
+	{IT_STRING|IT_CALL,              NULL, "More Options...",          M_ServerOptions,          130},
+	{IT_WHITESTRING|IT_CALL,         NULL, "Start",                    M_StartServer,            140},
+	{IT_WHITESTRING|IT_CALL,         NULL, "Start (Splitscreen)",      M_StartSplitscreenServer, 150},
 };
 
 enum
@@ -11333,6 +11336,44 @@ static void M_ChooseRoom(INT32 choice)
 //===========================================================================
 // Start Server Menu
 //===========================================================================
+
+static void M_StartSplitscreenServer(INT32 choice)
+{
+	(void)choice;
+
+	netgame = true;
+	multiplayer = true;
+
+	// Still need to reset devmode
+	cv_debug = 0;
+
+	if (demoplayback)
+		G_StopDemo();
+	if (metalrecording)
+		G_StopMetalDemo();
+
+	if (!splitscreen)
+	{
+		splitscreen = true;
+		SplitScreen_OnChange();
+	}
+
+	botingame = false;
+
+	for (int i = 0; i < numskins; i++)
+		if (fastcmp(cv_skin2.string, skins[i].name))
+		{
+			botskin = ++i;
+			break;
+		}
+
+	botcolor = cv_playercolor2.value;
+
+	D_MapChange(cv_nextmap.value, cv_newgametype.value, false, 1, 1, false, false);
+	COM_BufAddText("dummyconsvar 1\n");
+
+	M_ClearMenus(true);
+}
 
 static void M_StartServer(INT32 choice)
 {

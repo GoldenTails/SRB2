@@ -3962,7 +3962,8 @@ boolean P_LoadLevel(boolean fromnetsave)
 	P_Initsecnode();
 
 	if (netgame || multiplayer)
-		cv_debug = botskin = 0;
+		//cv_debug = botskin = 0;
+		cv_debug = 0;
 
 	if (metalplayback)
 		G_StopMetalDemo();

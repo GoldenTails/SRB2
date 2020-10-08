@@ -171,7 +171,7 @@ consvar_t cv_renderstats = {"renderstats", "Off", 0, CV_OnOff, NULL, 0, NULL, NU
 
 void SplitScreen_OnChange(void)
 {
-	if (!cv_debug && netgame)
+	/*if (!cv_debug && netgame)
 	{
 		if (splitscreen)
 		{
@@ -179,7 +179,7 @@ void SplitScreen_OnChange(void)
 			splitscreen = false;
 		}
 		return;
-	}
+	}*/
 
 	// recompute screen size
 	R_ExecuteSetViewSize();

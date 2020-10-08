@@ -4252,8 +4252,8 @@ void Command_ExitGame_f(void)
 
 	splitscreen = false;
 	SplitScreen_OnChange();
-	botingame = false;
-	botskin = 0;
+	//botingame = false;
+	//botskin = 0;
 	cv_debug = 0;
 	emeralds = 0;
 	memset(&luabanks, 0, sizeof(luabanks));

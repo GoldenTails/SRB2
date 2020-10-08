@@ -3047,10 +3047,10 @@ static void Command_connect(void)
 			CONS_Alert(CONS_ERROR, M_GetText("There is no network driver\n"));
 	}
 
-	splitscreen = false;
-	SplitScreen_OnChange();
-	botingame = false;
-	botskin = 0;
+	//splitscreen = false;
+	//SplitScreen_OnChange();
+	//botingame = false;
+	//botskin = 0;
 	CL_ConnectToServer();
 }
 #endif
@@ -4223,7 +4223,7 @@ static void HandleConnect(SINT8 node)
 		SV_SendRefuse(node, M_GetText("The server is not accepting\njoins for the moment."));
 	else if (D_NumPlayers() >= cv_maxplayers.value && rejoinernum == -1)
 		SV_SendRefuse(node, va(M_GetText("Maximum players reached: %d"), cv_maxplayers.value));
-	else if (netgame && netbuffer->u.clientcfg.localplayers > 1) // Hacked client?
+	else if (netgame && netbuffer->u.clientcfg.localplayers > 2) // Hacked client?
 		SV_SendRefuse(node, M_GetText("Too many players from\nthis node."));
 	else if (netgame && !netbuffer->u.clientcfg.localplayers) // Stealth join?
 		SV_SendRefuse(node, M_GetText("No players from\nthis node."));
