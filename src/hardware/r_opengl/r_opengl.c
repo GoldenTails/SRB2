@@ -1041,7 +1041,7 @@ EXPORT boolean HWRAPI(LoadShaders) (void)
 			pglGetProgramInfoLog(shader->program, logLength, &logLength, infoLog);
 
 			// +28 to skip the annoying header
-			GL_MSG_Error("LoadShaders: Error linking shader program %d: %s", i, infoLog + 28);
+			GL_MSG_Error("LoadShaders: Error linking shader program %d: %s", i, infoLog);
 
 			shader->program = 0;
 			shader->custom = false;
