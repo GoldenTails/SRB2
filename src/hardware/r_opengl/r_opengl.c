@@ -541,6 +541,7 @@ typedef void 	(APIENTRY *PFNglShaderSource)		(GLuint, GLsizei, const GLchar**, G
 typedef void 	(APIENTRY *PFNglCompileShader)		(GLuint);
 typedef void 	(APIENTRY *PFNglGetShaderiv)		(GLuint, GLenum, GLint*);
 typedef void 	(APIENTRY *PFNglGetShaderInfoLog)	(GLuint, GLsizei, GLsizei*, GLchar*);
+typedef void 	(APIENTRY *PFNglGetProgramInfoLog)	(GLuint, GLsizei, GLsizei*, GLchar*);
 typedef void 	(APIENTRY *PFNglDeleteShader)		(GLuint);
 typedef GLuint 	(APIENTRY *PFNglCreateProgram)		(void);
 typedef void 	(APIENTRY *PFNglAttachShader)		(GLuint, GLuint);
@@ -562,6 +563,7 @@ static PFNglShaderSource pglShaderSource;
 static PFNglCompileShader pglCompileShader;
 static PFNglGetShaderiv pglGetShaderiv;
 static PFNglGetShaderInfoLog pglGetShaderInfoLog;
+static PFNglGetProgramInfoLog pglGetProgramInfoLog;
 static PFNglDeleteShader pglDeleteShader;
 static PFNglCreateProgram pglCreateProgram;
 static PFNglAttachShader pglAttachShader;
@@ -898,6 +900,7 @@ void SetupGLFunc4(void)
 	pglCompileShader = GetGLFunc("glCompileShader");
 	pglGetShaderiv = GetGLFunc("glGetShaderiv");
 	pglGetShaderInfoLog = GetGLFunc("glGetShaderInfoLog");
+	pglGetProgramInfoLog = GetGLFunc("glGetProgramInfoLog");
 	pglDeleteShader = GetGLFunc("glDeleteShader");
 	pglCreateProgram = GetGLFunc("glCreateProgram");
 	pglAttachShader = GetGLFunc("glAttachShader");
@@ -1026,9 +1029,18 @@ EXPORT boolean HWRAPI(LoadShaders) (void)
 		// couldn't link?
 		if (result != GL_TRUE)
 		{
+			GLchar* infoLog;
+			GLint logLength;
+
+			pglGetProgramiv(shader->program, GL_INFO_LOG_LENGTH, &logLength);
+			infoLog = malloc(logLength);
+			pglGetProgramInfoLog(shader->program, logLength, &logLength, infoLog);
+
+			// +28 to skip the annoying header
+			GL_MSG_Error("LoadShaders: Error linking shader program %d: %s", i, infoLog + 28);
+
 			shader->program = 0;
 			shader->custom = false;
-			GL_MSG_Error("LoadShaders: Error linking shader program %d\n", i);
 			continue;
 		}
 
