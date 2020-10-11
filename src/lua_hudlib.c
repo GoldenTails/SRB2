@@ -939,7 +939,8 @@ static int libd_drawString(lua_State *L)
 		;
 	else
 	{
-		LUA_UsageWarning(L, "String-based alignment flags are deprecated and will be removed.\nUse integer-based alignment flags instead.\n");
+		// Wiki people, please put a stern warning on the wiki, thanks
+		//LUA_UsageWarning(L, "String-based alignment flags are deprecated and will be removed.\nUse integer-based alignment flags instead.\n");
 
 		if (strstr(align, "--"))
 			return luaL_error(L, "alignment string must not contain 2 consecutive dashes!");
@@ -1004,7 +1005,8 @@ static int libd_drawScaledString(lua_State *L)
 		;
 	else
 	{
-		LUA_UsageWarning(L, "String-based alignment flags are deprecated and will be removed.\nUse integer-based alignment flags instead.\n");
+		// Wiki people, please put a stern warning on the wiki, thanks
+		//LUA_UsageWarning(L, "String-based alignment flags are deprecated and will be removed.\nUse integer-based alignment flags instead.\n");
 
 		if (strstr(align, "--"))
 			return luaL_error(L, "alignment string must not contain 2 consecutive dashes!");

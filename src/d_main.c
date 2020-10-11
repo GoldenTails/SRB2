@@ -1270,6 +1270,13 @@ void D_SRB2Main(void)
 
 	HU_Init();
 
+	CONS_Printf("W_InitMultipleFiles(): Adding extra PWADs.\n");
+	W_InitMultipleFiles(startuppwads);
+	D_CleanFile(startuppwads);
+
+	CONS_Printf("HU_LoadGraphics()...\n");
+	HU_LoadGraphics(); // ensure this is called before CON_Init because the console likes drawing text
+
 	CON_Init();
 
 	D_RegisterServerCommands();
@@ -1278,13 +1285,6 @@ void D_SRB2Main(void)
 	S_RegisterSoundStuff();
 
 	I_RegisterSysCommands();
-
-	CONS_Printf("W_InitMultipleFiles(): Adding extra PWADs.\n");
-	W_InitMultipleFiles(startuppwads);
-	D_CleanFile(startuppwads);
-
-	CONS_Printf("HU_LoadGraphics()...\n");
-	HU_LoadGraphics();
 
 	//--------------------------------------------------------- CONFIG.CFG
 	M_FirstLoadConfig(); // WARNING : this do a "COM_BufExecute()"

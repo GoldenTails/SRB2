@@ -2270,9 +2270,6 @@ void V_DrawScaledString(fixed_t x, fixed_t y, fixed_t scale, font_t font, INT32 
 	}
 }
 
-//#define AUTOSCALE (FRACUNIT + FINESINE((FixedAngle(leveltime * FRACUNIT)>>ANGLETOFINESHIFT) & FINEMASK)/8)
-#define AUTOSCALE FRACUNIT
-
 // Draws a tallnum.  Replaces two functions in y_inter and st_stuff
 void V_DrawTallNum(INT32 x, INT32 y, INT32 flags, INT32 num)
 {

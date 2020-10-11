@@ -212,6 +212,9 @@ enum {
 	VDS_INTEGER		= 4 // use integers instead of fixed_t for positioning.
 };
 
+//#define AUTOSCALE (FRACUNIT + FINESINE((FixedAngle(leveltime * FRACUNIT)>>ANGLETOFINESHIFT) & FINEMASK)/8)
+#define AUTOSCALE FRACUNIT
+
 // draw a string using any font at any scale with any alignment
 fixed_t V_ScaledStringWidth(const char *string, font_t font, INT32 option, fixed_t scale);
 void V_DrawScaledString(fixed_t x, fixed_t y, fixed_t scale, font_t font, INT32 stringflags, INT32 option, const char *string);
