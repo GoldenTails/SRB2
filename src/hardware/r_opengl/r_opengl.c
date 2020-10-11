@@ -982,6 +982,8 @@ EXPORT boolean HWRAPI(LoadShaders) (void)
 			pglGetShaderInfoLog(gl_vertShader, logLength, NULL, infoLog);
 
 			GL_MSG_Error("LoadShaders: Error compiling vertex shader %d\n%s", i, infoLog);
+
+			free(infoLog);
 			continue;
 		}
 
@@ -1011,6 +1013,8 @@ EXPORT boolean HWRAPI(LoadShaders) (void)
 			pglGetShaderInfoLog(gl_fragShader, logLength, NULL, infoLog);
 
 			GL_MSG_Error("LoadShaders: Error compiling fragment shader %d\n%s", i, infoLog);
+
+			free(infoLog);
 			continue;
 		}
 
