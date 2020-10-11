@@ -2028,6 +2028,7 @@ void V_DrawCharacter(INT32 x, INT32 y, INT32 c, boolean lowercaseallowed)
 	INT32 w, flags;
 	const UINT8 *colormap = V_GetStringColormap(c);
 
+	// some console functions can call this before the fonts are actually loaded
 	if (!fonts[FONT_HU].chars)
 		return;
 
