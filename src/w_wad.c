@@ -1665,7 +1665,7 @@ void *W_CacheSoftwarePatchNumPwad(UINT16 wad, UINT16 lump, INT32 tag)
 	lumpcache_t *lumpcache = NULL;
 
 	if (needpatchflush)
-		W_FlushCachedPatches();
+		Z_FlushCachedPatches();
 
 	if (!TestValidLump(wad, lump))
 		return NULL;

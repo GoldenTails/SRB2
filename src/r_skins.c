@@ -692,7 +692,7 @@ next_token:
 
 #ifdef HWRENDER
 		if (rendermode == render_opengl)
-			HWR_AddPlayerModel(numskins);
+			Model_AddSkin(numskins);
 #endif
 
 		numskins++;

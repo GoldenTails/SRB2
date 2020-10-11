@@ -5014,6 +5014,12 @@ static void HWR_DrawSprites(void)
 #endif
 			{
 				modelinfo_t *model = Model_IsAvailable(spr->mobj->sprite, spr->mobj->skin);
+
+                // Draw the shadow first
+                if (spr->mobj && spr->mobj->shadowscale && cv_shadow.value)
+                    HWR_DrawDropShadow(spr->mobj, spr, spr->mobj->shadowscale);
+
+                // Then the model or sprite
 				if (cv_models.value && model)
 					HWR_DrawModel(model, spr);
 				else
@@ -5090,7 +5096,7 @@ static void HWR_ProjectSprite(mobj_t *thing)
 	spritedef_t *sprdef;
 	spriteframe_t *sprframe;
 	spriteinfo_t *sprinfo;
-	md2_t *md2;
+	modelinfo_t *md2;
 	size_t lumpoff;
 	unsigned rot;
 	UINT16 flip;
