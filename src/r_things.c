@@ -120,7 +120,7 @@ static void R_InstallSpriteLump(UINT16 wad,            // graphics patch
 			if (!lumpcache[lump])
 				Z_Malloc(sizeof(rsp_spritetexture_t) * 8, PU_SOFTPOLY, &lumpcache[lump]);
 			tex = lumpcache[lump];
-			tex += rot;
+			//tex += rot;
 
 			if (R_CheckIfPatch(lumppat))
 			{
@@ -566,8 +566,9 @@ void R_InitSprites(void)
 	// find sprites in each -file added pwad
 	for (i = 0; i < numwadfiles; i++)
 	{
-		CONS_Printf("%d", i);
+		CONS_Printf("%ld\n", i);
 		R_AddSpriteDefs((UINT16)i);
+		CONS_Printf("ok...\n");
 	}
 
 	//
