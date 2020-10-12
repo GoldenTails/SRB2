@@ -3435,7 +3435,6 @@ void HWR_InitTextureMapping(void)
 // sprite translucency effects apply on the rendered view (instead of the background sky!!)
 
 static UINT32 gl_visspritecount;
-static UINT32 gl_visspriteamount = 0;
 static gl_vissprite_t *gl_vissprites = NULL;
 static UINT32 gl_maxvissprites = MAXVISSPRITES;
 
@@ -3448,9 +3447,9 @@ static void HWR_ClearSprites(void)
 	gl_visspritecount = 0;
 
 	if (gl_vissprites != NULL)
-		free(gl_vissprites);
+		Z_Free(gl_vissprites);
 
-	gl_vissprites = calloc(gl_maxvissprites, sizeof(gl_vissprite_t));
+	gl_vissprites = Z_Calloc(gl_maxvissprites * sizeof(gl_vissprite_t), PU_PATCH, NULL);
 
 	if (!gl_vissprites)
 		I_Error("HWR_ClearSprites: Out of memory!");
@@ -3475,16 +3474,16 @@ static gl_vissprite_t *HWR_GetVisSprite(UINT32 num)
 
 static gl_vissprite_t *HWR_NewVisSprite(void)
 {
-	if (gl_visspritecount == gl_maxvissprites) {
+	if (gl_visspritecount == gl_maxvissprites)
+	{
 		gl_maxvissprites *= 2;
-		CONS_Printf("Too many vissprites! Allocating up to %d slots.", gl_maxvissprites);
-		gl_vissprites = realloc(gl_vissprites, gl_maxvissprites * sizeof(gl_vissprite_t));
+		gl_vissprites = Z_Realloc(gl_vissprites, gl_maxvissprites * sizeof(gl_vissprite_t), PU_PATCH, NULL);
 
 		if (gl_vissprites == NULL)
 			I_Error("HWR_NewVisSprite: Out of memory!");
 	}
 
-	memset(&gl_vissprites[gl_visspritecount], 0, sizeof(vissprite_t));
+	memset(&gl_vissprites[gl_visspritecount], 0, sizeof(gl_vissprite_t));
 
 	return &gl_vissprites[gl_visspritecount++];
 }
@@ -3502,18 +3501,28 @@ typedef struct
 } zbuffersprite_t;
 
 // this list is used to store data about linkdraw sprites
-zbuffersprite_t linkdrawlist[MAXVISSPRITES];
+zbuffersprite_t *linkdrawlist = NULL;
 UINT32 linkdrawcount = 0;
+UINT32 linkdrawalloc = MAXVISSPRITES;
 
 // add the necessary data to the list for delayed z-buffer drawing
 static void HWR_LinkDrawHackAdd(FOutVector *verts, gl_vissprite_t *spr)
 {
-	if (linkdrawcount < MAXVISSPRITES)
+	if (!linkdrawlist)
+		linkdrawlist = Z_Calloc(linkdrawalloc * sizeof(zbuffersprite_t), PU_STATIC, NULL);
+
+	if (linkdrawcount == linkdrawalloc)
 	{
-		memcpy(linkdrawlist[linkdrawcount].verts, verts, sizeof(FOutVector) * 4);
-		linkdrawlist[linkdrawcount].spr = spr;
-		linkdrawcount++;
+		linkdrawalloc *= 2;
+		linkdrawlist = Z_Realloc(linkdrawlist, linkdrawalloc * sizeof(zbuffersprite_t), PU_STATIC, NULL);
+
+		if (linkdrawlist == NULL)
+			I_Error("HWR_LinkDrawHackAdd: Out of memory!");
 	}
+
+	memcpy(linkdrawlist[linkdrawcount].verts, verts, sizeof(FOutVector) * 4);
+	linkdrawlist[linkdrawcount].spr = spr;
+	linkdrawcount++;
 }
 
 // process and clear the list of sprites for delayed z-buffer drawing
@@ -4247,7 +4256,8 @@ static inline void HWR_DrawPrecipitationSprite(gl_vissprite_t *spr)
 // --------------------------------------------------------------------------
 // Sort vissprites by distance
 // --------------------------------------------------------------------------
-gl_vissprite_t* gl_vsprorder[MAXVISSPRITES];
+gl_vissprite_t **gl_vsprorder;
+UINT32 gl_vspralloc = MAXVISSPRITES;
 
 // Note: For more correct transparency the transparent sprites would need to be
 // sorted and drawn together with transparent surfaces.
@@ -4323,6 +4333,19 @@ static int CompareVisSprites(const void *p1, const void *p2)
 static void HWR_SortVisSprites(void)
 {
 	UINT32 i;
+
+	if (!gl_vsprorder)
+		gl_vsprorder = Z_Calloc(gl_vspralloc * sizeof(gl_vissprite_t *), PU_PATCH, NULL);
+
+	if (gl_maxvissprites > gl_vspralloc)
+	{
+		gl_vspralloc = gl_maxvissprites;
+		gl_vsprorder = Z_Realloc(gl_vsprorder, gl_vspralloc * sizeof(gl_vissprite_t *), PU_PATCH, NULL);
+
+		if (gl_vsprorder == NULL)
+			I_Error("HWR_LinkDrawHackAdd: Out of memory!");
+	}
+
 	for (i = 0; i < gl_visspritecount; i++)
 	{
 		gl_vsprorder[i] = HWR_GetVisSprite(i);

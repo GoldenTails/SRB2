@@ -586,7 +586,10 @@ void R_ClearSprites(void)
 	if (vissprites != NULL)
 		Z_Free(vissprites);
 
-	vissprites = Z_Malloc(maxvissprites * sizeof(vissprite_t), PU_STATIC, NULL);
+	vissprites = Z_Calloc(maxvissprites * sizeof(vissprite_t), PU_PATCH, NULL);
+
+	if (!vissprites)
+		I_Error("R_ClearSprites: Out of memory!");
 }
 
 //
@@ -606,9 +609,10 @@ static vissprite_t *R_GetVisSprite(UINT32 num)
 
 static vissprite_t *R_NewVisSprite(void)
 {
-	if (visspritecount == maxvissprites) {
+	if (visspritecount == maxvissprites - 1)
+	{
 		maxvissprites *= 2;
-		vissprites = Z_Realloc(vissprites, maxvissprites * sizeof(vissprite_t), PU_STATIC, NULL);
+		vissprites = Z_Realloc(vissprites, maxvissprites * sizeof(vissprite_t), PU_PATCH, NULL);
 	}
 
 	memset(&vissprites[visspritecount], 0, sizeof(vissprite_t));
