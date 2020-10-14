@@ -1960,8 +1960,12 @@ void P_XYMovement(mobj_t *mo)
 			// draw damage on wall
 			//SPLAT TEST ----------------------------------------------------------
 #ifdef WALLSPLATS
-			if (blockingline && mo->type != MT_REDRING && mo->type != MT_FIREBALL
-			&& !(mo->flags2 & (MF2_AUTOMATIC|MF2_RAILRING|MF2_BOUNCERING|MF2_EXPLOSION|MF2_SCATTER)))
+			if (blockingline && mo->type != MT_FIREBALL
+#ifdef SEENAMES
+			&& mo->type != MT_NAMECHECK
+#endif
+			&& ((mo->type == MT_REDRING && (mo->flags2 & 0x000001F0) == MF2_RAILRING)
+				|| (mo->type != MT_REDRING && !(mo->flags2 & 0x000001F0))))
 				// set by last P_TryMove() that failed
 			{
 				divline_t divl;
