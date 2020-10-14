@@ -219,10 +219,10 @@ enum EPolyFlags
 	PF_Additive         = 0x00000004,   // Poly is added to the frame buffer
 	PF_Environment      = 0x00000008,   // Poly should be drawn environment mapped.
 	                                    // Hurdler: used for text drawing
-	PF_Substractive     = 0x00000010,   // for splat
+	PF_SplatShade       = 0x00000010,   // for splat
 	PF_NoAlphaTest      = 0x00000020,   // hiden param
 	PF_Fog              = 0x00000040,   // Fog blocks
-	PF_Blending         = (PF_Environment|PF_Additive|PF_Translucent|PF_Masked|PF_Substractive|PF_Fog)&~PF_NoAlphaTest,
+	PF_Blending         = (PF_Environment|PF_Additive|PF_Translucent|PF_Masked|PF_SplatShade|PF_Fog)&~PF_NoAlphaTest,
 
 		// other flag bits
 
