@@ -753,21 +753,19 @@ static void HWR_DrawSegsSplats(FSurfaceInfo * pSurf)
 		switch (splat->flags & SPLATDRAWMODE_MASK)
 		{
 			case SPLATDRAWMODE_OPAQUE :
-				pSurf.PolyColor.s.alpha = 0xff;
+				pSurf->PolyColor.s.alpha = 0xff;
 				i = PF_Translucent;
 				break;
 			case SPLATDRAWMODE_TRANS :
-				pSurf.PolyColor.s.alpha = 128;
+				pSurf->PolyColor.s.alpha = 128;
 				i = PF_Translucent;
 				break;
 			case SPLATDRAWMODE_SHADE :
-				pSurf.PolyColor.s.alpha = 0xff;
-				i = PF_Substractive;
+				i = PF_SplatShade;
 				break;
 		}
 
-		HWD.pfnSetShader(SHADER_WALL);	// wall shader
-		HWD.pfnDrawPolygon(&pSurf, wallVerts, 4, i|PF_Modulated|PF_Decal);
+		HWR_ProcessPolygon(pSurf, wallVerts, 4, i|PF_Modulated|PF_Decal, 2, false);
 	}
 }
 #endif
@@ -806,7 +804,7 @@ static void HWR_ProjectWall(FOutVector *wallVerts, FSurfaceInfo *pSurf, FBITFIEL
 	HWR_ProcessPolygon(pSurf, wallVerts, 4, blendmode|PF_Modulated|PF_Occlude, SHADER_WALL, false); // wall shader
 
 #ifdef WALLSPLATS
-	if (gl_curline->linedef->splats && cv_splats.value)
+	if (gl_curline->linedef->splats)
 		HWR_DrawSegsSplats(pSurf);
 #endif
 }
@@ -6209,7 +6207,7 @@ void HWR_RenderWall(FOutVector *wallVerts, FSurfaceInfo *pSurf, FBITFIELD blend,
 	HWR_ProcessPolygon(pSurf, wallVerts, 4, blendmode, shader, false);
 
 #ifdef WALLSPLATS
-	if (gl_curline->linedef->splats && cv_splats.value)
+	if (gl_curline->linedef->splats)
 		HWR_DrawSegsSplats(pSurf);
 #endif
 }

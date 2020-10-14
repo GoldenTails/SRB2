@@ -26,6 +26,10 @@
 #include "p_slopes.h"
 #include "console.h" // con_clipviewtop
 
+#ifdef WALLSPLATS
+#include "r_main.h"
+#endif
+
 // OPTIMIZE: closed two sided lines as single sided
 
 // True if any of the segs textures might be visible.
@@ -105,7 +109,7 @@ static void R_DrawSplatColumn(column_t *column)
 			dc_yh = last_floorclip[dc_x] - 1;
 		if (dc_yl <= last_ceilingclip[dc_x])
 			dc_yl = last_ceilingclip[dc_x] + 1;
-		if (dc_yl <= dc_yh && dl_yh < vid.height && yh > 0)
+		if (dc_yl <= dc_yh && dc_yh < vid.height && dc_yh > 0)
 		{
 			dc_source = (UINT8 *)column + 3;
 			dc_texturemid = basetexturemid - (topdelta<<FRACBITS);
@@ -122,7 +126,6 @@ static void R_DrawSplatColumn(column_t *column)
 static void R_DrawWallSplats(void)
 {
 	wallsplat_t *splat;
-	seg_t *seg;
 	angle_t angle, angle1, angle2;
 	INT32 x1, x2;
 	size_t pindex;
@@ -133,8 +136,6 @@ static void R_DrawWallSplats(void)
 	splat = (wallsplat_t *)linedef->splats;
 
 	I_Assert(splat != NULL);
-
-	seg = ds_p->curline;
 
 	// draw all splats from the line that touches the range of the seg
 	for (; splat; splat = splat->next)
@@ -198,6 +199,8 @@ static void R_DrawWallSplats(void)
 				colfunc = colfuncs[COLDRAWFUNC_SHADE];
 				break;
 		}
+		//dc_transmap = transtables + ((tr_trans50 - 1)<<FF_TRANSSHIFT);
+		//colfunc = colfuncs[COLDRAWFUNC_FUZZY];
 
 		dc_texheight = 0;
 
@@ -2881,7 +2884,7 @@ void R_StoreWallRange(INT32 start, INT32 stop)
 	rw_bsilheight = &(ds_p->bsilheight);
 
 #ifdef WALLSPLATS
-	if (linedef->splats && cv_splats.value)
+	if (linedef->splats)
 	{
 		// Isn't a bit wasteful to copy the ENTIRE array for every drawseg?
 		M_Memcpy(last_ceilingclip + ds_p->x1, ceilingclip + ds_p->x1,

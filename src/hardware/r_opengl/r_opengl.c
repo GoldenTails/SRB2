@@ -1556,10 +1556,8 @@ EXPORT void HWRAPI(SetBlend) (FBITFIELD PolyFlags)
 					pglBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 					pglAlphaFunc(GL_NOTEQUAL, 0.0f);
 					break;
-				case PF_Substractive & PF_Blending:
-					// good for shadow
-					// not really but what else ?
-					pglBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
+				case PF_SplatShade & PF_Blending:
+					pglBlendFunc(GL_DST_COLOR, GL_CONSTANT_ALPHA);
 					pglAlphaFunc(GL_NOTEQUAL, 0.0f);
 					break;
 				case PF_Fog & PF_Fog:
