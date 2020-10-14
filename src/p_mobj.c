@@ -1964,8 +1964,7 @@ void P_XYMovement(mobj_t *mo)
 #ifdef SEENAMES
 			&& mo->type != MT_NAMECHECK
 #endif
-			&& ((mo->type == MT_REDRING && (mo->flags2 & 0x000001F0) == MF2_RAILRING)
-				|| (mo->type != MT_REDRING && !(mo->flags2 & 0x000001F0))))
+			&& ((mo->flags2 & 0x000001F0) == MF2_RAILRING))
 				// set by last P_TryMove() that failed
 			{
 				divline_t divl;
