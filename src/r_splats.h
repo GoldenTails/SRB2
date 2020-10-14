@@ -15,7 +15,7 @@
 
 #include "r_defs.h"
 
-//#define WALLSPLATS      // comment this out to compile without splat effects
+#define WALLSPLATS      // comment this out to compile without splat effects
 /*#ifdef USEASM
 #define FLOORSPLATS
 #endif*/
