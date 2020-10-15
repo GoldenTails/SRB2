@@ -1244,7 +1244,7 @@ void ST_startTitleCard(void)
 
 	// initialize HUD variables
 	lt_ticker = lt_exitticker = lt_lasttic = 0;
-	lt_endtime = 2*TICRATE + (10*NEWTICRATERATIO);
+	lt_endtime = 2*NEWTICRATE + (10*NEWTICRATERATIO);
 	lt_scroll = BASEVIDWIDTH * FRACUNIT;
 	lt_zigzag = -((lt_patches[1])->width * FRACUNIT);
 	lt_mom = 0;
@@ -1259,13 +1259,13 @@ void ST_preDrawTitleCard(void)
 	if (!G_IsTitleCardAvailable())
 		return;
 
-	if (lt_ticker >= (lt_endtime + TICRATE))
+	if (lt_ticker >= (lt_endtime + NEWTICRATE))
 		return;
 
 	if (!lt_exitticker)
 		st_translucency = 0;
 	else
-		st_translucency = max(0, min((INT32)lt_exitticker-4, cv_translucenthud.value));
+		st_translucency = max(0, min((INT32)lt_exitticker - (4 * NEWTICRATERATIO), cv_translucenthud.value));
 }
 
 //
@@ -1279,13 +1279,14 @@ void ST_runTitleCard(void)
 	if (!G_IsTitleCardAvailable())
 		return;
 
-	if (lt_ticker >= (lt_endtime + TICRATE))
+	if (lt_ticker >= (lt_endtime + NEWTICRATE))
 		return;
 
 	if (run || (lt_ticker < PRELEVELTIME))
 	{
 		// tick
 		lt_ticker++;
+
 		if (lt_ticker >= lt_endtime)
 			lt_exitticker++;
 
@@ -1293,7 +1294,7 @@ void ST_runTitleCard(void)
 		if (!lt_exitticker)
 		{
 			if (abs(lt_scroll) > FRACUNIT)
-				lt_scroll -= (lt_scroll>>2);
+				lt_scroll -= (lt_scroll>>2) / NEWTICRATERATIO;
 			else
 				lt_scroll = 0;
 		}
@@ -1301,20 +1302,20 @@ void ST_runTitleCard(void)
 		else
 		{
 			lt_mom -= FRACUNIT*6;
-			lt_scroll += lt_mom;
+			lt_scroll += lt_mom / NEWTICRATERATIO;
 		}
 
 		// scroll to screen (zigzag)
 		if (!lt_exitticker)
 		{
 			if (abs(lt_zigzag) > FRACUNIT)
-				lt_zigzag -= (lt_zigzag>>2);
+				lt_zigzag -= (lt_zigzag>>2) / NEWTICRATERATIO;
 			else
 				lt_zigzag = 0;
 		}
 		// scroll away from screen (zigzag)
 		else
-			lt_zigzag += lt_mom;
+			lt_zigzag += lt_mom / NEWTICRATERATIO;
 	}
 }
 
@@ -1328,7 +1329,7 @@ void ST_drawTitleCard(void)
 	UINT8 actnum = mapheaderinfo[gamemap-1]->actnum;
 	INT32 lvlttlxpos, ttlnumxpos, zonexpos;
 	INT32 subttlxpos = BASEVIDWIDTH/2;
-	INT32 ttlscroll = FixedInt(lt_scroll);
+	INT32 ttlscroll = FixedInt(lt_scroll / NEWTICRATERATIO);
 	INT32 zzticker;
 	patch_t *actpat, *zigzag, *zztext;
 	UINT8 colornum;
@@ -1347,11 +1348,11 @@ void ST_drawTitleCard(void)
 	if (!LUA_HudEnabled(hud_stagetitle))
 		goto luahook;
 
-	if (lt_ticker >= (lt_endtime + TICRATE))
+	if (lt_ticker >= (lt_endtime + NEWTICRATE))
 		goto luahook;
 
-	if ((lt_ticker-lt_lasttic) > 1)
-		lt_ticker = lt_lasttic+1;
+	if ((lt_ticker - lt_lasttic) > 1)
+		lt_ticker = lt_lasttic + 1;
 
 	ST_cacheLevelTitle();
 	actpat = lt_patches[0];
@@ -1372,7 +1373,8 @@ void ST_drawTitleCard(void)
 
 	if (!splitscreen || (splitscreen && stplyr == &players[displayplayer]))
 	{
-		zzticker = lt_ticker;
+		zzticker = lt_ticker / NEWTICRATERATIO;
+
 		V_DrawMappedPatch(FixedInt(lt_zigzag), (-zzticker) % zigzag->height, V_SNAPTOTOP|V_SNAPTOLEFT, zigzag, colormap);
 		V_DrawMappedPatch(FixedInt(lt_zigzag), (zigzag->height-zzticker) % zigzag->height, V_SNAPTOTOP|V_SNAPTOLEFT, zigzag, colormap);
 		V_DrawMappedPatch(FixedInt(lt_zigzag), (-zigzag->height+zzticker) % zztext->height, V_SNAPTOTOP|V_SNAPTOLEFT, zztext, colormap);

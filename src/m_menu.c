@@ -8554,15 +8554,17 @@ skiplife:
 
 static void M_DrawLoad(void)
 {
+	fixed_t speed = FRACUNIT - FRACUNIT/(3 * NEWTICRATERATIO);
+
 	M_DrawMenuTitle();
 
 	if (loadgamescroll > 1 || loadgamescroll < -1)
-		loadgamescroll = 2*loadgamescroll/3;
+		loadgamescroll = FixedMul(loadgamescroll, speed);
 	else
 		loadgamescroll = 0;
 
 	if (loadgameoffset > 1)
-		loadgameoffset = 2*loadgameoffset/3;
+		loadgameoffset = FixedMul(loadgameoffset, speed);
 	else
 		loadgameoffset = 0;
 

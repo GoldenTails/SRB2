@@ -3498,7 +3498,7 @@ void F_TitleScreenTicker(boolean run)
 		else
 		{
 			// Default behavior: Do a lil' camera spin if a title map is loaded;
-			camera.angle += titlescrollxspeed*ANG1/64;
+			camera.angle += titlescrollxspeed*ANG1/(64*NEWTICRATERATIO);
 		}
 	}
 
