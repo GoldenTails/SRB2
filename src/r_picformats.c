@@ -597,15 +597,15 @@ boolean Picture_IsPatchFormat(pictureformat_t format)
 
 /** Checks if the specified picture format is a flat.
   *
-  * \param format Input picture format.
+  * \param format Input picture fo.
   * \return True if the picture format is a flat, false if not.
   */
 boolean Picture_IsFlatFormat(pictureformat_t format)
 {
 	return (format == PICFMT_FLAT || format == PICFMT_FLAT16 || format == PICFMT_FLAT32);
 }
-
 /** Returns true if the lump is a valid patch.
+
   * PICFMT_PATCH only, I think??
   *
   * \param patch Input patch.
@@ -1649,16 +1649,15 @@ void R_CacheRotSprite(spritenum_t sprnum, UINT8 frame, spriteinfo_t *sprinfo, sp
 		INT32 width, height, leftoffset;
 		fixed_t ca, sa;
 		lumpnum_t lump = sprframe->lumppat[rot];
-#ifndef NO_PNG_LUMPS
 		size_t lumplength;
-#endif
 
 		if (lump == LUMPERROR)
 			return;
 
 		patch = (patch_t *)W_CacheLumpNum(lump, PU_STATIC);
-#ifndef NO_PNG_LUMPS
 		lumplength = W_LumpLength(lump);
+
+#ifndef NO_PNG_LUMPS
 
 		if (Picture_IsLumpPNG((const UINT8 *)patch, lumplength))
 			patch = (patch_t *)Picture_PNGConvert((const UINT8 *)patch, PICFMT_PATCH, NULL, NULL, NULL, NULL, lumplength, NULL, 0);

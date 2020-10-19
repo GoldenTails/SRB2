@@ -96,8 +96,6 @@ void I_StartupMouse(void){}
 
 void I_StartupMouse2(void){}
 
-void I_StartupKeyboard(void){}
-
 INT32 I_GetKey(void)
 {
 	return 0;
@@ -176,7 +174,7 @@ INT32 I_ClipboardCopy(const char *data, size_t size)
 	return -1;
 }
 
-char *I_ClipboardPaste(void)
+const char *I_ClipboardPaste(void)
 {
 	return NULL;
 }
