@@ -86,7 +86,7 @@
 #define SMALLLINEHEIGHT 8
 #define SLIDER_RANGE 9
 #define SLIDER_WIDTH 78
-#define SERVERS_PER_PAGE 11
+#define SERVERS_PER_PAGE 32
 
 typedef enum
 {
@@ -1004,17 +1004,38 @@ static menuitem_t MP_ConnectMenu[] =
 	{IT_STRING | IT_KEYHANDLER, NULL, "Page",     M_HandleServerPage, 20},
 	{IT_STRING | IT_CALL,       NULL, "Refresh",  M_Refresh,          28},
 
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          48-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          60-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          72-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          84-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          96-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         108-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         120-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         132-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         144-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         156-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         168-4},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          48-6},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          52-6},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          56-6},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          60-6},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          64-6},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          68-6},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          72-6},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          76-6},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          80-6},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          84-6},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          88-6},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          92-6},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          96-6},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         100-6},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         104-6},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         108-6},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         112-6},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         116-6},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         120-6},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         124-6},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         128-6},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         132-6},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         136-6},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         140-6},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         144-6},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         148-6},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         152-6},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         156-6},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         160-6},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         164-6},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         168-6},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         172-6},
 };
 
 enum
@@ -10825,7 +10846,7 @@ static void M_EndGame(INT32 choice)
 //===========================================================================
 
 #define SERVERHEADERHEIGHT 44
-#define SERVERLINEHEIGHT 12
+#define SERVERLINEHEIGHT 4
 
 #define S_LINEY(n) currentMenu->y + SERVERHEADERHEIGHT + (n * SERVERLINEHEIGHT)
 
@@ -11005,28 +11026,26 @@ static void M_DrawConnectMenu(void)
 		UINT32 globalflags = (serverlist[slindex].info.refusereason ? V_TRANSLUCENT : 0)
 			|((itemOn == FIRSTSERVERLINE+i) ? V_YELLOWMAP : 0)|V_ALLOWLOWERCASE;
 
-		V_DrawString(currentMenu->x, S_LINEY(i), globalflags, serverlist[slindex].info.servername);
+		V_DrawSmallString(currentMenu->x, S_LINEY(i), globalflags, serverlist[slindex].info.servername);
 
 		// Don't use color flags intentionally, the global yellow color will auto override the text color code
 		if (serverlist[slindex].info.modifiedgame)
-			V_DrawSmallString(currentMenu->x+202, S_LINEY(i)+8, globalflags, "\x85" "Mod");
+			V_DrawSmallString(currentMenu->x+240, S_LINEY(i), globalflags, "\x85" "M");
 		if (serverlist[slindex].info.cheatsenabled)
-			V_DrawSmallString(currentMenu->x+222, S_LINEY(i)+8, globalflags, "\x83" "Cheats");
+			V_DrawSmallString(currentMenu->x+248, S_LINEY(i), globalflags, "\x83" "C");
 
-		V_DrawSmallString(currentMenu->x, S_LINEY(i)+8, globalflags,
-		                     va("Ping: %u", (UINT32)LONG(serverlist[slindex].info.time)));
+		V_DrawRightAlignedSmallString(currentMenu->x+152, S_LINEY(i), globalflags,
+		                     va("%ums", (UINT32)LONG(serverlist[slindex].info.time)));
 
 		gt = serverlist[slindex].info.gametypename;
 
-		V_DrawSmallString(currentMenu->x+46,S_LINEY(i)+8, globalflags,
-		                         va("Players: %02d/%02d", serverlist[slindex].info.numberofplayer, serverlist[slindex].info.maxplayer));
+		V_DrawSmallString(currentMenu->x+156,S_LINEY(i), globalflags,
+		                         va("%02d/%02d", serverlist[slindex].info.numberofplayer, serverlist[slindex].info.maxplayer));
 
-		if (strlen(gt) > 11)
-			gt = va("Gametype: %.11s...", gt);
-		else
-			gt = va("Gametype: %s", gt);
+		if (strlen(gt) > 13)
+			gt = va("%.13s...", gt);
 
-		V_DrawSmallString(currentMenu->x+112, S_LINEY(i)+8, globalflags, gt);
+		V_DrawSmallString(currentMenu->x+180, S_LINEY(i), globalflags, gt);
 
 		MP_ConnectMenu[i+FIRSTSERVERLINE].status = IT_STRING | IT_CALL;
 	}
