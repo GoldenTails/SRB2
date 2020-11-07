@@ -36,7 +36,9 @@ void luaT_init (lua_State *L) {
     "__pow", "__unm", "__len", "__lt", "__le",
     "__concat", "__call"
     ,"__strhook"
-    ,"__and", "__or", "__xor", "__shl", "__shr", "__not"
+    ,"__and", "__or", "__xor", "__shl", "__shr", "__not",
+    "__add_eq", "__sub_eq", "__mul_eq", "__div_eq", "__mod_eq", "__pow_eq",
+    "__and_eq", "__or_eq", "__xor_eq", "__shl_eq", "__shr_eq"
   };
   int i;
   for (i=0; i<TM_N; i++) {

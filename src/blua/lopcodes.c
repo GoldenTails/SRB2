@@ -58,6 +58,17 @@ const char *const luaP_opnames[NUM_OPCODES+1] = {
   "BITSHR",
   "BITNOT",
   "VARARG",
+  "ADD_EQ",
+  "SUB_EQ",
+  "MUL_EQ",
+  "DIV_EQ",
+  "MOD_EQ",
+  "POW_EQ",
+  "BAND_EQ",
+  "BOR_EQ",
+  "BXOR_EQ",
+  "BSHL_EQ",
+  "BSHR_EQ",
   NULL
 };
 
@@ -110,4 +121,17 @@ const lu_byte luaP_opmodes[NUM_OPCODES] = {
  ,opmode(0, 1, OpArgK, OpArgK, iABC)           /* OP_BSHR */
  ,opmode(0, 1, OpArgR, OpArgN, iABC)	       /* OP_BNOT */
  ,opmode(0, 1, OpArgU, OpArgN, iABC)		/* OP_VARARG */
+/* NEW: opcodes */
+ ,opmode(0, 1, OpArgK, OpArgN, iABC)    /* OP_BAND_EQ */
+ ,opmode(0, 1, OpArgK, OpArgN, iABC)    /* OP_BOR_EQ */
+ ,opmode(0, 1, OpArgK, OpArgN, iABC)    /* OP_BXOR_EQ */
+ ,opmode(0, 1, OpArgK, OpArgN, iABC)    /* OP_BSHL_EQ */
+ ,opmode(0, 1, OpArgK, OpArgN, iABC)    /* OP_BSHR_EQ */
+
+ ,opmode(0, 1, OpArgK, OpArgN, iABC)		/* OP_ADD_EQ */
+ ,opmode(0, 1, OpArgK, OpArgN, iABC)		/* OP_SUB_EQ */
+ ,opmode(0, 1, OpArgK, OpArgN, iABC)		/* OP_MUL_EQ */
+ ,opmode(0, 1, OpArgK, OpArgN, iABC)		/* OP_DIV_EQ */
+ ,opmode(0, 1, OpArgK, OpArgN, iABC)		/* OP_MOD_EQ */
+ ,opmode(0, 1, OpArgK, OpArgN, iABC)		/* OP_POW_EQ */
 };

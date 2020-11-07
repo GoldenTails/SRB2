@@ -41,6 +41,8 @@ const char *const luaX_tokens [] = {
     "in", "local", "nil", "not", "or", "repeat",
     "return", "then", "true", "until", "while",
     "..", "...", "==", ">=", "<=", "~=",
+    "+=", "-=", "*=", "/=", "%=", "^=",
+    "&=", "|=", "^^=", "<<=", ">>=",
     "<number>", "<name>", "<string>", "<eof>",
     "<<", ">>", "^^",
     NULL
@@ -425,6 +427,10 @@ static int llex (LexState *ls, SemInfo *seminfo) {
       }
       case '-': {
         next(ls);
+        if (ls->current == '=') {
+          next(ls);
+          return TK_SUB_EQ;
+        }
         if (ls->current != '-') return '-';
         /* else is a comment */
         next(ls);
@@ -444,7 +450,10 @@ static int llex (LexState *ls, SemInfo *seminfo) {
       }
       case '/': {
         next(ls);
-        if (ls->current != '/' && ls->current != '*') return '/';
+        if (ls->current != '/' && ls->current != '*') {
+          if (ls->current != '=') return '/';
+          else { next(ls); return TK_DIV_EQ; }
+        };
         /* else is a comment */
         if (ls->current == '*') {
           char last = '\n'; /* don't remember the first asterisk, we need a different one. */
@@ -493,20 +502,48 @@ static int llex (LexState *ls, SemInfo *seminfo) {
       /* FALLTHRU */
       case '<': {
         next(ls);
-        if (ls->current == '<') { next(ls); return TK_SHL; }
-        if (ls->current != '=') return '<';
+        if (ls->current == '<') {
+          next(ls);
+          if (ls->current == '=')
+          {
+            next(ls);
+            return TK_SHL_EQ;
+          }
+          else
+            return TK_SHL;
+        }
+        else if (ls->current != '=') return '<';
         else { next(ls); return TK_LE; }
       }
       case '>': {
         next(ls);
-        if (ls->current == '>') { next(ls); return TK_SHR; }
-        if (ls->current != '=') return '>';
+        if (ls->current == '>') {
+          next(ls);
+          if (ls->current == '=')
+          {
+            next(ls);
+            return TK_SHR_EQ;
+          }
+          else
+            return TK_SHR;
+        }
+        else if (ls->current != '=') return '>';
         else { next(ls); return TK_GE; }
       }
       case '^': {
         next(ls);
-        if (ls->current == '^') { next(ls); return TK_XOR; }
-        else { return '^'; }
+        if (ls->current == '^') {
+          next(ls);
+          if (ls->current == '=')
+          {
+            next(ls);
+            return TK_XOR_EQ;
+          }
+          else
+            return TK_XOR;
+        }
+        else if (ls->current != '=') return '^';
+        else { next(ls); return TK_POW_EQ; }
       }
       case '!': {
         next(ls);
@@ -517,6 +554,31 @@ static int llex (LexState *ls, SemInfo *seminfo) {
         next(ls);
         if (ls->current != '=') return '~';
         else { next(ls); return TK_NE; }
+      }
+      case '+': {
+        next(ls);
+        if (ls->current != '=') return '+';
+        else { next(ls); return TK_ADD_EQ; }
+      }
+      case '*': {
+        next(ls);
+        if (ls->current != '=') return '*';
+        else { next(ls); return TK_MUL_EQ; }
+      }
+      case '%': {
+        next(ls);
+        if (ls->current != '=') return '%';
+        else { next(ls); return TK_MOD_EQ; }
+      }
+      case '&': {
+        next(ls);
+        if (ls->current != '=') return '&';
+        else { next(ls); return TK_BAND_EQ; }
+      }
+      case '|': {
+        next(ls);
+        if (ls->current != '=') return '|';
+        else { next(ls); return TK_BOR_EQ; }
       }
       case '"':
       case '\'': {

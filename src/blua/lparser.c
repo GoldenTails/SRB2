@@ -1069,7 +1069,7 @@ static void assignment (LexState *ls, struct LHS_assign *lh, int nvars) {
   }
   else {  /* assignment -> `=' explist1 */
     int nexps;
-    checknext(ls, '=');
+    luaX_next(ls); /* consume `=' token. */
     nexps = explist1(ls, &e);
     if (nexps != nvars) {
       adjust_assign(ls, nvars, nexps, &e);
@@ -1086,6 +1086,45 @@ static void assignment (LexState *ls, struct LHS_assign *lh, int nvars) {
   luaK_storevar(ls->fs, &lh->v, &e);
 }
 #endif
+
+static BinOpr getcompopr (int op) {
+  switch (op) {
+    case TK_ADD_EQ: return OPR_ADD_EQ;
+    case TK_SUB_EQ: return OPR_SUB_EQ;
+    case TK_MUL_EQ: return OPR_MUL_EQ;
+    case TK_DIV_EQ: return OPR_DIV_EQ;
+    case TK_MOD_EQ: return OPR_MOD_EQ;
+    case TK_POW_EQ: return OPR_POW_EQ;
+
+    /* Bitwise operators. */
+    case TK_BAND_EQ: return OPR_BAND_EQ;
+    case TK_BOR_EQ: return OPR_BOR_EQ;
+    case TK_XOR_EQ: return OPR_BXOR_EQ;
+    case TK_SHL_EQ: return OPR_BSHL_EQ;
+    case TK_SHR_EQ: return OPR_BSHR_EQ;
+    default: return OPR_NOBINOPR;
+  }
+}
+
+
+static void compound (LexState *ls, expdesc_list *lh) {
+  expdesc rh;
+  int nexps;
+  BinOpr op;
+
+  check_condition(ls, VLOCAL <= lh->v.k && lh->v.k <= VINDEXED,
+                      "syntax error");
+  /* parse Compound operation. */
+  op = getcompopr(ls->t.token);
+  luaX_next(ls);
+
+  /* parse right-hand expression */
+  nexps = explist1(ls, &rh);
+  check_condition(ls, nexps == 1, "syntax error");
+
+  luaK_posfix(ls->fs, op, &(lh->v), &rh);
+}
+
 
 static int cond (LexState *ls) {
   /* cond -> exp */
@@ -1381,9 +1420,32 @@ static void exprstat (LexState *ls) {
   else {  /* stat -> assignment */
     v.prev = NULL;
     lua_assert(ls->fs->lhs == NULL && ls->fs->nlhs == 0 && ls->fs->nrhs == 0);
-    pushlhs(ls->fs, &v);
-    assignment(ls);
-    poplhs(ls->fs);
+    switch(ls->t.token) {
+      case TK_ADD_EQ:
+      case TK_SUB_EQ:
+      case TK_MUL_EQ:
+      case TK_DIV_EQ:
+      case TK_MOD_EQ:
+      case TK_POW_EQ:
+      case TK_BAND_EQ:
+      case TK_BOR_EQ:
+      case TK_XOR_EQ:
+      case TK_SHL_EQ:
+      case TK_SHR_EQ:
+        compound(ls, &v);
+        break;
+      case ',':
+      case '=':
+        pushlhs(ls->fs, &v);
+        assignment(ls);
+        poplhs(ls->fs);
+        break;
+      default:
+        luaX_syntaxerror(ls,
+          luaO_pushfstring(ls->L,
+                           "'+=','-=','*=','/=','%=','^=','&=','|=','^^=','<<=','>>=','=' expected"));
+        break;
+    }
     ls->fs->nrhs = 0;
     lua_assert(ls->fs->lhs == NULL && ls->fs->nlhs == 0);
   }

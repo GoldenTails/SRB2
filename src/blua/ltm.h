@@ -41,6 +41,17 @@ typedef enum {
   TM_SHL,
   TM_SHR,
   TM_NOT,
+  TM_ADD_EQ,
+  TM_SUB_EQ,
+  TM_MUL_EQ,
+  TM_DIV_EQ,
+  TM_MOD_EQ,
+  TM_POW_EQ,
+  TM_AND_EQ,
+  TM_OR_EQ,
+  TM_XOR_EQ,
+  TM_SHL_EQ,
+  TM_SHR_EQ,
   TM_N		/* number of elements in the enum */
 } TMS;
 

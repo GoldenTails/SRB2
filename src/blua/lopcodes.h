@@ -210,11 +210,24 @@ OP_BXOR,
 OP_BSHL,
 OP_BSHR,
 OP_BNOT,
-OP_VARARG/*	A B	R(A), R(A+1), ..., R(A+B-1) = vararg		*/
+OP_VARARG,/* A B R(A), R(A+1), ..., R(A+B-1) = vararg    */
+
+OP_ADD_EQ,/* A B R(A) := R(A) + RK(B)        */
+OP_SUB_EQ,/* A B R(A) := R(A) - RK(B)        */
+OP_MUL_EQ,/* A B R(A) := R(A) * RK(B)        */
+OP_DIV_EQ,/* A B R(A) := R(A) / RK(B)        */
+OP_MOD_EQ,/* A B R(A) := R(A) % RK(B)        */
+OP_POW_EQ,/* A B R(A) := R(A) ^ RK(B)        */
+
+OP_BAND_EQ,/* A B R(A) := R(A) & RK(B)        */
+OP_BOR_EQ,/* A B R(A) := R(A) | RK(B)        */
+OP_BXOR_EQ,/* A B R(A) := R(A) ^^ RK(B)        */
+OP_BSHL_EQ,/* A B R(A) := R(A) << RK(B)        */
+OP_BSHR_EQ/* A B R(A) := R(A) >> RK(B)        */
 } OpCode;
 
 
-#define NUM_OPCODES	(cast(int, OP_VARARG) + 1)
+#define NUM_OPCODES	(cast(int, OP_BSHR_EQ) + 1)
 
 
 
