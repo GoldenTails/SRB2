@@ -175,22 +175,25 @@ static void Command_CSay_f(void);
 static void Got_Saycmd(UINT8 **p, INT32 playernum);
 #endif
 
-void HU_LoadGenericFontGraphics(font_t *font, const char *prefix, UINT8 numbers)
+void HU_LoadGenericFontGraphics(font_t *font, const char *lumpprefix)
 {
 	char formatstr[12];
 	char buffer[9];
+	UINT8 numbers;
 	INT32 i, j = font->start;
 
-	if (strlen(prefix) > 7 || strlen(prefix) < 1) // Has to have at least 1 letter and at most 7
-		I_Error("Invalid prefix length");
+	if (strlen(lumpprefix) > 7 || strlen(lumpprefix) < 1) // Has to have at least 1 letter and at most 7
+		I_Error("Invalid lumpprefix length");
 
-	if (numbers < 1 || numbers > 7) // Has to have at least 1 number and at most 7
-		I_Error("Invalid number of numbers");
+	numbers = 8 - strlen(lumpprefix); // Everything after the lumpprefix is a number.
 
-	if (strlen(prefix) + numbers > 8) // Has to have at most 8 characters total
-		I_Error("Length of patch name would be too long!");
+	if (font->lumpprefix != lumpprefix)
+		strcpy(font->lumpprefix, lumpprefix);
 
-	snprintf(formatstr, 12, "%s%%.%dd", prefix, numbers);
+	snprintf(formatstr, 12, "%s%%.%dd", lumpprefix, numbers);
+
+	if (font->chars)
+		Z_Free(font->chars);
 
 	font->chars = Z_Calloc(font->size * sizeof(patch_t *), PU_STATIC, NULL);
 
@@ -210,7 +213,7 @@ void HU_LoadGenericFontGraphics(font_t *font, const char *prefix, UINT8 numbers)
 void HU_LoadGraphics(void)
 {
 	char buffer[9];
-	INT32 i, j;
+	UINT32 i, j;
 
 	if (dedicated)
 		return;
@@ -224,30 +227,16 @@ void HU_LoadGraphics(void)
 	fonts[FONT_HU].charwidth = 8;
 	fonts[FONT_HU].sixspacewidth = 6;
 
+	// cache the heads-up font for entire game execution
+	HU_LoadGenericFontGraphics(&fonts[FONT_HU], "STCFN");
+
 	fonts[FONT_TNY].spacewidth = 2;
 	fonts[FONT_TNY].monospacewidth = 5;
 	fonts[FONT_TNY].charwidth = 5;
 	fonts[FONT_TNY].sixspacewidth = 3;
 
-	fonts[FONT_HU].chars = Z_Calloc(fonts[FONT_HU].size * sizeof(patch_t *), PU_STATIC, NULL);
-	fonts[FONT_TNY].chars = Z_Calloc(fonts[FONT_TNY].size * sizeof(patch_t *), PU_STATIC, NULL);
-
-	for (i = 0; i < HU_FONTSIZE; i++, j++)
-	{
-		// cache the heads-up font for entire game execution
-		sprintf(buffer, "STCFN%.3d", j);
-		if (W_CheckNumForName(buffer) == LUMPERROR)
-			fonts[FONT_HU].chars[i] = NULL;
-		else
-			fonts[FONT_HU].chars[i] = (patch_t *)W_CachePatchName(buffer, PU_HUDGFX);
-
-		// tiny version of the heads-up font
-		sprintf(buffer, "TNYFN%.3d", j);
-		if (W_CheckNumForName(buffer) == LUMPERROR)
-			fonts[FONT_TNY].chars[i] = NULL;
-		else
-			fonts[FONT_TNY].chars[i] = (patch_t *)W_CachePatchName(buffer, PU_HUDGFX);
-	}
+	// tiny version of the heads-up font
+	HU_LoadGenericFontGraphics(&fonts[FONT_TNY], "TNYFN");
 
 	fonts[FONT_LT].start = j = LT_FONTSTART;
 	fonts[FONT_LT].end = LT_FONTEND;
@@ -259,7 +248,7 @@ void HU_LoadGraphics(void)
 	fonts[FONT_LT].sixspacewidth = 16;
 
 	// cache the title card font for entire game execution
-	HU_LoadGenericFontGraphics(&fonts[FONT_LT], "LTFNT", 3);
+	HU_LoadGenericFontGraphics(&fonts[FONT_LT], "LTFNT");
 
 	fonts[FONT_CRED].start = j = CRED_FONTSTART;
 	fonts[FONT_CRED].end = CRED_FONTEND;
@@ -270,10 +259,8 @@ void HU_LoadGraphics(void)
 	fonts[FONT_CRED].charwidth = 0; // If this is 0, it will not process V_OLDSPACING. Cool, right?
 	fonts[FONT_CRED].sixspacewidth = 16;
 
-	fonts[FONT_CRED].chars = Z_Calloc(fonts[FONT_CRED].size * sizeof(patch_t *), PU_STATIC, NULL);
-
 	// cache the credits font for entire game execution (why not?)
-	HU_LoadGenericFontGraphics(&fonts[FONT_CRED], "CRFNT", 3);
+	HU_LoadGenericFontGraphics(&fonts[FONT_CRED], "CRFNT");
 
 	//cache numbers too!
 	for (i = 0; i < 10; i++)
@@ -299,27 +286,16 @@ void HU_LoadGraphics(void)
 	fonts[FONT_NTO].end = fonts[FONT_NTB].end = NT_FONTEND;
 	fonts[FONT_NTO].size = fonts[FONT_NTB].size = NT_FONTSIZE;
 
-	fonts[FONT_NTB].chars = Z_Calloc(fonts[FONT_NTB].size * sizeof(patch_t *), PU_STATIC, NULL);
-	fonts[FONT_NTO].chars = Z_Calloc(fonts[FONT_NTO].size * sizeof(patch_t *), PU_STATIC, NULL);
+	// cache the base name tag font for entire game execution
+	HU_LoadGenericFontGraphics(&fonts[FONT_NTB], "NTFNT");
 
-	for (i = 0; i < NT_FONTSIZE; i++, j++)
-	{
-		sprintf(buffer, "NTFNT%.3d", j);
+	// cache the outline name tag font for entire game execution
+	HU_LoadGenericFontGraphics(&fonts[FONT_NTO], "NTFNO");
 
-		// cache the base name tag font for entire game execution
-		if (W_CheckNumForName(buffer) == LUMPERROR)
-			fonts[FONT_NTB].chars[i] = NULL;
-		else
-			fonts[FONT_NTB].chars[i] = (patch_t *)W_CachePatchName(buffer, PU_HUDGFX);
-
-		sprintf(buffer, "NTFNO%.3d", j);
-
-		// cache the outline name tag font for entire game execution
-		if (W_CheckNumForName(buffer) == LUMPERROR)
-			fonts[FONT_NTO].chars[i] = NULL;
-		else
-			fonts[FONT_NTO].chars[i] = (patch_t *)W_CachePatchName(buffer, PU_HUDGFX);
-	}
+	// Freeslotted fonts
+	if (numfonts > FONT_FIRSTFREESLOT)
+		for (i = FONT_FIRSTFREESLOT; i < numfonts; i++)
+			HU_LoadGenericFontGraphics(&fonts[i], fonts[i].lumpprefix);
 
 	// cache the crosshairs, don't bother to know which one is being used,
 	// just cache all 3, they're so small anyway.

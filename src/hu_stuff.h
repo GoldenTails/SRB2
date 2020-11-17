@@ -33,6 +33,8 @@ typedef struct
 	INT32 sixspacewidth; // Space width when V_6WIDTHSPACE is enabled
 	INT32 charwidth; // Character width when V_OLDSPACING is enabled
 
+	char lumpprefix[8]; // Prefix (has room for 7 characters)
+
 	patch_t **chars;
 } font_t;
 
@@ -136,7 +138,7 @@ extern boolean hu_showscores;
 // init heads up data at game startup.
 void HU_Init(void);
 
-void HU_LoadGenericFontGraphics(font_t *font, const char *prefix, UINT8 numbers);
+void HU_LoadGenericFontGraphics(font_t *font, const char *lumpprefix);
 
 void HU_LoadGraphics(void);
 

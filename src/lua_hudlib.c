@@ -85,7 +85,7 @@ enum font {
 	font_monospacewidth,
 	font_sixspacewidth,
 	font_charwidth,
-	font_loadPatches
+	font_lumpprefix
 };
 
 static const char *const font_opt[] = {
@@ -96,7 +96,7 @@ static const char *const font_opt[] = {
 	"monospacewidth",
 	"sixspacewidth",
 	"charwidth",
-	"loadPatches",
+	"lumpprefix",
 	NULL};
 
 enum patch {
@@ -321,8 +321,20 @@ static int lib_setFontList(lua_State *L)
 			info->sixspacewidth = (INT32)luaL_checkinteger(L, 3);
 		else if (i == 6 || (str && fastcmp(str,"charwidth")))
 			info->charwidth = (INT32)luaL_checkinteger(L, 3);
+		else if (i == 7 || (str && fastcmp(str,"lumpprefix"))) {
+			const char *lumpprefix = luaL_checkstring(L, 3);
+
+			if (strlen(lumpprefix) > 7 || strlen(lumpprefix) < 1) // Has to have at least 1 letter and at most 7
+				return luaL_error(L, "patch name length %d out of range (1 - 7)", strlen(lumpprefix));
+
+			strcpy(info->lumpprefix, lumpprefix);
+		}
 		lua_pop(L, 1);
 	}
+
+	if (info->lumpprefix)
+		HU_LoadGenericFontGraphics(info, info->lumpprefix);
+
 	return 0;
 }
 
@@ -330,25 +342,6 @@ static int lib_fontslen(lua_State *L)
 {
 	lua_pushinteger(L, numfonts);
 	return 1;
-}
-
-static int lib_font_loadPatches(lua_State *L)
-{
-	font_t *font = *((font_t **)luaL_checkudata(L, 1, META_FONT));
-	const char *prefix = luaL_checkstring(L, 2);
-	INT32 numbers = luaL_checkinteger(L, 3);
-
-	if (strlen(prefix) > 7 || strlen(prefix) < 1) // Has to have at least 1 letter and at most 7
-		return luaL_error(L, "patch name length %d out of range (1 - 7)", strlen(prefix));
-
-	if (numbers < 1 || numbers > 7) // Has to have at least 1 number and at most 7
-		return luaL_error(L, "numeric suffix length %d out of range (1 - 7)", numbers);
-
-	if (strlen(prefix) + numbers > 8) // Has to have at most 8 characters total
-		return luaL_error(L, "possible patch name length %d is longer than 8 characters");
-
-	HU_LoadGenericFontGraphics(font, prefix, numbers);
-	return 0;
 }
 
 static int font_get(lua_State *L)
@@ -398,8 +391,8 @@ static int font_get(lua_State *L)
 	case font_charwidth:
 		lua_pushinteger(L, font->charwidth);
 		break;
-	case font_loadPatches:
-		lua_pushcfunction(L, lib_font_loadPatches);
+	case font_lumpprefix:
+		lua_pushstring(L, font->lumpprefix);
 		break;
 	}
 	return 1;
@@ -434,6 +427,17 @@ static int font_set(lua_State *L)
 	case font_charwidth:
 		font->charwidth = (INT32)luaL_checkinteger(L, 3);
 		break;
+	case font_lumpprefix:
+		{
+			const char *lumpprefix = luaL_checkstring(L, 3);
+
+			if (strlen(lumpprefix) > 7 || strlen(lumpprefix) < 1) // Has to have at least 1 letter and at most 7
+				return luaL_error(L, "patch name length %d out of range (1 - 7)", strlen(lumpprefix));
+
+			HU_LoadGenericFontGraphics(font, lumpprefix);
+
+			break;
+		}
 	}
 	return 0;
 }
