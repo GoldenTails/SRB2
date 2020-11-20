@@ -512,41 +512,87 @@ boolean SCR_IsAspectCorrect(INT32 width, INT32 height)
 
 // XMOD FPS display
 // moved out of os-specific code for consistency
-static boolean fpsgraph[TICRATE];
+static boolean ticsgraph[TICRATE];
 static tic_t lasttic;
+
+static UINT32 fpstime = 0;
+static UINT32 lastupdatetime = 0;
+
+#define FPSUPDATERATE 1/20 // What fraction of a second to update at. The fraction will not simplify to 0, trust me.
+#define FPSMAXSAMPLES 16
+
+static UINT32 fpssamples[FPSMAXSAMPLES];
+static UINT32 fpssampleslen = 0;
+static UINT32 fpssum = 0;
+static double aproxfps = 0.0f;
 
 void SCR_DisplayTicRate(void)
 {
 	tic_t i;
 	tic_t ontic = I_GetTime();
 	tic_t totaltics = 0;
-	INT32 ticcntcolor = 0;
+	UINT8 ticcntcolor = '\x80', fpscntcolor = '\x80';
 	const INT32 h = vid.height-(8*vid.dupy);
 
 	if (gamestate == GS_NULL)
 		return;
 
 	for (i = lasttic + 1; i < TICRATE+lasttic && i < ontic; ++i)
-		fpsgraph[i % TICRATE] = false;
+		ticsgraph[i % TICRATE] = false;
 
-	fpsgraph[ontic % TICRATE] = true;
+	ticsgraph[ontic % TICRATE] = true;
 
 	for (i = 0;i < TICRATE;++i)
-		if (fpsgraph[i])
+		if (ticsgraph[i])
 			++totaltics;
 
-	if (totaltics <= TICRATE/2) ticcntcolor = V_REDMAP;
-	else if (totaltics == TICRATE) ticcntcolor = V_GREENMAP;
+	if (totaltics <= TICRATE/2) ticcntcolor += (V_REDMAP >> V_CHARCOLORSHIFT);
+	else if (totaltics == TICRATE) ticcntcolor += (V_SKYMAP >> V_CHARCOLORSHIFT);
+
+	if (fpstime - lastupdatetime > 1000000 * FPSUPDATERATE)
+	{
+		if (fpssampleslen == FPSMAXSAMPLES)
+		{
+			fpssum -= fpssamples[0];
+
+			for (i = 1; i < fpssampleslen; i++)
+				fpssamples[i-1] = fpssamples[i];
+		}
+		else
+			fpssampleslen++;
+
+		fpssamples[fpssampleslen-1] = I_GetTimeMicros() - fpstime;
+		fpssum += fpssamples[fpssampleslen-1];
+
+		aproxfps = 1000000 / ((double)fpssum / fpssampleslen);
+
+		lastupdatetime = I_GetTimeMicros();
+	}
+
+	fpstime = I_GetTimeMicros();
+
+	if (aproxfps <= 15.0f) fpscntcolor += (V_REDMAP >> V_CHARCOLORSHIFT);
+	else if (aproxfps >= (cv_frameinterpolation.value ? 60.0f : TICRATE)) fpscntcolor += (V_GREENMAP >> V_CHARCOLORSHIFT);
 
 	if (cv_ticrate.value == 2) // compact counter
-		V_DrawString(vid.width-(16*vid.dupx), h,
-			ticcntcolor|V_NOSCALESTART|V_USERHUDTRANS, va("%02d", totaltics));
+	{
+		V_DrawRightAlignedString(vid.width, h-(8*vid.dupy), V_NOSCALESTART|V_USERHUDTRANS,
+			va("%c%02d", ticcntcolor, totaltics));
+		V_DrawRightAlignedString(vid.width, h, V_NOSCALESTART|V_USERHUDTRANS,
+			va("%c%02d", fpscntcolor, (UINT8)aproxfps));
+	}
 	else if (cv_ticrate.value == 1) // full counter
 	{
-		V_DrawString(vid.width-(72*vid.dupx), h,
-			V_YELLOWMAP|V_NOSCALESTART|V_USERHUDTRANS, "FPS:");
-		V_DrawString(vid.width-(40*vid.dupx), h,
-			ticcntcolor|V_NOSCALESTART|V_USERHUDTRANS, va("%02d/%02u", totaltics, TICRATE));
+		UINT8 yellowchr = '\x80' + (V_YELLOWMAP >> V_CHARCOLORSHIFT);
+
+		const char *formatstr = "%cFPS:%c% 02.2f";
+		if (aproxfps >= 100.0f)
+			formatstr = "%cFPS:%c%02.2f";
+
+		V_DrawRightAlignedString(vid.width, h-(8*vid.dupy), V_NOSCALESTART|V_USERHUDTRANS|V_MONOSPACE,
+			va("%cTPS:%c %02d/%02u", yellowchr, ticcntcolor, totaltics, TICRATE));
+		V_DrawRightAlignedString(vid.width, h, V_NOSCALESTART|V_USERHUDTRANS|V_MONOSPACE,
+			va(formatstr, yellowchr, fpscntcolor, aproxfps));
 	}
 
 	lasttic = ontic;
@@ -557,7 +603,7 @@ void SCR_DisplayLocalPing(void)
 	UINT32 ping = playerpingtable[consoleplayer];	// consoleplayer's ping is everyone's ping in a splitnetgame :P
 	if (cv_showping.value == 1 || (cv_showping.value == 2 && servermaxping && ping > servermaxping))	// only show 2 (warning) if our ping is at a bad level
 	{
-		INT32 dispy = cv_ticrate.value ? 180 : 189;
+		INT32 dispy = cv_ticrate.value ? 172 : 189;
 		HU_drawPing(307, dispy, ping, true, V_SNAPTORIGHT | V_SNAPTOBOTTOM);
 	}
 }
