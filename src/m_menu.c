@@ -5843,6 +5843,7 @@ static void M_DrawLevelPlatterMenu(void)
 	UINT8 iter = lsrow, sizeselect = (lswide(lsrow) ? 1 : 0);
 	INT32 y = lsbasey + FixedInt(lsoffs[0]) - getheadingoffset(lsrow);
 	const INT32 cursorx = (sizeselect ? 0 : (lscol*lshseperation));
+	fixed_t cursormovefrac;
 
 	if (currentMenu->prevMenu == &SP_TimeAttackDef)
 	{
@@ -5917,7 +5918,8 @@ static void M_DrawLevelPlatterMenu(void)
 #endif
 
 	// handle movement of cursor box
-	fixed_t cursormovefrac = FixedDiv(2, 3);
+	cursormovefrac = FixedDiv(2, 3);
+
 	if (lsoffs[0] > FRACUNIT || lsoffs[0] < -FRACUNIT)
 	{
 		fixed_t offs = lsoffs[0];
@@ -8554,8 +8556,9 @@ skiplife:
 
 static void M_DrawLoad(void)
 {
-	M_DrawMenuTitle();
 	fixed_t scrollfrac = FixedDiv(2, 3);
+
+	M_DrawMenuTitle();
 
 	if (loadgamescroll > FRACUNIT || loadgamescroll < -FRACUNIT)
 	{
