@@ -5458,6 +5458,8 @@ static void HWR_ProjectPrecipitationSprite(precipmobj_t *thing)
 	unsigned rot = 0;
 	UINT8 flip;
 
+	fixed_t interpx, interpy, interpz;
+
 	if (!thing)
 		return;
 
@@ -5469,9 +5471,9 @@ static void HWR_ProjectPrecipitationSprite(precipmobj_t *thing)
 	}
 
 	// uncapped/interpolation
-	fixed_t interpx = thing->x;
-	fixed_t interpy = thing->y;
-	fixed_t interpz = thing->z;
+	interpx = thing->x;
+	interpy = thing->y;
+	interpz = thing->z;
 
 	// do interpolation
 	if (cv_frameinterpolation.value == 1 && !paused)
