@@ -579,7 +579,7 @@ void SCR_DisplayTicRate(void)
 		V_DrawRightAlignedString(vid.width, h-(8*vid.dupy), V_NOSCALESTART|V_USERHUDTRANS,
 			va("%c%02d", ticcntcolor, totaltics));
 		V_DrawRightAlignedString(vid.width, h, V_NOSCALESTART|V_USERHUDTRANS,
-			va("%c%02d", fpscntcolor, (UINT8)aproxfps));
+			va("%c%02d", fpscntcolor, (UINT32)aproxfps));
 	}
 	else if (cv_ticrate.value == 1) // full counter
 	{
