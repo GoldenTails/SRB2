@@ -1429,6 +1429,13 @@ static void R_ProjectSprite(mobj_t *thing)
 	if (thing->player)
 		interpangle = thing->player->drawangle;
 
+	if (thing->nointerpolate && !thing->player && viewplayer->mo)
+	{
+		interpx += FixedMul(viewplayer->mo->x - viewplayer->mo->old_x, rendertimefrac - FRACUNIT);
+		interpy += FixedMul(viewplayer->mo->y - viewplayer->mo->old_y, rendertimefrac - FRACUNIT);
+		interpz += FixedMul(viewplayer->mo->z - viewplayer->mo->old_z, rendertimefrac - FRACUNIT);
+	}
+
 	// transform the origin point
 	tr_x = interpx - viewx;
 	tr_y = interpy - viewy;

@@ -4796,6 +4796,13 @@ static void HWR_ProjectSprite(mobj_t *thing)
 	interpz = thing->old_z + FixedMul(rendertimefrac, thing->z - thing->old_z);
 	interpangle = mobjangle;
 
+	if (thing->nointerpolate && !thing->player && viewplayer->mo)
+	{
+		interpx += FixedMul(viewplayer->mo->x - viewplayer->mo->old_x, rendertimefrac - FRACUNIT);
+		interpy += FixedMul(viewplayer->mo->y - viewplayer->mo->old_y, rendertimefrac - FRACUNIT);
+		interpz += FixedMul(viewplayer->mo->z - viewplayer->mo->old_z, rendertimefrac - FRACUNIT);
+	}
+
 	this_scale = FIXED_TO_FLOAT(thing->scale);
 
 	// transform the origin point

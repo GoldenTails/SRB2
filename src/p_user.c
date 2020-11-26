@@ -2169,6 +2169,7 @@ void P_SpawnSpinMobj(player_t *player, mobjtype_t type)
 		{
 			mobj->frame = FF_TRANS70;
 			mobj->fuse = mobj->tics;
+			mobj->nointerpolate = true;
 		}
 	}
 
