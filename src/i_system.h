@@ -54,6 +54,10 @@ precise_t I_GetPreciseTime(void);
   */
 int I_PreciseToMicros(precise_t);
 
+/** \brief  Sets the previous time for interpolation.
+*/
+void I_SetInterpolationDiff(void);
+
 /** \brief  Get the current time as a fraction of a tic since the last tic.
 */
 fixed_t I_GetTimeFrac(void);
