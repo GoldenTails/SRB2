@@ -2136,8 +2136,6 @@ ticcmd_t *I_BaseTiccmd2(void)
 	return &emptycmd2;
 }
 
-static Uint64 basetime = 0;
-
 //
 // I_GetTime
 // returns time in 1/TICRATE second tics
@@ -2170,15 +2168,17 @@ int I_PreciseToMicros(precise_t d)
 	return (int)(d / (timer_frequency / 1000000.0));
 }
 
+static precise_t prevticks;
+
+void I_SetInterpolationDiff(void)
+{
+	prevticks = I_GetPreciseTime();
+}
+
 fixed_t I_GetTimeFrac(void) {
-	Uint64 ticks;
-	Uint64 prevticks;
-	fixed_t frac;
+	double ticks = I_PreciseToMicros((I_GetPreciseTime() - prevticks)) * TICRATE;
+	fixed_t frac = ticks * FRACUNIT / 1000000;
 
-	ticks = SDL_GetTicks() - basetime;
-	prevticks = prev_tics * 1000 / TICRATE;
-
-	frac = FixedDiv((ticks - prevticks) * FRACUNIT, (int)lroundf((1.f/TICRATE)*1000 * FRACUNIT));
 	return frac > FRACUNIT ? FRACUNIT : frac;
 }
 
@@ -2189,6 +2189,8 @@ void I_StartupTimer(void)
 {
 	timer_frequency = SDL_GetPerformanceFrequency();
 	tic_epoch       = SDL_GetPerformanceCounter();
+
+	prevticks       = SDL_GetPerformanceCounter();
 
 	tic_frequency   = timer_frequency / (double)NEWTICRATE;
 }
