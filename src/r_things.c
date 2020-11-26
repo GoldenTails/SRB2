@@ -1467,7 +1467,7 @@ static void R_ProjectSprite(mobj_t *thing)
 	if (thing->player) interpangle = thing->player->drawangle;
 
 	// do interpolation
-	if (cv_frameinterpolation.value == 1 && !paused)
+	if (cv_frameinterpolation.value == 1)
 	{
 		interpx = thing->old_x + FixedMul(rendertimefrac, thing->x - thing->old_x);
 		interpy = thing->old_y + FixedMul(rendertimefrac, thing->y - thing->old_y);
@@ -1787,7 +1787,7 @@ static void R_ProjectSprite(mobj_t *thing)
 		fixed_t linkscale;
 
 		thing = thing->tracer;
-		if (cv_frameinterpolation.value == 1 && !paused)
+		if (cv_frameinterpolation.value == 1)
 		{
 			interpx = thing->old_x + FixedMul(thing->x - thing->old_x, rendertimefrac);
 			interpy = thing->old_y + FixedMul(thing->y - thing->old_y, rendertimefrac);
@@ -2140,7 +2140,7 @@ static void R_ProjectPrecipitationSprite(precipmobj_t *thing)
 	fixed_t interpz = thing->z;
 
 	// do interpolation
-	if (cv_frameinterpolation.value == 1 && !paused)
+	if (cv_frameinterpolation.value == 1)
 	{
 		interpx = thing->old_x + FixedMul(rendertimefrac, thing->x - thing->old_x);
 		interpy = thing->old_y + FixedMul(rendertimefrac, thing->y - thing->old_y);

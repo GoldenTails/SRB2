@@ -5066,7 +5066,7 @@ static void HWR_ProjectSprite(mobj_t *thing)
 	interpz = thing->z;
 	interpangle = mobjangle;
 
-	if (cv_frameinterpolation.value == 1 && !paused)
+	if (cv_frameinterpolation.value == 1)
 	{
 		interpx = thing->old_x + FixedMul(rendertimefrac, thing->x - thing->old_x);
 		interpy = thing->old_y + FixedMul(rendertimefrac, thing->y - thing->old_y);
@@ -5476,7 +5476,7 @@ static void HWR_ProjectPrecipitationSprite(precipmobj_t *thing)
 	interpz = thing->z;
 
 	// do interpolation
-	if (cv_frameinterpolation.value == 1 && !paused)
+	if (cv_frameinterpolation.value == 1)
 	{
 		interpx = thing->old_x + FixedMul(rendertimefrac, thing->x - thing->old_x);
 		interpy = thing->old_y + FixedMul(rendertimefrac, thing->y - thing->old_y);
