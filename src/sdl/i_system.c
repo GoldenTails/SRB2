@@ -2138,7 +2138,8 @@ fixed_t I_GetTimeFrac(void) {
 	Uint64 prevticks;
 	fixed_t frac;
 
-	ticks = SDL_GetTicks() - basetime;
+	ticks = I_GetTimeMicros() / 1000;
+
 	prevticks = prev_tics * 1000 / TICRATE;
 
 	frac = FixedDiv((ticks - prevticks) * FRACUNIT, (int)lroundf((1.f/TICRATE)*1000 * FRACUNIT));
