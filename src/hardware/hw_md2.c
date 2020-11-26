@@ -493,12 +493,25 @@ boolean HWR_DrawModel(modelinfo_t *md2, gl_vissprite_t *spr)
 	UINT8 spr2 = 0;
 	FTransform p;
 
+	// uncapped/interpolation
+	fixed_t interpx = spr->mobj->x;
+	fixed_t interpy = spr->mobj->y;
+	fixed_t interpz = spr->mobj->z;
+
 	if (!cv_models.value || md2->error || spr->precip)
 		return false;
 
 	// Lactozilla: Disallow certain models from rendering
 	if (!Model_AllowRendering(spr->mobj))
 		return false;
+
+	// do interpolation
+	if (cv_frameinterpolation.value == 1)
+	{
+		interpx = spr->mobj->old_x + FixedMul(rendertimefrac, spr->mobj->x - spr->mobj->old_x);
+		interpy = spr->mobj->old_y + FixedMul(rendertimefrac, spr->mobj->y - spr->mobj->old_y);
+		interpz = spr->mobj->old_z + FixedMul(rendertimefrac, spr->mobj->z - spr->mobj->old_z);
+	}
 
 	memset(&p, 0x00, sizeof(FTransform));
 
@@ -514,7 +527,7 @@ boolean HWR_DrawModel(modelinfo_t *md2, gl_vissprite_t *spr)
 		{
 			INT32 light;
 
-			light = R_GetPlaneLight(sector, spr->mobj->z + spr->mobj->height, false); // Always use the light at the top instead of whatever I was doing before
+			light = R_GetPlaneLight(sector, interpz + spr->mobj->height, false); // Always use the light at the top instead of whatever I was doing before
 
 			if (!(spr->mobj->frame & FF_FULLBRIGHT))
 				lightlevel = *sector->lightlist[light].lightlevel > 255 ? 255 : *sector->lightlist[light].lightlevel;
@@ -734,13 +747,13 @@ boolean HWR_DrawModel(modelinfo_t *md2, gl_vissprite_t *spr)
 #endif
 
 		//Hurdler: it seems there is still a small problem with mobj angle
-		p.x = FIXED_TO_FLOAT(spr->mobj->x);
-		p.y = FIXED_TO_FLOAT(spr->mobj->y)+md2->offset;
+		p.x = FIXED_TO_FLOAT(interpx);
+		p.y = FIXED_TO_FLOAT(interpy)+md2->offset;
 
 		if (flip)
-			p.z = FIXED_TO_FLOAT(spr->mobj->z + spr->mobj->height);
+			p.z = FIXED_TO_FLOAT(interpz + spr->mobj->height);
 		else
-			p.z = FIXED_TO_FLOAT(spr->mobj->z);
+			p.z = FIXED_TO_FLOAT(interpz);
 
 		sprframe = &sprdef->spriteframes[spr->mobj->frame & FF_FRAMEMASK];
 
@@ -755,7 +768,7 @@ boolean HWR_DrawModel(modelinfo_t *md2, gl_vissprite_t *spr)
 		}
 		else
 		{
-			const fixed_t anglef = AngleFixed((R_PointToAngle(spr->mobj->x, spr->mobj->y))-ANGLE_180);
+			const fixed_t anglef = AngleFixed((R_PointToAngle(interpx, interpy))-ANGLE_180);
 			p.angley = FIXED_TO_FLOAT(anglef);
 		}
 
@@ -777,7 +790,7 @@ boolean HWR_DrawModel(modelinfo_t *md2, gl_vissprite_t *spr)
 				p.rotaxis = (UINT8)(sprinfo->pivot[(spr->mobj->frame & FF_FRAMEMASK)].rotaxis);
 
 			// for NiGHTS specifically but should work everywhere else
-			ang = R_PointToAngle (spr->mobj->x, spr->mobj->y) - (spr->mobj->player ? spr->mobj->player->drawangle : spr->mobj->angle);
+			ang = R_PointToAngle (interpx, interpy) - (spr->mobj->player ? spr->mobj->player->drawangle : spr->mobj->angle);
 			if ((sprframe->rotate & SRF_RIGHT) && (ang < ANGLE_180)) // See from right
 				p.rollflip = 1;
 			else if ((sprframe->rotate & SRF_LEFT) && (ang >= ANGLE_180)) // See from left
