@@ -817,7 +817,7 @@ void D_SRB2Loop(void)
 				debugload--;
 #endif
 
-		if (!realtics && !singletics && cv_frameinterpolation.value != 1)
+		if (!realtics && !singletics && !cv_frameinterpolation.value)
 		{
 			I_Sleep();
 			continue;
@@ -837,7 +837,7 @@ void D_SRB2Loop(void)
 
 		if (!P_AutoPause() && !paused)
 		{
-			if (cv_frameinterpolation.value == 1)
+			if (cv_frameinterpolation.value)
 			{
 				fixed_t entertimefrac = I_GetTimeFrac();
 				// renderdeltatics is a bit awkard to evaluate, since the system time interface is whole tic-based
@@ -856,10 +856,8 @@ void D_SRB2Loop(void)
 			}
 		}
 
-		if (cv_frameinterpolation.value == 1)
-		{
+		if (cv_frameinterpolation.value)
 			D_Display();
-		}
 
 		if (lastdraw || singletics || gametic > rendergametic)
 		{
@@ -868,7 +866,8 @@ void D_SRB2Loop(void)
 
 			// Update display, next frame, with current state.
 			// (Only display if not already done for frame interp)
-			cv_frameinterpolation.value == 0 ? D_Display() : 0;
+			if (!cv_frameinterpolation.value)
+				D_Display();
 
 			if (moviemode)
 				M_SaveFrame();
@@ -885,8 +884,10 @@ void D_SRB2Loop(void)
 				if (camera.chase)
 					P_MoveChaseCamera(&players[displayplayer], &camera, false);
 			}
+
 			// (Only display if not already done for frame interp)
-			cv_frameinterpolation.value == 0 ? D_Display() : 0;
+			if (!cv_frameinterpolation.value)
+				D_Display();
 
 			if (moviemode)
 				M_SaveFrame();
