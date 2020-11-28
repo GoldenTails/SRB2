@@ -1199,7 +1199,7 @@ void R_SetupFrame(player_t *player)
 	// newview->sin = FINESINE(viewangle>>ANGLETOFINESHIFT);
 	// newview->cos = FINECOSINE(viewangle>>ANGLETOFINESHIFT);
 
-	R_InterpolateView(player, false, cv_frameinterpolation.value == 1 ? rendertimefrac : FRACUNIT);
+	R_InterpolateView(player, false, rendertimefrac);
 }
 
 void R_SkyboxFrame(player_t *player)
@@ -1343,7 +1343,7 @@ void R_SkyboxFrame(player_t *player)
 	// newview->sin = FINESINE(viewangle>>ANGLETOFINESHIFT);
 	// newview->cos = FINECOSINE(viewangle>>ANGLETOFINESHIFT);
 
-	R_InterpolateView(player, true, cv_frameinterpolation.value == 1 ? rendertimefrac : FRACUNIT);
+	R_InterpolateView(player, true, rendertimefrac);
 }
 
 boolean R_ViewpointHasChasecam(player_t *player)
