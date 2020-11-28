@@ -3577,14 +3577,8 @@ static void HWR_DrawDropShadow(mobj_t *thing, fixed_t scale)
 	fixed_t slopez;
 	pslope_t *groundslope;
 
-	fixed_t interpx = thing->x;
-	fixed_t interpy = thing->y;
-
-	if (cv_frameinterpolation.value == 1)
-	{
-		interpx = thing->old_x + FixedMul(rendertimefrac, thing->x - thing->old_x);
-		interpy = thing->old_y + FixedMul(rendertimefrac, thing->y - thing->old_y);
-	}
+	fixed_t interpx = thing->old_x + FixedMul(rendertimefrac, thing->x - thing->old_x);
+	fixed_t interpy = thing->old_y + FixedMul(rendertimefrac, thing->y - thing->old_y);
 
 	groundz = R_GetShadowZ(thing, &groundslope);
 
@@ -4786,18 +4780,10 @@ static void HWR_ProjectSprite(mobj_t *thing)
 
 	dispoffset = thing->info->dispoffset;
 
-	interpx = thing->x;
-	interpy = thing->y;
-	interpz = thing->z;
+	interpx = thing->old_x + FixedMul(rendertimefrac, thing->x - thing->old_x);
+	interpy = thing->old_y + FixedMul(rendertimefrac, thing->y - thing->old_y);
+	interpz = thing->old_z + FixedMul(rendertimefrac, thing->z - thing->old_z);
 	interpangle = mobjangle;
-
-	if (cv_frameinterpolation.value == 1)
-	{
-		interpx = thing->old_x + FixedMul(rendertimefrac, thing->x - thing->old_x);
-		interpy = thing->old_y + FixedMul(rendertimefrac, thing->y - thing->old_y);
-		interpz = thing->old_z + FixedMul(rendertimefrac, thing->z - thing->old_z);
-		interpangle = mobjangle;
-	}
 
 	this_scale = FIXED_TO_FLOAT(thing->scale);
 
@@ -5120,17 +5106,9 @@ static void HWR_ProjectPrecipitationSprite(precipmobj_t *thing)
 		return;
 
 	// uncapped/interpolation
-	fixed_t interpx = thing->x;
-	fixed_t interpy = thing->y;
-	fixed_t interpz = thing->z;
-
-	// do interpolation
-	if (cv_frameinterpolation.value == 1)
-	{
-		interpx = thing->old_x + FixedMul(rendertimefrac, thing->x - thing->old_x);
-		interpy = thing->old_y + FixedMul(rendertimefrac, thing->y - thing->old_y);
-		interpz = thing->old_z + FixedMul(rendertimefrac, thing->z - thing->old_z);
-	}
+	fixed_t interpx = thing->old_x + FixedMul(rendertimefrac, thing->x - thing->old_x);
+	fixed_t interpy = thing->old_y + FixedMul(rendertimefrac, thing->y - thing->old_y);
+	fixed_t interpz = thing->old_z + FixedMul(rendertimefrac, thing->z - thing->old_z);
 
 	// transform the origin point
 	tr_x = FIXED_TO_FLOAT(interpx) - gl_viewx;

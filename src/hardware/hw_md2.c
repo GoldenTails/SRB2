@@ -494,9 +494,9 @@ boolean HWR_DrawModel(modelinfo_t *md2, gl_vissprite_t *spr)
 	FTransform p;
 
 	// uncapped/interpolation
-	fixed_t interpx = spr->mobj->x;
-	fixed_t interpy = spr->mobj->y;
-	fixed_t interpz = spr->mobj->z;
+	fixed_t interpx = spr->mobj->old_x + FixedMul(rendertimefrac, spr->mobj->x - spr->mobj->old_x);
+	fixed_t interpy = spr->mobj->old_y + FixedMul(rendertimefrac, spr->mobj->y - spr->mobj->old_y);
+	fixed_t interpz = spr->mobj->old_z + FixedMul(rendertimefrac, spr->mobj->z - spr->mobj->old_z);
 
 	if (!cv_models.value || md2->error || spr->precip)
 		return false;
@@ -504,14 +504,6 @@ boolean HWR_DrawModel(modelinfo_t *md2, gl_vissprite_t *spr)
 	// Lactozilla: Disallow certain models from rendering
 	if (!Model_AllowRendering(spr->mobj))
 		return false;
-
-	// do interpolation
-	if (cv_frameinterpolation.value == 1)
-	{
-		interpx = spr->mobj->old_x + FixedMul(rendertimefrac, spr->mobj->x - spr->mobj->old_x);
-		interpy = spr->mobj->old_y + FixedMul(rendertimefrac, spr->mobj->y - spr->mobj->old_y);
-		interpz = spr->mobj->old_z + FixedMul(rendertimefrac, spr->mobj->z - spr->mobj->old_z);
-	}
 
 	memset(&p, 0x00, sizeof(FTransform));
 

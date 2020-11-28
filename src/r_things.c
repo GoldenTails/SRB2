@@ -1467,9 +1467,9 @@ static void R_ProjectSprite(mobj_t *thing)
 #endif
 
 	// uncapped/interpolation
-	fixed_t interpx = thing->x;
-	fixed_t interpy = thing->y;
-	fixed_t interpz = thing->z;
+	fixed_t interpx = thing->old_x + FixedMul(rendertimefrac, thing->x - thing->old_x);
+	fixed_t interpy = thing->old_y + FixedMul(rendertimefrac, thing->y - thing->old_y);
+	fixed_t interpz = thing->old_z + FixedMul(rendertimefrac, thing->z - thing->old_z);
 	angle_t interpangle = thing->angle;
 
 #ifdef SWRASTERIZER
@@ -1482,23 +1482,8 @@ static void R_ProjectSprite(mobj_t *thing)
 #endif
 
 	// use player drawangle if player
-	if (thing->player) interpangle = thing->player->drawangle;
-
-	// do interpolation
-	if (cv_frameinterpolation.value == 1)
-	{
-		interpx = thing->old_x + FixedMul(rendertimefrac, thing->x - thing->old_x);
-		interpy = thing->old_y + FixedMul(rendertimefrac, thing->y - thing->old_y);
-		interpz = thing->old_z + FixedMul(rendertimefrac, thing->z - thing->old_z);
-		if (thing->player)
-		{
-			interpangle = thing->player->drawangle;
-		}
-		else
-		{
-			interpangle = thing->angle;
-		}
-	}
+	if (thing->player)
+		interpangle = thing->player->drawangle;
 
 	// transform the origin point
 	tr_x = interpx - viewx;
@@ -1805,11 +1790,9 @@ static void R_ProjectSprite(mobj_t *thing)
 		fixed_t linkscale;
 
 		thing = thing->tracer;
-		if (cv_frameinterpolation.value == 1)
-		{
-			interpx = thing->old_x + FixedMul(thing->x - thing->old_x, rendertimefrac);
-			interpy = thing->old_y + FixedMul(thing->y - thing->old_y, rendertimefrac);
-		}
+
+		interpx = thing->old_x + FixedMul(thing->x - thing->old_x, rendertimefrac);
+		interpy = thing->old_y + FixedMul(thing->y - thing->old_y, rendertimefrac);
 
 		if (! R_ThingVisible(thing))
 			return;
@@ -2057,17 +2040,9 @@ static void R_ProjectPrecipitationSprite(precipmobj_t *thing)
 	fixed_t gz, gzt;
 
 	// uncapped/interpolation
-	fixed_t interpx = thing->x;
-	fixed_t interpy = thing->y;
-	fixed_t interpz = thing->z;
-
-	// do interpolation
-	if (cv_frameinterpolation.value == 1)
-	{
-		interpx = thing->old_x + FixedMul(rendertimefrac, thing->x - thing->old_x);
-		interpy = thing->old_y + FixedMul(rendertimefrac, thing->y - thing->old_y);
-		interpz = thing->old_z + FixedMul(rendertimefrac, thing->z - thing->old_z);
-	}
+	fixed_t interpx = thing->old_x + FixedMul(rendertimefrac, thing->x - thing->old_x);
+	fixed_t interpy = thing->old_y + FixedMul(rendertimefrac, thing->y - thing->old_y);
+	fixed_t interpz = thing->old_z + FixedMul(rendertimefrac, thing->z - thing->old_z);
 
 	// transform the origin point
 	tr_x = interpx - viewx;
