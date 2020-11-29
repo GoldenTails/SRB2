@@ -470,16 +470,16 @@ boolean F_ShouldColormapFade(void)
 	&& !(wipestyleflags & WSF_CROSSFADE)) // and if not crossfading
 	{
 		// World
-		return (gamestate == GS_LEVEL
-		|| gamestate == GS_TITLESCREEN
+		return (gamestatus == GS_LEVEL
+		|| gamestatus == GS_TITLESCREEN
 		// Finales
-		|| gamestate == GS_CONTINUING
-		|| gamestate == GS_CREDITS
-		|| gamestate == GS_EVALUATION
-		|| gamestate == GS_INTRO
-		|| gamestate == GS_ENDING
+		|| gamestatus == GS_CONTINUING
+		|| gamestatus == GS_CREDITS
+		|| gamestatus == GS_EVALUATION
+		|| gamestatus == GS_INTRO
+		|| gamestatus == GS_ENDING
 		// Menus
-		|| gamestate == GS_TIMEATTACK);
+		|| gamestatus == GS_TIMEATTACK);
 	}
 #endif
 	return false;

@@ -49,7 +49,7 @@
 #include "lua_hud.h"
 
 gameaction_t gameaction;
-gamestate_t gamestate = GS_NULL;
+gamestatus_t gamestatus = GS_NULL;
 UINT8 ultimatemode = false;
 
 boolean botingame;
@@ -1146,7 +1146,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	// why build a ticcmd if we're paused?
 	// Or, for that matter, if we're being reborn.
 	// ...OR if we're blindfolded. No looking into the floor.
-	if (paused || P_AutoPause() || (gamestate == GS_LEVEL && (player->playerstate == PST_REBORN || ((gametyperules & GTR_TAG)
+	if (paused || P_AutoPause() || (gamestatus == GS_LEVEL && (player->playerstate == PST_REBORN || ((gametyperules & GTR_TAG)
 	&& (leveltime < hidetime * TICRATE) && (player->pflags & PF_TAGIT)))))
 	{//@TODO splitscreen player
 		cmd->angleturn = ticcmd_oldangleturn[forplayer];
@@ -1680,7 +1680,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	// At this point, cmd doesn't contain the final angle yet,
 	// So we need to temporarily transform it so Lua scripters
 	// don't need to handle it differently than in other hooks.
-	if (gamestate == GS_LEVEL)
+	if (gamestatus == GS_LEVEL)
 	{
 		INT16 extra = ticcmd_oldangleturn[forplayer] - player->oldrelangleturn;
 		INT16 origangle = cmd->angleturn;
@@ -1814,10 +1814,10 @@ void G_DoLoadLevel(boolean resetplayer)
 
 	levelstarttic = gametic; // for time calculation
 
-	if (wipegamestate == GS_LEVEL)
-		wipegamestate = -1; // force a wipe
+	if (wipegamestatus == GS_LEVEL)
+		wipegamestatus = -1; // force a wipe
 
-	if (gamestate == GS_INTERMISSION)
+	if (gamestatus == GS_INTERMISSION)
 		Y_EndIntermission();
 
 	// cleanup
@@ -1835,7 +1835,7 @@ void G_DoLoadLevel(boolean resetplayer)
 	else
 		titlemapinaction = TITLEMAP_OFF;
 
-	G_SetGamestate(GS_LEVEL);
+	G_SetGamestatus(GS_LEVEL);
 	I_UpdateMouseGrab();
 
 	for (i = 0; i < MAXPLAYERS; i++)
@@ -1978,9 +1978,9 @@ boolean G_Responder(event_t *ev)
 {
 	// any other key pops up menu if in demos
 	if (gameaction == ga_nothing && !singledemo &&
-		((demoplayback && !modeattacking && !titledemo) || gamestate == GS_TITLESCREEN))
+		((demoplayback && !modeattacking && !titledemo) || gamestatus == GS_TITLESCREEN))
 	{
-		if (ev->type == ev_keydown && ev->data1 != 301 && !(gamestate == GS_TITLESCREEN && finalecount < TICRATE))
+		if (ev->type == ev_keydown && ev->data1 != 301 && !(gamestatus == GS_TITLESCREEN && finalecount < TICRATE))
 		{
 			M_StartControlPanel();
 			return true;
@@ -1999,7 +1999,7 @@ boolean G_Responder(event_t *ev)
 		return false;
 	}
 
-	if (gamestate == GS_LEVEL)
+	if (gamestatus == GS_LEVEL)
 	{
 		if (HU_Responder(ev))
 			return true; // chat ate the event
@@ -2008,7 +2008,7 @@ boolean G_Responder(event_t *ev)
 		// map the event (key/mouse/joy) to a gamecontrol
 	}
 	// Intro
-	else if (gamestate == GS_INTRO)
+	else if (gamestatus == GS_INTRO)
 	{
 		if (F_IntroResponder(ev))
 		{
@@ -2016,7 +2016,7 @@ boolean G_Responder(event_t *ev)
 			return true;
 		}
 	}
-	else if (gamestate == GS_CUTSCENE)
+	else if (gamestatus == GS_CUTSCENE)
 	{
 		if (HU_Responder(ev))
 			return true; // chat ate the event
@@ -2027,7 +2027,7 @@ boolean G_Responder(event_t *ev)
 			return true;
 		}
 	}
-	else if (gamestate == GS_CREDITS || gamestate == GS_ENDING) // todo: keep ending here?
+	else if (gamestatus == GS_CREDITS || gamestatus == GS_ENDING) // todo: keep ending here?
 	{
 		if (HU_Responder(ev))
 			return true; // chat ate the event
@@ -2042,20 +2042,20 @@ boolean G_Responder(event_t *ev)
 			return true;
 		}
 	}
-	else if (gamestate == GS_CONTINUING)
+	else if (gamestatus == GS_CONTINUING)
 	{
 		if (F_ContinueResponder(ev))
 			return true;
 	}
 	// Demo End
-	else if (gamestate == GS_GAMEEND)
+	else if (gamestatus == GS_GAMEEND)
 		return true;
-	else if (gamestate == GS_INTERMISSION || gamestate == GS_EVALUATION)
+	else if (gamestatus == GS_INTERMISSION || gamestatus == GS_EVALUATION)
 		if (HU_Responder(ev))
 			return true; // chat ate the event
 
 	// allow spy mode changes even during the demo
-	if (gamestate == GS_LEVEL && ev->type == ev_keydown
+	if (gamestatus == GS_LEVEL && ev->type == ev_keydown
 		&& (ev->data1 == KEY_F12 || ev->data1 == gamecontrol[gc_viewpoint][0] || ev->data1 == gamecontrol[gc_viewpoint][1]))
 	{
 		// ViewpointSwitch Lua hook.
@@ -2133,7 +2133,7 @@ boolean G_Responder(event_t *ev)
 				|| ev->data1 == gamecontrol[gc_pause][1]
 				|| ev->data1 == KEY_PAUSE)
 			{
-				if (modeattacking && !demoplayback && (gamestate == GS_LEVEL))
+				if (modeattacking && !demoplayback && (gamestatus == GS_LEVEL))
 				{
 					pausebreakkey = (ev->data1 == KEY_PAUSE);
 					if (menuactive || pausedelay < 0 || leveltime < 2)
@@ -2210,12 +2210,12 @@ void G_Ticker(boolean run)
 	INT32 buf;
 
 	// see also SCR_DisplayMarathonInfo
-	if ((marathonmode & (MA_INIT|MA_INGAME)) == MA_INGAME && gamestate == GS_LEVEL)
+	if ((marathonmode & (MA_INIT|MA_INGAME)) == MA_INGAME && gamestatus == GS_LEVEL)
 		marathontime++;
 
 	P_MapStart();
 	// do player reborns if needed
-	if (gamestate == GS_LEVEL)
+	if (gamestatus == GS_LEVEL)
 	{
 		// Or, alternatively, retry.
 		if (!(netgame || multiplayer) && G_GetRetryFlag())
@@ -2278,7 +2278,7 @@ void G_Ticker(boolean run)
 	}
 
 	// do main actions
-	switch (gamestate)
+	switch (gamestatus)
 	{
 		case GS_LEVEL:
 			if (titledemo)
@@ -3048,7 +3048,7 @@ void G_DoReborn(INT32 playernum)
 			}
 
 			// Do a wipe
-			wipegamestate = -1;
+			wipegamestatus = -1;
 			wipestyleflags = WSF_CROSSFADE;
 
 			if (camera.chase)
@@ -3202,7 +3202,7 @@ boolean G_EnoughPlayersFinished(void)
 
 void G_ExitLevel(void)
 {
-	if (gamestate == GS_LEVEL)
+	if (gamestatus == GS_LEVEL)
 	{
 		gameaction = ga_completed;
 		lastdraw = true;
@@ -3221,11 +3221,11 @@ void G_ExitLevel(void)
 		// Remove CEcho text on round end.
 		HU_ClearCEcho();
 	}
-	else if (gamestate == GS_ENDING)
+	else if (gamestatus == GS_ENDING)
 	{
 		F_StartCredits();
 	}
-	else if (gamestate == GS_CREDITS)
+	else if (gamestatus == GS_CREDITS)
 	{
 		F_StartGameEvaluation();
 	}
@@ -3939,7 +3939,7 @@ static void G_DoCompleted(void)
 	}
 	else
 	{
-		G_SetGamestate(GS_INTERMISSION);
+		G_SetGamestatus(GS_INTERMISSION);
 		Y_StartIntermission();
 		G_UpdateVisited();
 		G_HandleSaveLevel();
@@ -4004,7 +4004,7 @@ static void G_DoWorldDone(void)
 //
 void G_UseContinue(void)
 {
-	if (gamestate == GS_LEVEL && !netgame && !multiplayer)
+	if (gamestatus == GS_LEVEL && !netgame && !multiplayer)
 	{
 		gameaction = ga_startcont;
 		lastdraw = true;
@@ -4489,7 +4489,7 @@ void G_LoadGame(UINT32 slot, INT16 mapoverride)
 	save_p = savebuffer = NULL;
 
 //	gameaction = ga_nothing;
-//	G_SetGamestate(GS_LEVEL);
+//	G_SetGamestatus(GS_LEVEL);
 	displayplayer = consoleplayer;
 	multiplayer = splitscreen = false;
 
@@ -5086,13 +5086,13 @@ INT32 G_FindMapByNameOrCode(const char *mapname, char **realmapnamep)
 }
 
 //
-// G_SetGamestate
+// G_SetGamestatus
 //
-// Use this to set the gamestate, please.
+// Use this to set the gamestatus, please.
 //
-void G_SetGamestate(gamestate_t newstate)
+void G_SetGamestatus(gamestatus_t newstatus)
 {
-	gamestate = newstate;
+	gamestatus = newstatus;
 }
 
 /* These functions handle the exitgame flag. Before, when the user

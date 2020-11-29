@@ -183,7 +183,7 @@ void D_ProcessEvents(void)
 		if (M_ScreenshotResponder(ev))
 			continue; // ate the event
 
-		if (gameaction == ga_nothing && gamestate == GS_TITLESCREEN)
+		if (gameaction == ga_nothing && gamestatus == GS_TITLESCREEN)
 		{
 			if (cht_Responder(ev))
 				continue;
@@ -226,9 +226,9 @@ void D_ProcessEvents(void)
 // draw current display, possibly wiping it from the previous
 //
 
-// wipegamestate can be set to -1 to force a wipe on the next draw
-// added comment : there is a wipe eatch change of the gamestate
-gamestate_t wipegamestate = GS_LEVEL;
+// wipegamestatus can be set to -1 to force a wipe on the next draw
+// added comment : there is a wipe eatch change of the gamestatus
+gamestatus_t wipegamestatus = GS_LEVEL;
 // -1: Default; 0-n: Wipe index; INT16_MAX: do not wipe
 INT16 wipetypepre = -1;
 INT16 wipetypepost = -1;
@@ -284,12 +284,12 @@ static void D_Display(void)
 	I_UpdateNoBlit();
 
 	// save the current screen if about to wipe
-	wipe = (gamestate != wipegamestate);
+	wipe = (gamestatus != wipegamestatus);
 	if (wipe && wipetypepre != INT16_MAX)
 	{
 		// set for all later
-		wipedefindex = gamestate; // wipe_xxx_toblack
-		if (gamestate == GS_INTERMISSION)
+		wipedefindex = gamestatus; // wipe_xxx_toblack
+		if (gamestatus == GS_INTERMISSION)
 		{
 			if (intertype == int_spec) // Special Stage
 				wipedefindex = wipe_specinter_toblack;
@@ -303,21 +303,21 @@ static void D_Display(void)
 		if (rendermode != render_none)
 		{
 			// Fade to black first
-			if ((wipegamestate == (gamestate_t)FORCEWIPE ||
-			        (wipegamestate != (gamestate_t)FORCEWIPEOFF
-						&& !(gamestate == GS_LEVEL || (gamestate == GS_TITLESCREEN && titlemapinaction)))
+			if ((wipegamestatus == (gamestatus_t)FORCEWIPE ||
+			        (wipegamestatus != (gamestatus_t)FORCEWIPEOFF
+						&& !(gamestatus == GS_LEVEL || (gamestatus == GS_TITLESCREEN && titlemapinaction)))
 					) // fades to black on its own timing, always
 			 && wipetypepre != UINT8_MAX)
 			{
 				F_WipeStartScreen();
 				// Check for Mega Genesis fade
 				wipestyleflags = WSF_FADEOUT;
-				if (wipegamestate == (gamestate_t)FORCEWIPE)
+				if (wipegamestatus == (gamestatus_t)FORCEWIPE)
 					F_WipeColorFill(31);
 				else if (F_TryColormapFade(31))
 					wipetypepost = -1; // Don't run the fade below this one
 				F_WipeEndScreen();
-				F_RunWipe(wipetypepre, gamestate != GS_TIMEATTACK && gamestate != GS_TITLESCREEN);
+				F_RunWipe(wipetypepre, gamestatus != GS_TIMEATTACK && gamestatus != GS_TITLESCREEN);
 			}
 
 			F_WipeStartScreen();
@@ -329,7 +329,7 @@ static void D_Display(void)
 		wipetypepre = -1;
 
 	// do buffered drawing
-	switch (gamestate)
+	switch (gamestatus)
 	{
 		case GS_TITLESCREEN:
 			if (!titlemapinaction || !curbghide) {
@@ -355,7 +355,7 @@ static void D_Display(void)
 
 		case GS_INTRO:
 			F_IntroDrawer();
-			if (wipegamestate == (gamestate_t)-1)
+			if (wipegamestatus == (gamestatus_t)-1)
 				wipe = true;
 			break;
 
@@ -399,15 +399,15 @@ static void D_Display(void)
 	}
 
 	// STUPID race condition...
-	if (wipegamestate == GS_INTRO && gamestate == GS_TITLESCREEN)
-		wipegamestate = FORCEWIPEOFF;
+	if (wipegamestatus == GS_INTRO && gamestatus == GS_TITLESCREEN)
+		wipegamestatus = FORCEWIPEOFF;
 	else
 	{
-		wipegamestate = gamestate;
+		wipegamestatus = gamestatus;
 
 		// clean up border stuff
 		// see if the border needs to be initially drawn
-		if (gamestate == GS_LEVEL || (gamestate == GS_TITLESCREEN && titlemapinaction && curbghide && (!hidetitlemap)))
+		if (gamestatus == GS_LEVEL || (gamestatus == GS_TITLESCREEN && titlemapinaction && curbghide && (!hidetitlemap)))
 		{
 			// draw the view directly
 
@@ -476,7 +476,7 @@ static void D_Display(void)
 
 			ps_uitime = I_GetTimeMicros();
 
-			if (gamestate == GS_LEVEL)
+			if (gamestatus == GS_LEVEL)
 			{
 				ST_Drawer();
 				F_TextPromptDrawer();
@@ -493,7 +493,7 @@ static void D_Display(void)
 
 	// change gamma if needed
 	// (GS_LEVEL handles this already due to level-specific palettes)
-	if (forcerefresh && !(gamestate == GS_LEVEL || (gamestate == GS_TITLESCREEN && titlemapinaction)))
+	if (forcerefresh && !(gamestatus == GS_LEVEL || (gamestatus == GS_TITLESCREEN && titlemapinaction)))
 		V_SetPalette(0);
 
 	// draw pause pic
@@ -564,7 +564,7 @@ static void D_Display(void)
 				wipestyleflags &= ~WSF_FADEOUT;
 			}
 
-			F_RunWipe(wipetypepost, gamestate != GS_TIMEATTACK && gamestate != GS_TITLESCREEN);
+			F_RunWipe(wipetypepost, gamestatus != GS_TIMEATTACK && gamestatus != GS_TITLESCREEN);
 		}
 
 		// reset counters so timedemo doesn't count the wipe duration
@@ -672,7 +672,7 @@ void D_SRB2Loop(void)
 	because I_FinishUpdate was called afterward
 	*/
 	/* Smells like a hack... Don't fade Sonic's ass into the title screen. */
-	if (gamestate != GS_TITLESCREEN)
+	if (gamestatus != GS_TITLESCREEN)
 	{
 		gstartuplumpnum = W_CheckNumForName("STARTUP");
 		if (gstartuplumpnum == LUMPERROR)
@@ -735,7 +735,7 @@ void D_SRB2Loop(void)
 		else if (rendertimeout < entertic) // in case the server hang or netsplit
 		{
 			// Lagless camera! Yay!
-			if (gamestate == GS_LEVEL && netgame)
+			if (gamestatus == GS_LEVEL && netgame)
 			{
 				if (splitscreen && camera2.chase)
 					P_MoveChaseCamera(&players[secondarydisplayplayer], &camera2, false);
@@ -788,7 +788,7 @@ void D_StartTitle(void)
 	{
 		if (gametyperules & GTR_CAMPAIGN)
 		{
-			G_SetGamestate(GS_WAITINGPLAYERS); // hack to prevent a command repeat
+			G_SetGamestatus(GS_WAITINGPLAYERS); // hack to prevent a command repeat
 
 			if (server)
 			{
@@ -1298,7 +1298,7 @@ void D_SRB2Main(void)
 	// set user default mode or mode set at cmdline
 	SCR_CheckDefaultMode();
 
-	wipegamestate = gamestate;
+	wipegamestatus = gamestatus;
 
 	savedata.lives = 0; // flag this as not-used
 
@@ -1445,8 +1445,8 @@ void D_SRB2Main(void)
 		else
 			G_TimeDemo(tmp);
 
-		G_SetGamestate(GS_NULL);
-		wipegamestate = GS_NULL;
+		G_SetGamestatus(GS_NULL);
+		wipegamestatus = GS_NULL;
 		return;
 	}
 
@@ -1539,7 +1539,7 @@ void D_SRB2Main(void)
 	if (dedicated && server)
 	{
 		levelstarttic = gametic;
-		G_SetGamestate(GS_LEVEL);
+		G_SetGamestatus(GS_LEVEL);
 		if (!P_LoadLevel(false, false))
 			I_Quit(); // fail so reset game stuff
 	}

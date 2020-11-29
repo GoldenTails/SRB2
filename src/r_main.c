@@ -1136,7 +1136,7 @@ void R_SetupFrame(player_t *player)
 		chasecam = (cv_chasecam.value != 0);
 	}
 
-	if (player->climbing || (player->powers[pw_carry] == CR_NIGHTSMODE) || player->playerstate == PST_DEAD || gamestate == GS_TITLESCREEN || tutorialmode)
+	if (player->climbing || (player->powers[pw_carry] == CR_NIGHTSMODE) || player->playerstate == PST_DEAD || gamestatus == GS_TITLESCREEN || tutorialmode)
 		chasecam = true; // force chasecam on
 	else if (player->spectator) // no spectator chasecam
 		chasecam = false; // force chasecam off
@@ -1372,7 +1372,7 @@ boolean R_ViewpointHasChasecam(player_t *player)
 	else
 		chasecam = (cv_chasecam.value != 0);
 
-	if (player->climbing || (player->powers[pw_carry] == CR_NIGHTSMODE) || player->playerstate == PST_DEAD || gamestate == GS_TITLESCREEN || tutorialmode)
+	if (player->climbing || (player->powers[pw_carry] == CR_NIGHTSMODE) || player->playerstate == PST_DEAD || gamestatus == GS_TITLESCREEN || tutorialmode)
 		chasecam = true; // force chasecam on
 	else if (player->spectator) // no spectator chasecam
 		chasecam = false; // force chasecam off

@@ -4073,7 +4073,7 @@ static void P_NetArchiveMisc(boolean resending)
 	if (resending)
 		WRITEUINT32(save_p, gametic);
 	WRITEINT16(save_p, gamemap);
-	WRITEINT16(save_p, gamestate);
+	WRITEINT16(save_p, gamestatus);
 	WRITEINT16(save_p, gametype);
 
 	{
@@ -4164,7 +4164,7 @@ static inline boolean P_NetUnArchiveMisc(boolean reloading)
 	// normally sets this flag
 	mapmusflags |= MUSIC_RELOADRESET;
 
-	G_SetGamestate(READINT16(save_p));
+	G_SetGamestatus(READINT16(save_p));
 
 	gametype = READINT16(save_p);
 
@@ -4308,7 +4308,7 @@ void P_SaveNetGame(boolean resending)
 	}
 
 	P_NetArchivePlayers();
-	if (gamestate == GS_LEVEL)
+	if (gamestatus == GS_LEVEL)
 	{
 		P_NetArchiveWorld();
 		P_ArchivePolyObjects();
@@ -4324,9 +4324,9 @@ void P_SaveNetGame(boolean resending)
 
 boolean P_LoadGame(INT16 mapoverride)
 {
-	if (gamestate == GS_INTERMISSION)
+	if (gamestatus == GS_INTERMISSION)
 		Y_EndIntermission();
-	G_SetGamestate(GS_NULL); // should be changed in P_UnArchiveMisc
+	G_SetGamestatus(GS_NULL); // should be changed in P_UnArchiveMisc
 
 	P_UnArchiveSPGame(mapoverride);
 	P_UnArchivePlayer();
@@ -4347,7 +4347,7 @@ boolean P_LoadNetGame(boolean reloading)
 	if (!P_NetUnArchiveMisc(reloading))
 		return false;
 	P_NetUnArchivePlayers();
-	if (gamestate == GS_LEVEL)
+	if (gamestatus == GS_LEVEL)
 	{
 		P_NetUnArchiveWorld();
 		P_UnArchivePolyObjects();

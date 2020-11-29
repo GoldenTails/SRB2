@@ -670,9 +670,9 @@ extern INT32 debugload;
 // if true, load all graphics at level load
 extern boolean precache;
 
-// wipegamestate can be set to -1
+// wipegamestatus can be set to -1
 //  to force a wipe on the next draw
-extern gamestate_t wipegamestate;
+extern gamestatus_t wipegamestatus;
 extern INT16 wipetypepre;
 extern INT16 wipetypepost;
 

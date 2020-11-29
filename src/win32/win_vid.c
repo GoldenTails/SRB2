@@ -320,7 +320,7 @@ static inline boolean I_SkipFrame(void)
 		return false;
 
 	skip = !skip;
-	switch (gamestate)
+	switch (gamestatus)
 	{
 		case GS_LEVEL:
 			if (!paused)

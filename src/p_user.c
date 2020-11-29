@@ -190,7 +190,7 @@ fixed_t P_ReturnThrustY(mobj_t *mo, angle_t angle, fixed_t move)
 boolean P_AutoPause(void)
 {
 	// Don't pause even on menu-up or focus-lost in netgames or record attack
-	if (netgame || modeattacking || gamestate == GS_TITLESCREEN)
+	if (netgame || modeattacking || gamestatus == GS_TITLESCREEN)
 		return false;
 
 	return (menuactive || ( window_notinfocus && cv_pauseifunfocused.value ));
@@ -294,7 +294,7 @@ boolean P_PlayerMoving(INT32 pnum)
 	if (p->jointime < 5*TICRATE || p->playerstate == PST_DEAD || p->playerstate == PST_REBORN || p->spectator)
 		return false;
 
-	return gamestate == GS_LEVEL && p->mo && p->mo->health > 0
+	return gamestatus == GS_LEVEL && p->mo && p->mo->health > 0
 		&& (abs(p->rmomx) >= FixedMul(FRACUNIT/2, p->mo->scale)
 			|| abs(p->rmomy) >= FixedMul(FRACUNIT/2, p->mo->scale)
 			|| abs(p->mo->momz) >= FixedMul(FRACUNIT/2, p->mo->scale)
@@ -1264,7 +1264,7 @@ void P_GivePlayerLives(player_t *player, INT32 numlives)
 	if (player->bot)
 		player = &players[consoleplayer];
 
-	if (gamestate == GS_LEVEL)
+	if (gamestatus == GS_LEVEL)
 	{
 		if (player->lives == INFLIVES || !(gametyperules & GTR_LIVES))
 		{
@@ -1371,7 +1371,7 @@ void P_AddPlayerScore(player_t *player, UINT32 amount)
 		player = &players[consoleplayer];
 
 	// NiGHTS does it different!
-	if (gamestate == GS_LEVEL && mapheaderinfo[gamemap-1]->typeoflevel & TOL_NIGHTS)
+	if (gamestatus == GS_LEVEL && mapheaderinfo[gamemap-1]->typeoflevel & TOL_NIGHTS)
 	{
 		if ((netgame || multiplayer) && G_IsSpecialStage(gamemap))
 		{ // Pseudo-shared score for multiplayer special stages.
@@ -1527,8 +1527,8 @@ void P_PlayJingle(player_t *player, jingletype_t jingletype)
 //
 void P_PlayJingleMusic(player_t *player, const char *musname, UINT16 musflags, boolean looping, UINT16 status)
 {
-	// If gamestate != GS_LEVEL, always play the jingle (1-up intermission)
-	if (gamestate == GS_LEVEL && player && !P_IsLocalPlayer(player))
+	// If gamestatus != GS_LEVEL, always play the jingle (1-up intermission)
+	if (gamestatus == GS_LEVEL && player && !P_IsLocalPlayer(player))
 		return;
 
 	S_RetainMusic(musname, musflags, looping, 0, status);

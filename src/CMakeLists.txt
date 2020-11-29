@@ -83,7 +83,7 @@ set(SRB2_CORE_HEADERS
 	g_demo.h
 	g_game.h
 	g_input.h
-	g_state.h
+	g_status.h
 	hu_stuff.h
 	i_joy.h
 	i_net.h

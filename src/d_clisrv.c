@@ -1351,7 +1351,7 @@ static boolean SV_SendServerConfig(INT32 node)
 	netbuffer->u.servercfg.totalslotnum = (UINT8)(doomcom->numslots);
 	netbuffer->u.servercfg.gametic = (tic_t)LONG(gametic);
 	netbuffer->u.servercfg.clientnode = (UINT8)node;
-	netbuffer->u.servercfg.gamestate = (UINT8)gamestate;
+	netbuffer->u.servercfg.gamestatus = (UINT8)gamestatus;
 	netbuffer->u.servercfg.gametype = (UINT8)gametype;
 	netbuffer->u.servercfg.modifiedgame = (UINT8)modifiedgame;
 
@@ -2161,12 +2161,12 @@ static void CL_ConnectToServer(void)
 			CONS_Printf(M_GetText("Contacting the server...\n"));
 	}
 
-	if (gamestate == GS_INTERMISSION)
+	if (gamestatus == GS_INTERMISSION)
 		Y_EndIntermission(); // clean up intermission graphics etc
 
 	DEBFILE(va("waiting %d nodes\n", doomcom->numnodes));
-	G_SetGamestate(GS_WAITINGPLAYERS);
-	wipegamestate = GS_WAITINGPLAYERS;
+	G_SetGamestatus(GS_WAITINGPLAYERS);
+	wipegamestatus = GS_WAITINGPLAYERS;
 
 	ClearAdminPlayers();
 	pnumnodes = 1;
@@ -3567,9 +3567,9 @@ void SV_StopServer(void)
 {
 	tic_t i;
 
-	if (gamestate == GS_INTERMISSION)
+	if (gamestatus == GS_INTERMISSION)
 		Y_EndIntermission();
-	gamestate = wipegamestate = GS_NULL;
+	gamestatus = wipegamestatus = GS_NULL;
 
 	localtextcmd[0] = 0;
 	localtextcmd2[0] = 0;
@@ -3681,17 +3681,17 @@ static void HandleConnect(SINT8 node)
 		nodewaiting[node] = (UINT8)(netbuffer->u.clientcfg.localplayers - playerpernode[node]);
 		if (!nodeingame[node])
 		{
-			gamestate_t backupstate = gamestate;
+			gamestatus_t backupstatus = gamestatus;
 #ifndef NONET
 			newnode = true;
 #endif
 			SV_AddNode(node);
 
 			if (cv_joinnextround.value && gameaction == ga_nothing)
-				G_SetGamestate(GS_WAITINGPLAYERS);
+				G_SetGamestatus(GS_WAITINGPLAYERS);
 			if (!SV_SendServerConfig(node))
 			{
-				G_SetGamestate(backupstate);
+				G_SetGamestatus(backupstatus);
 				/// \note Shouldn't SV_SendRefuse be called before ResetNode?
 				ResetNode(node);
 				SV_SendRefuse(node, M_GetText("Server couldn't send info, please try again"));
@@ -3700,13 +3700,13 @@ static void HandleConnect(SINT8 node)
 			}
 			//if (gamestate != GS_LEVEL) // GS_INTERMISSION, etc?
 			//	SV_SendPlayerConfigs(node); // send bare minimum player info
-			G_SetGamestate(backupstate);
+			G_SetGamestatus(backupstatus);
 			DEBFILE("new node joined\n");
 		}
 #ifndef NONET
 		if (nodewaiting[node])
 		{
-			if ((gamestate == GS_LEVEL || gamestate == GS_INTERMISSION) && newnode)
+			if ((gamestatus == GS_LEVEL || gamestatus == GS_INTERMISSION) && newnode)
 			{
 				SV_SendSaveGame(node, false); // send a complete game state
 				DEBFILE("send savegame\n");
@@ -3939,8 +3939,8 @@ static void HandlePacketFromAwayNode(SINT8 node)
 			/// \note Wait. What if a Lua script uses some global custom variables synched with the NetVars hook?
 			///       Shouldn't them be downloaded even at intermission time?
 			///       Also, according to HandleConnect, the server will send the savegame even during intermission...
-			if (netbuffer->u.servercfg.gamestate == GS_LEVEL/* ||
-				netbuffer->u.servercfg.gamestate == GS_INTERMISSION*/)
+			if (netbuffer->u.servercfg.gamestatus == GS_LEVEL/* ||
+				netbuffer->u.servercfg.gamestatus == GS_INTERMISSION*/)
 				cl_mode = CL_DOWNLOADSAVEGAME;
 			else
 #endif
@@ -4094,7 +4094,7 @@ static void HandlePacketFromPlayer(SINT8 node)
 					&netbuffer->u.client2pak.cmd2, 1);
 
 			// Check player consistancy during the level
-			if (realstart <= gametic && realstart + BACKUPTICS - 1 > gametic && gamestate == GS_LEVEL
+			if (realstart <= gametic && realstart + BACKUPTICS - 1 > gametic && gamestatus == GS_LEVEL
 				&& consistancy[realstart%BACKUPTICS] != SHORT(netbuffer->u.clientpak.consistancy)
 				&& !resendingsavegame[node] && savegameresendcooldown[node] <= I_GetTime()
 				&& !SV_ResendingSavegameToAnyone())
@@ -4562,14 +4562,14 @@ static void CL_SendClientCmd(void)
 	netbuffer->u.clientpak.resendfrom = (UINT8)(neededtic & UINT8_MAX);
 	netbuffer->u.clientpak.client_tic = (UINT8)(gametic & UINT8_MAX);
 
-	if (gamestate == GS_WAITINGPLAYERS)
+	if (gamestatus == GS_WAITINGPLAYERS)
 	{
 		// Send PT_NODEKEEPALIVE packet
 		netbuffer->packettype += 4;
 		packetsize = sizeof (clientcmd_pak) - sizeof (ticcmd_t) - sizeof (INT16);
 		HSendPacket(servernode, false, 0, packetsize);
 	}
-	else if (gamestate != GS_NULL && (addedtogame || dedicated))
+	else if (gamestatus != GS_NULL && (addedtogame || dedicated))
 	{
 		G_MoveTiccmd(&netbuffer->u.clientpak.cmd, &localcmds, 1);
 		netbuffer->u.clientpak.consistancy = SHORT(consistancy[gametic%BACKUPTICS]);
@@ -4857,7 +4857,7 @@ void TryRunTics(tic_t realtics)
 				ps_tictime = I_GetTimeMicros() - ps_tictime;
 
 				// Leave a certain amount of tics present in the net buffer as long as we've ran at least one tic this frame.
-				if (client && gamestate == GS_LEVEL && leveltime > 3 && neededtic <= gametic + cv_netticbuffer.value)
+				if (client && gamestatus == GS_LEVEL && leveltime > 3 && neededtic <= gametic + cv_netticbuffer.value)
 					break;
 			}
 	}

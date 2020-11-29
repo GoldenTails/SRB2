@@ -851,7 +851,7 @@ void S_UpdateSounds(void)
 		S_SetMIDIMusicVolume (cv_midimusicvolume.value);
 
 	// We're done now, if we're not in a level.
-	if (gamestate != GS_LEVEL)
+	if (gamestatus != GS_LEVEL)
 	{
 #ifndef NOMUMBLE
 		// Stop Mumble cutting out. I'm sick of it.
@@ -2340,7 +2340,7 @@ void S_StopMusic(void)
 	{
 		if (closedcaptions[0].s-S_sfx == sfx_None)
 		{
-			if (gamestate != wipegamestate)
+			if (gamestatus != wipegamestatus)
 			{
 				closedcaptions[0].c = NULL;
 				closedcaptions[0].s = NULL;

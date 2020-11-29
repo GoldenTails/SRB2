@@ -21,7 +21,7 @@
 #include "m_cond.h" // Emblem constants
 #include "v_video.h" // video flags (for lua)
 #include "i_sound.h" // musictype_t (for lua)
-#include "g_state.h" // gamestate_t (for lua)
+#include "g_status.h" // gamestatus_t (for lua)
 
 #include "deh_tables.h"
 
@@ -5399,7 +5399,7 @@ struct int_const_s const INT_CONST[] = {
 	{"MU_MOD_EX", MU_MOD_EX},
 	{"MU_MID_EX", MU_MID_EX},
 
-	// gamestates
+	// gamestatuses
 	{"GS_NULL",GS_NULL},
 	{"GS_LEVEL",GS_LEVEL},
 	{"GS_INTERMISSION",GS_INTERMISSION},

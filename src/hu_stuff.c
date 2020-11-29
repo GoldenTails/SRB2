@@ -2085,9 +2085,9 @@ void HU_Drawer(void)
 		HU_DrawDemoInfo();
 
 	if (!Playing()
-	 || gamestate == GS_INTERMISSION || gamestate == GS_CUTSCENE
-	 || gamestate == GS_CREDITS      || gamestate == GS_EVALUATION
-	 || gamestate == GS_ENDING       || gamestate == GS_GAMEEND)
+	 || gamestatus == GS_INTERMISSION || gamestatus == GS_CUTSCENE
+	 || gamestatus == GS_CREDITS      || gamestatus == GS_EVALUATION
+	 || gamestatus == GS_ENDING       || gamestatus == GS_GAMEEND)
 		return;
 
 	// draw multiplayer rankings
@@ -2105,7 +2105,7 @@ void HU_Drawer(void)
 		LUAh_ScoresHUD();
 	}
 
-	if (gamestate != GS_LEVEL)
+	if (gamestatus != GS_LEVEL)
 		return;
 
 	// draw the crosshair, not when viewing demos nor with chasecam

@@ -1628,7 +1628,7 @@ void I_UpdateMumble(const mobj_t *mobj, const listener_t listener)
 	}
 	mumble->uiTick++;
 
-	if (!netgame || gamestate != GS_LEVEL) { // Zero out, but never delink.
+	if (!netgame || gamestatus != GS_LEVEL) { // Zero out, but never delink.
 		mumble->fAvatarPosition[0] = mumble->fAvatarPosition[1] = mumble->fAvatarPosition[2] = 0.0f;
 		mumble->fAvatarFront[0] = 1.0f;
 		mumble->fAvatarFront[1] = mumble->fAvatarFront[2] = 0.0f;

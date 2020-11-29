@@ -150,7 +150,7 @@ typedef struct
 
 	tic_t gametic;
 	UINT8 clientnode;
-	UINT8 gamestate;
+	UINT8 gamestatus;
 
 	UINT8 gametype;
 	UINT8 modifiedgame;

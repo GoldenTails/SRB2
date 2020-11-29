@@ -504,7 +504,7 @@ void F_StartIntro(void)
 	If you're willing to help then... let's go!"
 */
 
-	G_SetGamestate(GS_INTRO);
+	G_SetGamestatus(GS_INTRO);
 	gameaction = ga_nothing;
 	paused = false;
 	CON_ToggleOff();
@@ -916,14 +916,14 @@ void F_IntroDrawer(void)
 			}
 
 			D_StartTitle();
-			wipegamestate = GS_INTRO;
+			wipegamestatus = GS_INTRO;
 			return;
 		}
 		F_NewCutscene(introtext[++intro_scenenum]);
 		timetonext = introscenetime[intro_scenenum];
 
 		F_WipeStartScreen();
-		wipegamestate = -1;
+		wipegamestatus = -1;
 		wipestyleflags = WSF_CROSSFADE;
 		animtimer = stoptimer = 0;
 	}
@@ -1270,7 +1270,7 @@ static const UINT8 credits_numpics = sizeof(credits_pics)/sizeof(credits_pics[0]
 
 void F_StartCredits(void)
 {
-	G_SetGamestate(GS_CREDITS);
+	G_SetGamestatus(GS_CREDITS);
 
 	// Just in case they're open ... somehow
 	M_ClearMenus(true);
@@ -1465,7 +1465,7 @@ void F_StartGameEvaluation(void)
 
 	S_FadeOutStopMusic(5*MUSICRATE);
 
-	G_SetGamestate(GS_EVALUATION);
+	G_SetGamestatus(GS_EVALUATION);
 
 	// Just in case they're open ... somehow
 	M_ClearMenus(true);
@@ -1791,7 +1791,7 @@ static void F_CacheGoodEnding(void)
 
 void F_StartEnding(void)
 {
-	G_SetGamestate(GS_ENDING);
+	G_SetGamestatus(GS_ENDING);
 	wipetypepost = INT16_MAX;
 
 	// Just in case they're open ... somehow
@@ -2239,7 +2239,7 @@ void F_EndingDrawer(void)
 // ==========
 void F_StartGameEnd(void)
 {
-	G_SetGamestate(GS_GAMEEND);
+	G_SetGamestatus(GS_GAMEEND);
 
 	gameaction = ga_nothing;
 	paused = false;
@@ -2286,9 +2286,9 @@ void F_InitMenuPresValues(void)
 	strncpy(curbgname, "TITLESKY", 9);
 	curfadevalue = 16;
 	curbgcolor = -1;
-	curbgxspeed = (gamestate == GS_TIMEATTACK) ? 0 : titlescrollxspeed;
-	curbgyspeed = (gamestate == GS_TIMEATTACK) ? 22 : titlescrollyspeed;
-	curbghide = (gamestate == GS_TIMEATTACK) ? false : true;
+	curbgxspeed = (gamestatus == GS_TIMEATTACK) ? 0 : titlescrollxspeed;
+	curbgyspeed = (gamestatus == GS_TIMEATTACK) ? 22 : titlescrollyspeed;
+	curbghide = (gamestatus == GS_TIMEATTACK) ? false : true;
 
 	curhidepics = hidetitlepics;
 	curttmode = ttmode;
@@ -2300,7 +2300,7 @@ void F_InitMenuPresValues(void)
 	curtttics = tttics;
 
 	// Find current presentation values
-	M_SetMenuCurBackground((gamestate == GS_TIMEATTACK) ? "RECATTBG" : "TITLESKY");
+	M_SetMenuCurBackground((gamestatus == GS_TIMEATTACK) ? "RECATTBG" : "TITLESKY");
 	M_SetMenuCurFadeValue(16);
 	M_SetMenuCurTitlePics();
 }
@@ -2441,7 +2441,7 @@ void F_StartTitleScreen(void)
 	else
 		S_ChangeMusicInternal("_title", looptitle);
 
-	if (gamestate != GS_TITLESCREEN && gamestate != GS_WAITINGPLAYERS)
+	if (gamestatus != GS_TITLESCREEN && gamestatus != GS_WAITINGPLAYERS)
 	{
 		ttuser_count =\
 		 ttloaded[0] = ttloaded[1] = ttloaded[2] = ttloaded[3] = ttloaded[4] = ttloaded[5] =\
@@ -2459,13 +2459,13 @@ void F_StartTitleScreen(void)
 		wipetypepost = menupres[MN_MAIN].enterwipe;
 	}
 	else
-		wipegamestate = GS_TITLESCREEN;
+		wipegamestatus = GS_TITLESCREEN;
 
 	if (titlemap)
 	{
 		mapthing_t *startpos;
 
-		gamestate_t prevwipegamestate = wipegamestate;
+		gamestatus_t prevwipegamestatus = wipegamestatus;
 		titlemapinaction = TITLEMAP_LOADING;
 		titlemapcameraref = NULL;
 		gamemap = titlemap;
@@ -2512,7 +2512,7 @@ void F_StartTitleScreen(void)
 		if (menupres[MN_MAIN].entertag)
 			P_LinedefExecute(menupres[MN_MAIN].entertag, players[displayplayer].mo, NULL);
 
-		wipegamestate = prevwipegamestate;
+		wipegamestatus = prevwipegamestatus;
 	}
 	else
 	{
@@ -2521,7 +2521,7 @@ void F_StartTitleScreen(void)
 		CON_ClearHUD();
 	}
 
-	G_SetGamestate(GS_TITLESCREEN);
+	G_SetGamestatus(GS_TITLESCREEN);
 
 	// IWAD dependent stuff.
 
@@ -2683,11 +2683,11 @@ void F_TitleScreenDrawer(void)
 	// Draw that sky!
 	if (curbgcolor >= 0)
 		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, curbgcolor);
-	else if (!curbghide || !titlemapinaction || gamestate == GS_WAITINGPLAYERS)
+	else if (!curbghide || !titlemapinaction || gamestatus == GS_WAITINGPLAYERS)
 		F_SkyScroll(curbgxspeed, curbgyspeed, curbgname);
 
 	// Don't draw outside of the title screen, or if the patch isn't there.
-	if (gamestate != GS_TITLESCREEN && gamestate != GS_WAITINGPLAYERS)
+	if (gamestatus != GS_TITLESCREEN && gamestatus != GS_WAITINGPLAYERS)
 		return;
 
 	// Don't draw if title mode is set to Old/None and the patch isn't there
@@ -3438,7 +3438,7 @@ void F_TitleScreenTicker(boolean run)
 		finalecount++;
 
 	// don't trigger if doing anything besides idling on title
-	if (gameaction != ga_nothing || gamestate != GS_TITLESCREEN)
+	if (gameaction != ga_nothing || gamestatus != GS_TITLESCREEN)
 		return;
 
 	// Execute the titlemap camera settings
@@ -3562,7 +3562,7 @@ void F_StartContinue(void)
 	}
 
 	wipestyleflags = WSF_FADEOUT;
-	G_SetGamestate(GS_CONTINUING);
+	G_SetGamestatus(GS_CONTINUING);
 	gameaction = ga_nothing;
 
 	keypressed = false;
@@ -3923,10 +3923,10 @@ void F_StartCustomCutscene(INT32 cutscenenum, boolean precutscene, boolean reset
 	if (!cutscenes[cutscenenum])
 		return;
 
-	G_SetGamestate(GS_CUTSCENE);
+	G_SetGamestatus(GS_CUTSCENE);
 
-	if (wipegamestate == GS_CUTSCENE)
-		wipegamestate = -1;
+	if (wipegamestatus == GS_CUTSCENE)
+		wipegamestatus = -1;
 
 	gameaction = ga_nothing;
 	paused = false;

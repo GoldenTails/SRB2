@@ -589,7 +589,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, boolean mainfile)
 	if (gamedataadded)
 		G_LoadGameData();
 
-	if (gamestate == GS_TITLESCREEN)
+	if (gamestatus == GS_TITLESCREEN)
 	{
 		if (introchanged)
 		{

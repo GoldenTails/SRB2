@@ -1145,7 +1145,7 @@ UINT8 CanChangeSkin(INT32 playernum)
 		return false;
 
 	// Can change skin in intermission and whatnot.
-	if (gamestate != GS_LEVEL)
+	if (gamestatus != GS_LEVEL)
 		return true;
 
 	// Server has skin change restrictions.
@@ -2135,7 +2135,7 @@ static void Command_Pause(void)
 
 	if (cv_pause.value || server || (IsPlayerAdmin(consoleplayer)))
 	{
-		if (modeattacking || !(gamestate == GS_LEVEL || gamestate == GS_INTERMISSION))
+		if (modeattacking || !(gamestatus == GS_LEVEL || gamestatus == GS_INTERMISSION))
 		{
 			CONS_Printf(M_GetText("You can't pause here.\n"));
 			return;
@@ -2198,7 +2198,7 @@ static void Command_Suicide(void)
 	UINT8 buf[4];
 	UINT8 *cp = buf;
 
-	if (!(gamestate == GS_LEVEL || gamestate == GS_INTERMISSION))
+	if (!(gamestatus == GS_LEVEL || gamestatus == GS_INTERMISSION))
 	{
 		CONS_Printf(M_GetText("You must be in a level to use this.\n"));
 		return;
@@ -4044,7 +4044,7 @@ static void TeamScramble_OnChange(void)
 	boolean success = false;
 
 	// Don't trigger outside level or intermission!
-	if (!(gamestate == GS_LEVEL || gamestate == GS_INTERMISSION))
+	if (!(gamestatus == GS_LEVEL || gamestatus == GS_INTERMISSION))
 		return;
 
 	if (!cv_teamscramble.value)
@@ -4175,7 +4175,7 @@ retryscramble:
 		scrambletotal = playercount;
 		teamscramble = (INT16)cv_teamscramble.value;
 
-		if (!(gamestate == GS_INTERMISSION && cv_scrambleonchange.value))
+		if (!(gamestatus == GS_INTERMISSION && cv_scrambleonchange.value))
 			CONS_Printf(M_GetText("Teams will be scrambled next round.\n"));
 	}
 }
@@ -4197,7 +4197,7 @@ static void Hidetime_OnChange(void)
 
 static void Command_Showmap_f(void)
 {
-	if (gamestate == GS_LEVEL)
+	if (gamestatus == GS_LEVEL)
 	{
 		if (mapheaderinfo[gamemap-1]->actnum)
 			CONS_Printf("%s (%d): %s %d\n", G_BuildMapName(gamemap), gamemap, mapheaderinfo[gamemap-1]->lvlttl, mapheaderinfo[gamemap-1]->actnum);
@@ -4210,7 +4210,7 @@ static void Command_Showmap_f(void)
 
 static void Command_Mapmd5_f(void)
 {
-	if (gamestate == GS_LEVEL)
+	if (gamestatus == GS_LEVEL)
 	{
 		INT32 i;
 		char md5tmp[33];
@@ -4228,7 +4228,7 @@ static void Command_ExitLevel_f(void)
 		CONS_Printf(M_GetText("This only works in a netgame.\n"));
 	else if (!(server || (IsPlayerAdmin(consoleplayer))))
 		CONS_Printf(M_GetText("Only the server or a remote admin can use this.\n"));
-	else if (( gamestate != GS_LEVEL && gamestate != GS_CREDITS ) || demoplayback)
+	else if (( gamestatus != GS_LEVEL && gamestatus != GS_CREDITS ) || demoplayback)
 		CONS_Printf(M_GetText("You must be in a level to use this.\n"));
 	else
 		SendNetXCmd(XD_EXITLEVEL, NULL, 0);
@@ -4298,7 +4298,7 @@ void Command_ExitGame_f(void)
 
 void Command_Retry_f(void)
 {
-	if (!(gamestate == GS_LEVEL || gamestate == GS_INTERMISSION))
+	if (!(gamestatus == GS_LEVEL || gamestatus == GS_INTERMISSION))
 		CONS_Printf(M_GetText("You must be in a level to use this.\n"));
 	else if (netgame || multiplayer)
 		CONS_Printf(M_GetText("This only works in single player.\n"));
@@ -4379,7 +4379,7 @@ static void Command_Archivetest_f(void)
 	UINT8 *buf;
 	UINT32 i, wrote;
 	thinker_t *th;
-	if (gamestate != GS_LEVEL)
+	if (gamestatus != GS_LEVEL)
 	{
 		CONS_Printf("This command only works in-game, you dummy.\n");
 		return;
@@ -4488,7 +4488,7 @@ static void Skin_OnChange(void)
 		return; // do whatever you want
 
 	if (!(cv_debug || devparm) && !(multiplayer || netgame) // In single player.
-		&& (gamestate != GS_WAITINGPLAYERS)) // allows command line -warp x +skin y
+		&& (gamestatus != GS_WAITINGPLAYERS)) // allows command line -warp x +skin y
 	{
 		CV_StealthSet(&cv_skin, skins[players[consoleplayer].skin].name);
 		return;

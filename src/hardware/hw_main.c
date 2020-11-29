@@ -6382,7 +6382,7 @@ void HWR_Switch(void)
 		HWR_LoadMapTextures(numtextures);
 
 	// Create plane polygons
-	if (!gl_maploaded && (gamestate == GS_LEVEL || (gamestate == GS_TITLESCREEN && titlemapinaction)))
+	if (!gl_maploaded && (gamestatus == GS_LEVEL || (gamestatus == GS_TITLESCREEN && titlemapinaction)))
 	{
 		HWR_ClearAllTextures();
 		HWR_LoadLevel();
@@ -6518,7 +6518,7 @@ void HWR_DoPostProcessor(player_t *player)
 	}
 
 	// Capture the screen for intermission and screen waving
-	if(gamestate != GS_INTERMISSION)
+	if(gamestatus != GS_INTERMISSION)
 		HWD.pfnMakeScreenTexture();
 
 	if (splitscreen) // Not supported in splitscreen - someone want to add support?
@@ -6563,7 +6563,7 @@ void HWR_DoPostProcessor(player_t *player)
 			disStart += 1;
 
 		// Capture the screen again for screen waving on the intermission
-		if(gamestate != GS_INTERMISSION)
+		if(gamestatus != GS_INTERMISSION)
 			HWD.pfnMakeScreenTexture();
 	}
 	// Flipping of the screen isn't done here anymore

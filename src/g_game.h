@@ -226,7 +226,7 @@ void G_LoadGameSettings(void);
 
 void G_SetGameModified(boolean silent);
 
-void G_SetGamestate(gamestate_t newstate);
+void G_SetGamestatus(gamestatus_t newstatus);
 
 // Gamedata record shit
 void G_AllocMainRecordData(INT16 i);

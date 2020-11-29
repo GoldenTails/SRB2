@@ -421,7 +421,7 @@ enum {
 #define DEFAULTDIR "srb2"
 #endif
 
-#include "g_state.h"
+#include "g_status.h"
 
 // commonly used routines - moved here for include convenience
 

@@ -327,7 +327,7 @@ void SCR_Recalc(void)
 
 #ifdef HWRENDER
 	// Shoot! The screen texture was flushed!
-	if ((rendermode == render_opengl) && (gamestate == GS_INTERMISSION))
+	if ((rendermode == render_opengl) && (gamestatus == GS_INTERMISSION))
 		usebuffer = false;
 #endif
 }
@@ -451,7 +451,7 @@ void SCR_DisplayTicRate(void)
 	INT32 ticcntcolor = 0;
 	const INT32 h = vid.height-(8*vid.dupy);
 
-	if (gamestate == GS_NULL)
+	if (gamestatus == GS_NULL)
 		return;
 
 	for (i = lasttic + 1; i < TICRATE+lasttic && i < ontic; ++i)
@@ -497,10 +497,10 @@ void SCR_ClosedCaptions(void)
 	boolean gamestopped = (paused || P_AutoPause());
 	INT32 basey = BASEVIDHEIGHT;
 
-	if (gamestate != wipegamestate)
+	if (gamestatus != wipegamestatus)
 		return;
 
-	if (gamestate == GS_LEVEL)
+	if (gamestatus == GS_LEVEL)
 	{
 		if (promptactive)
 			basey -= 42;

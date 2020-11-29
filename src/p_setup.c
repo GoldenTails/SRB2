@@ -4048,9 +4048,9 @@ boolean P_LoadLevel(boolean fromnetsave, boolean reloadinggamestate)
 
 	// Cancel all d_main.c fadeouts (keep fade in though).
 	if (reloadinggamestate)
-		wipegamestate = gamestate; // Don't fade if reloading the gamestate
+		wipegamestatus = gamestatus; // Don't fade if reloading the gamestate
 	else
-		wipegamestate = FORCEWIPEOFF;
+		wipegamestatus = FORCEWIPEOFF;
 	wipestyleflags = 0;
 
 	// Special stage & record attack retry fade to white
@@ -4568,14 +4568,14 @@ boolean P_AddWadFile(const char *wadfilename)
 #endif
 
 	// reload status bar (warning should have valid player!)
-	if (gamestate == GS_LEVEL)
+	if (gamestatus == GS_LEVEL)
 		ST_Start();
 
 	// Prevent savefile cheating
 	if (cursaveslot > 0)
 		cursaveslot = 0;
 
-	if (replacedcurrentmap && gamestate == GS_LEVEL && (netgame || multiplayer))
+	if (replacedcurrentmap && gamestatus == GS_LEVEL && (netgame || multiplayer))
 	{
 		CONS_Printf(M_GetText("Current map %d replaced by added file, ending the level to ensure consistency.\n"), gamemap);
 		if (server)

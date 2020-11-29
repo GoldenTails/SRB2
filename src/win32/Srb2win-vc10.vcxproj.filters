@@ -672,7 +672,7 @@
     <ClInclude Include="..\g_input.h">
       <Filter>G_Game</Filter>
     </ClInclude>
-    <ClInclude Include="..\g_state.h">
+    <ClInclude Include="..\g_status.h">
       <Filter>G_Game</Filter>
     </ClInclude>
     <ClInclude Include="..\f_finale.h">

@@ -15,7 +15,7 @@
 #define __D_EVENT__
 
 #include "doomtype.h"
-#include "g_state.h"
+#include "g_status.h"
 
 // Input event types.
 typedef enum

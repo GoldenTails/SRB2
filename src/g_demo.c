@@ -2489,11 +2489,11 @@ void G_StopDemo(void)
 	timingdemo = false;
 	singletics = false;
 
-	if (gamestate == GS_INTERMISSION)
+	if (gamestatus == GS_INTERMISSION)
 		Y_EndIntermission(); // cleanup
 
-	G_SetGamestate(GS_NULL);
-	wipegamestate = GS_NULL;
+	G_SetGamestatus(GS_NULL);
+	wipegamestatus = GS_NULL;
 	SV_StopServer();
 	SV_ResetServer();
 }

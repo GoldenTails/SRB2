@@ -219,7 +219,7 @@
     <ClInclude Include="..\g_demo.h" />
     <ClInclude Include="..\g_game.h" />
     <ClInclude Include="..\g_input.h" />
-    <ClInclude Include="..\g_state.h" />
+    <ClInclude Include="..\g_status.h" />
     <ClInclude Include="..\hardware\hw3dsdrv.h" />
     <ClInclude Include="..\hardware\hw3sound.h" />
     <ClInclude Include="..\hardware\hws_data.h" />

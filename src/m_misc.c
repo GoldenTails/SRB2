@@ -817,12 +817,12 @@ static void M_PNGText(png_structp png_ptr, png_infop png_info_ptr, PNG_CONST png
 			break;
 	}
 
-	if (gamestate == GS_LEVEL)
+	if (gamestatus == GS_LEVEL)
 		snprintf(maptext, 8, "%s", G_BuildMapName(gamemap));
 	else
 		snprintf(maptext, 8, "Unknown");
 
-	if (gamestate == GS_LEVEL && mapheaderinfo[gamemap-1]->lvlttl[0] != '\0')
+	if (gamestatus == GS_LEVEL && mapheaderinfo[gamemap-1]->lvlttl[0] != '\0')
 		snprintf(lvlttltext, 48, "%s%s%s",
 			mapheaderinfo[gamemap-1]->lvlttl,
 			(mapheaderinfo[gamemap-1]->levelflags & LF_NOZONE) ? "" : " Zone",
@@ -830,7 +830,7 @@ static void M_PNGText(png_structp png_ptr, png_infop png_info_ptr, PNG_CONST png
 	else
 		snprintf(lvlttltext, 48, "Unknown");
 
-	if (gamestate == GS_LEVEL && &players[displayplayer] && players[displayplayer].mo)
+	if (gamestatus == GS_LEVEL && &players[displayplayer] && players[displayplayer].mo)
 		snprintf(locationtxt, 40, "X:%d Y:%d Z:%d A:%d",
 			players[displayplayer].mo->x>>FRACBITS,
 			players[displayplayer].mo->y>>FRACBITS,

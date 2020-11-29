@@ -2662,8 +2662,8 @@ static boolean MIT_SetCurBackground(UINT32 menutype, INT32 level, INT32 *retval,
 		else
 		{
 			strncpy(curbgname, defaultname, 9);
-			curbgxspeed = (gamestate == GS_TIMEATTACK) ? 0 : titlescrollxspeed;
-			curbgyspeed = (gamestate == GS_TIMEATTACK) ? 0 : titlescrollyspeed;
+			curbgxspeed = (gamestatus == GS_TIMEATTACK) ? 0 : titlescrollxspeed;
+			curbgyspeed = (gamestatus == GS_TIMEATTACK) ? 0 : titlescrollyspeed;
 		}
 	}
 	return false;
@@ -2712,7 +2712,7 @@ static boolean MIT_SetCurFadeValue(UINT32 menutype, INT32 level, INT32 *retval, 
 		return true;
 	}
 	else if (!level)
-		curfadevalue = (gamestate == GS_TIMEATTACK) ? 0 : (defaultvalue % 32);
+		curfadevalue = (gamestatus == GS_TIMEATTACK) ? 0 : (defaultvalue % 32);
 	return false;
 }
 
@@ -2859,7 +2859,7 @@ static void M_HandleMenuPresState(menu_t *newMenu)
 	curbgcolor = -1;
 	curbgxspeed = titlescrollxspeed;
 	curbgyspeed = titlescrollyspeed;
-	curbghide = (gamestate != GS_TIMEATTACK); // show in time attack, hide in other menus
+	curbghide = (gamestatus != GS_TIMEATTACK); // show in time attack, hide in other menus
 
 	curttmode = ttmode;
 	curttscale = ttscale;
@@ -2870,7 +2870,7 @@ static void M_HandleMenuPresState(menu_t *newMenu)
 	curtttics = tttics;
 
 	// don't do the below during the in-game menus
-	if (gamestate != GS_TITLESCREEN && gamestate != GS_TIMEATTACK)
+	if (gamestatus != GS_TITLESCREEN && gamestatus != GS_TIMEATTACK)
 		return;
 
 	M_SetMenuCurFadeValue(16);
@@ -3007,14 +3007,14 @@ static void M_HandleMenuPresState(menu_t *newMenu)
 		(anceslevel < 0 && newMenu != &MainDef && currentMenu != &MainDef)
 	)
 	{
-		if (gamestate == GS_TIMEATTACK)
+		if (gamestatus == GS_TIMEATTACK)
 			wipetypepre = ((exitwipe && enterlevel <= exitlevel) || anceslevel < 0) ? exitwipe : -1; // force default
 		else
 			// HACK: INT16_MAX signals to not wipe
 			// because 0 is a valid index and -1 means default
 			wipetypepre = ((exitwipe && enterlevel <= exitlevel) || anceslevel < 0) ? exitwipe : INT16_MAX;
 		wipetypepost = ((enterwipe && enterlevel >= exitlevel) || anceslevel < 0) ? enterwipe : INT16_MAX;
-		wipegamestate = FORCEWIPE;
+		wipegamestatus = FORCEWIPE;
 
 		// If just one of the above is a force not-wipe,
 		// mirror the other wipe.
@@ -3046,7 +3046,7 @@ static void M_GoBack(INT32 choice)
 
 		if ((currentMenu->prevMenu == &MainDef) && (currentMenu == &SP_TimeAttackDef || currentMenu == &SP_NightsAttackDef || currentMenu == &SP_MarathonDef))
 		{
-			// D_StartTitle does its own wipe, since GS_TIMEATTACK is now a complete gamestate.
+			// D_StartTitle does its own wipe, since GS_TIMEATTACK is now a complete gamestatus.
 
 			if (levelselect.rows)
 			{
@@ -3206,11 +3206,11 @@ boolean M_Responder(event_t *ev)
 	void (*routine)(INT32 choice); // for some casting problem
 
 	if (dedicated || (demoplayback && titledemo)
-	|| gamestate == GS_INTRO || gamestate == GS_ENDING || gamestate == GS_CUTSCENE
-	|| gamestate == GS_CREDITS || gamestate == GS_EVALUATION || gamestate == GS_GAMEEND)
+	|| gamestatus == GS_INTRO || gamestatus == GS_ENDING || gamestatus == GS_CUTSCENE
+	|| gamestatus == GS_CREDITS || gamestatus == GS_EVALUATION || gamestatus == GS_GAMEEND)
 		return false;
 
-	if (gamestate == GS_TITLESCREEN && finalecount < TICRATE)
+	if (gamestatus == GS_TITLESCREEN && finalecount < TICRATE)
 		return false;
 
 	if (CON_Ready())
@@ -3600,8 +3600,8 @@ void M_Drawer(void)
 	if (menuactive)
 	{
 		// now that's more readable with a faded background (yeah like Quake...)
-		if (!wipe && (curfadevalue || (gamestate != GS_TITLESCREEN && gamestate != GS_TIMEATTACK)))
-			V_DrawFadeScreen(0xFF00, (gamestate != GS_TITLESCREEN && gamestate != GS_TIMEATTACK) ? 16 : curfadevalue);
+		if (!wipe && (curfadevalue || (gamestatus != GS_TITLESCREEN && gamestatus != GS_TIMEATTACK)))
+			V_DrawFadeScreen(0xFF00, (gamestatus != GS_TITLESCREEN && gamestatus != GS_TIMEATTACK) ? 16 : curfadevalue);
 
 		if (currentMenu->drawroutine)
 			currentMenu->drawroutine(); // call current menu Draw routine
@@ -3631,7 +3631,7 @@ void M_Drawer(void)
 	if (window_notinfocus && cv_showfocuslost.value)
 	{
 		M_DrawTextBox((BASEVIDWIDTH/2) - (60), (BASEVIDHEIGHT/2) - (16), 13, 2);
-		if (gamestate == GS_LEVEL && (P_AutoPause() || paused))
+		if (gamestatus == GS_LEVEL && (P_AutoPause() || paused))
 			V_DrawCenteredString(BASEVIDWIDTH/2, (BASEVIDHEIGHT/2) - (4), V_YELLOWMAP, "Game Paused");
 		else
 			V_DrawCenteredString(BASEVIDWIDTH/2, (BASEVIDHEIGHT/2) - (4), V_YELLOWMAP, "Focus Lost");
@@ -3677,7 +3677,7 @@ void M_StartControlPanel(void)
 	}
 	else if (!(netgame || multiplayer)) // Single Player
 	{
-		if (gamestate != GS_LEVEL || ultimatemode) // intermission, so gray out stuff.
+		if (gamestatus != GS_LEVEL || ultimatemode) // intermission, so gray out stuff.
 		{
 			SPauseMenu[spause_pandora].status = (M_SecretUnlocked(SECRET_PANDORA)) ? (IT_GRAYEDOUT) : (IT_DISABLED);
 			SPauseMenu[spause_retry].status = IT_GRAYEDOUT;
@@ -4681,7 +4681,7 @@ static void M_DrawGenericScrollMenu(void)
 
 static void M_DrawPauseMenu(void)
 {
-	if (!netgame && !multiplayer && (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION))
+	if (!netgame && !multiplayer && (gamestatus == GS_LEVEL || gamestatus == GS_INTERMISSION))
 	{
 		emblem_t *emblem_detail[3] = {NULL, NULL, NULL};
 		char emblem_text[3][20];
@@ -5455,7 +5455,7 @@ static void M_HandleLevelPlatter(INT32 choice)
 				ifselectvalnextmapnobrace(lscol)
 					lsoffs[0] = lsoffs[1] = 0;
 					S_StartSound(NULL,sfx_menu1);
-					if (gamestate == GS_TIMEATTACK)
+					if (gamestatus == GS_TIMEATTACK)
 						M_SetupNextMenu(currentMenu->prevMenu);
 					else if (currentMenu == &MISC_ChangeLevelDef)
 					{
@@ -5552,7 +5552,7 @@ static void M_HandleLevelPlatter(INT32 choice)
 
 	if (exitmenu)
 	{
-		if (gamestate != GS_TIMEATTACK)
+		if (gamestatus != GS_TIMEATTACK)
 		{
 			Z_Free(levelselect.rows);
 			levelselect.rows = NULL;
@@ -6086,7 +6086,7 @@ static void M_DrawMessageMenu(void)
 	max = (INT16)((UINT8)(currentMenu->lastOn & 0xFF)*8);
 
 	// hack: draw RA background in RA menus
-	if (gamestate == GS_TIMEATTACK)
+	if (gamestatus == GS_TIMEATTACK)
 	{
 		if (curbgcolor >= 0)
 			V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, curbgcolor);
@@ -9938,7 +9938,7 @@ static void M_TimeAttack(INT32 choice)
 
 	M_PatchSkinNameTable();
 
-	G_SetGamestate(GS_TIMEATTACK); // do this before M_SetupNextMenu so that menu meta state knows that we're switching
+	G_SetGamestatus(GS_TIMEATTACK); // do this before M_SetupNextMenu so that menu meta state knows that we're switching
 	titlemapinaction = TITLEMAP_OFF; // Nope don't give us HOMs please
 	M_SetupNextMenu(&SP_TimeAttackDef);
 	if (!M_CanShowLevelInList(cv_nextmap.value-1, -1) && levelselect.rows[0].maplist[0])
@@ -10145,7 +10145,7 @@ static void M_NightsAttack(INT32 choice)
 	ntssupersonic[0] = W_CachePatchName("NTSSONC1", PU_PATCH);
 	ntssupersonic[1] = W_CachePatchName("NTSSONC2", PU_PATCH);
 
-	G_SetGamestate(GS_TIMEATTACK); // do this before M_SetupNextMenu so that menu meta state knows that we're switching
+	G_SetGamestatus(GS_TIMEATTACK); // do this before M_SetupNextMenu so that menu meta state knows that we're switching
 	titlemapinaction = TITLEMAP_OFF; // Nope don't give us HOMs please
 	M_SetupNextMenu(&SP_NightsAttackDef);
 	if (!M_CanShowLevelInList(cv_nextmap.value-1, -1) && levelselect.rows[0].maplist[0])
@@ -10383,7 +10383,7 @@ static void M_ModeAttackEndGame(INT32 choice)
 	(void)choice;
 	G_CheckDemoStatus(); // Cancel recording
 
-	if (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION)
+	if (gamestatus == GS_LEVEL || gamestatus == GS_INTERMISSION)
 		Command_ExitGame_f();
 
 	M_StartControlPanel();
@@ -10400,7 +10400,7 @@ static void M_ModeAttackEndGame(INT32 choice)
 		break;
 	}
 	itemOn = currentMenu->lastOn;
-	G_SetGamestate(GS_TIMEATTACK);
+	G_SetGamestatus(GS_TIMEATTACK);
 	modeattacking = ATTACKING_NONE;
 	M_ChangeMenuMusic("_title", true);
 	Nextmap_OnChange();
@@ -10476,7 +10476,7 @@ static void M_Marathon(INT32 choice)
 	M_ChangeMenuMusic("spec8", true);
 
 	SP_MarathonDef.prevMenu = &MainDef;
-	G_SetGamestate(GS_TIMEATTACK); // do this before M_SetupNextMenu so that menu meta state knows that we're switching
+	G_SetGamestatus(GS_TIMEATTACK); // do this before M_SetupNextMenu so that menu meta state knows that we're switching
 	titlemapinaction = TITLEMAP_OFF; // Nope don't give us HOMs please
 	M_SetupNextMenu(&SP_MarathonDef);
 	itemOn = marathonstart; // "Start" is selected.
@@ -12901,7 +12901,7 @@ static void M_DrawCameraOptionsMenu(void)
 {
 	M_DrawGenericScrollMenu();
 
-	if (gamestate == GS_LEVEL && (paused || P_AutoPause()))
+	if (gamestatus == GS_LEVEL && (paused || P_AutoPause()))
 	{
 		if (currentMenu == &OP_Camera2OptionsDef && splitscreen && camera2.chase)
 			P_MoveChaseCamera(&players[secondarydisplayplayer], &camera2, false);

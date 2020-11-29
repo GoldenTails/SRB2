@@ -7,20 +7,20 @@
 // terms of the GNU General Public License, version 2.
 // See the 'LICENSE' file for more details.
 //-----------------------------------------------------------------------------
-/// \file  g_state.h
-/// \brief SRB2 game states
+/// \file  g_status.h
+/// \brief SRB2 game statuses
 
-#ifndef __G_STATE__
-#define __G_STATE__
+#ifndef __G_STATUS__
+#define __G_STATUS__
 
 #include "doomtype.h"
 
-// the current state of the game
+// the current status of the game
 typedef enum
 {
 	GS_NULL = 0,        // At beginning.
 
-	// Fadable gamestates
+	// Fadable gamestatuses
 	GS_LEVEL,           // Playing, in a level.
 	GS_INTERMISSION,    // Gazing at the intermission screen.
 	GS_CONTINUING,      // continue screen
@@ -38,9 +38,9 @@ typedef enum
 	GS_CUTSCENE,        // custom cutscene
 
 	// Not fadable
-	GS_DEDICATEDSERVER, // new state for dedicated server
+	GS_DEDICATEDSERVER, // new status for dedicated server
 	GS_WAITINGPLAYERS   // waiting for players in a net game
-} gamestate_t;
+} gamestatus_t;
 
 typedef enum
 {
@@ -51,7 +51,7 @@ typedef enum
 	ga_continued,
 } gameaction_t;
 
-extern gamestate_t gamestate;
+extern gamestatus_t gamestatus;
 extern UINT8 titlemapinaction;
 extern UINT8 ultimatemode; // was sk_insane
 extern gameaction_t gameaction;
@@ -60,4 +60,4 @@ extern boolean botingame;
 extern UINT8 botskin;
 extern UINT16 botcolor;
 
-#endif //__G_STATE__
+#endif //__G_STATUS__

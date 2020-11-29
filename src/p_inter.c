@@ -2171,7 +2171,7 @@ void P_CheckTimeLimit(void)
 		if ((D_NumPlayers() - spectators) > 1)
 		{
 			// Play the starpost sfx after the first second of overtime.
-			if (gamestate == GS_LEVEL && (leveltime == (timelimitintics + TICRATE)))
+			if (gamestatus == GS_LEVEL && (leveltime == (timelimitintics + TICRATE)))
 				S_StartSound(NULL, sfx_strpst);
 
 			// Normal Match

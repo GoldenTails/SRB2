@@ -874,7 +874,7 @@ static void DebugPrintpacket(const char *header)
 				"gametic %u gamestate %d gametype %d modifiedgame %d\n",
 				netbuffer->u.servercfg.totalslotnum, netbuffer->u.servercfg.clientnode,
 				netbuffer->u.servercfg.serverplayer, (UINT32)LONG(netbuffer->u.servercfg.gametic),
-				netbuffer->u.servercfg.gamestate, netbuffer->u.servercfg.gametype,
+				netbuffer->u.servercfg.gamestatus, netbuffer->u.servercfg.gametype,
 				netbuffer->u.servercfg.modifiedgame);
 			break;
 		case PT_SERVERINFO:

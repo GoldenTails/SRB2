@@ -35,7 +35,7 @@
 #include "lua_hook.h"
 
 #include "doomstat.h"
-#include "g_state.h"
+#include "g_status.h"
 
 lua_State *gL = NULL;
 
@@ -363,8 +363,8 @@ int LUA_PushGlobals(lua_State *L, const char *word)
 	} else if (fastcmp(word, "token")) {
 		lua_pushinteger(L, token);
 		return 1;
-	} else if (fastcmp(word, "gamestate")) {
-		lua_pushinteger(L, gamestate);
+	} else if (fastcmp(word, "gamestatus")) {
+		lua_pushinteger(L, gamestatus);
 		return 1;
 	}
 	return 0;

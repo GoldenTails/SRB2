@@ -89,7 +89,7 @@ void M_DrawPerfStats(void)
 		{
 			snprintf(s, sizeof s - 1, "frmtime %d", frametime);
 			V_DrawThinString(20, 10, V_MONOSPACE | V_YELLOWMAP, s);
-			if (!(gamestate == GS_LEVEL || (gamestate == GS_TITLESCREEN && titlemapinaction)))
+			if (!(gamestatus == GS_LEVEL || (gamestatus == GS_TITLESCREEN && titlemapinaction)))
 			{
 				snprintf(s, sizeof s - 1, "ui      %d", ps_uitime);
 				V_DrawThinString(20, 18, V_MONOSPACE | V_YELLOWMAP, s);
@@ -193,7 +193,7 @@ void M_DrawPerfStats(void)
 		{
 			snprintf(s, sizeof s - 1, "Frame time:     %d", frametime);
 			V_DrawSmallString(20, 10, V_MONOSPACE | V_ALLOWLOWERCASE | V_YELLOWMAP, s);
-			if (!(gamestate == GS_LEVEL || (gamestate == GS_TITLESCREEN && titlemapinaction)))
+			if (!(gamestatus == GS_LEVEL || (gamestatus == GS_TITLESCREEN && titlemapinaction)))
 			{
 				snprintf(s, sizeof s - 1, "UI render:      %d", ps_uitime);
 				V_DrawSmallString(20, 15, V_MONOSPACE | V_ALLOWLOWERCASE | V_YELLOWMAP, s);
@@ -347,7 +347,7 @@ void M_DrawPerfStats(void)
 		{
 			snprintf(s, sizeof s - 1, "logic   %d", ps_tictime);
 			V_DrawThinString(20, 10, V_MONOSPACE | V_YELLOWMAP, s);
-			if (!(gamestate == GS_LEVEL || (gamestate == GS_TITLESCREEN && titlemapinaction)))
+			if (!(gamestatus == GS_LEVEL || (gamestatus == GS_TITLESCREEN && titlemapinaction)))
 				return;
 			snprintf(s, sizeof s - 1, "plrthnk %d", ps_playerthink_time);
 			V_DrawThinString(24, 18, V_MONOSPACE | V_YELLOWMAP, s);
@@ -399,7 +399,7 @@ void M_DrawPerfStats(void)
 		{
 			snprintf(s, sizeof s - 1, "Game logic:      %d", ps_tictime);
 			V_DrawSmallString(20, 10, V_MONOSPACE | V_ALLOWLOWERCASE | V_YELLOWMAP, s);
-			if (!(gamestate == GS_LEVEL || (gamestate == GS_TITLESCREEN && titlemapinaction)))
+			if (!(gamestatus == GS_LEVEL || (gamestatus == GS_TITLESCREEN && titlemapinaction)))
 				return;
 			snprintf(s, sizeof s - 1, "P_PlayerThink:   %d", ps_playerthink_time);
 			V_DrawSmallString(24, 15, V_MONOSPACE | V_ALLOWLOWERCASE | V_YELLOWMAP, s);
@@ -452,7 +452,7 @@ void M_DrawPerfStats(void)
 	}
 	else if (cv_perfstats.value == 3) // lua thinkframe
 	{
-		if (!(gamestate == GS_LEVEL || (gamestate == GS_TITLESCREEN && titlemapinaction)))
+		if (!(gamestatus == GS_LEVEL || (gamestatus == GS_TITLESCREEN && titlemapinaction)))
 			return;
 		if (vid.width < 640 || vid.height < 400) // low resolution
 		{
