@@ -47,6 +47,7 @@ set(SRB2_CORE_SOURCES
 	st_stuff.c
 	#string.c
 	tables.c
+	utf8.c
 	v_video.c
 	w_wad.c
 	y_inter.c
@@ -116,6 +117,7 @@ set(SRB2_CORE_HEADERS
 	sounds.h
 	st_stuff.h
 	tables.h
+	utf8.h
 	v_video.h
 	w_wad.h
 	y_inter.h
