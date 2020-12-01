@@ -76,24 +76,20 @@ void PS_SetThinkFrameHookInfo(int index, UINT32 time_taken, char* short_src)
 	thinkframe_hooks_length = index + 1;
 }
 
+#define PERFSTRALLOC 100 // There used to be really slick dynamic allocation here, but then people complained. Deal with the limitations, they want you to. ~Golden
+
 #define DRAWSTATS(DRAWER, x, y, videoflags, ...) {\
-	if ((cursize = snprintf(NULL, 0, __VA_ARGS__)) > size)\
-	{\
-		s = Z_Realloc(s, cursize + 1, PU_STATIC, NULL);\
-		size = cursize;\
-	}\
-	snprintf(s, size, __VA_ARGS__);\
+	if ((snprintf(NULL, 0, __VA_ARGS__)) > PERFSTRALLOC - 1)\
+		I_Error("You're writing past the end of the string ya doofus! '%s'", va(__VA_ARGS__));\
+	snprintf(s, PERFSTRALLOC - 1, __VA_ARGS__);\
 	DRAWER(x, y, videoflags, s);\
 }
 
 #define DRAWSMALLSTATS(x, y, videoflags, ...) DRAWSTATS(V_DrawSmallString, x, y, V_MONOSPACE | V_ALLOWLOWERCASE | videoflags, __VA_ARGS__)
 #define DRAWTHINSTATS(x, y, videoflags, ...) DRAWSTATS(V_DrawThinString, x, y, V_MONOSPACE | videoflags, __VA_ARGS__)
 
-static void M_DrawRenderStats(void)
+static void M_DrawRenderStats(char *s)
 {
-	size_t cursize = 99, size = cursize;
-	char *s = Z_Malloc(size + 1, PU_STATIC, NULL);
-
 	int currenttime = I_GetTimeMicros();
 	int frametime = currenttime - ps_prevframetime;
 	ps_prevframetime = currenttime;
@@ -235,15 +231,10 @@ static void M_DrawRenderStats(void)
 			DRAWSMALLSTATS(20, 65, V_GRAYMAP, "Game logic:     %d", ps_tictime);
 		}
 	}
-
-	Z_Free(s);
 }
 
-static void M_DrawLogicStats(void)
+static void M_DrawLogicStats(char *s)
 {
-	size_t cursize = 99, size = cursize;
-	char *s = Z_Malloc(size + 1, PU_STATIC, NULL);
-
 	int i = 0;
 	thinker_t *thinker;
 	int thinkercount = 0;
@@ -358,15 +349,10 @@ static void M_DrawLogicStats(void)
 		DRAWSMALLSTATS(216, 15, V_PURPLEMAP, "Lua mobj hooks:  %d", ps_lua_mobjhooks);
 		DRAWSMALLSTATS(216, 20, V_PURPLEMAP, "P_CheckPosition: %d", ps_checkposition_calls);
 	}
-
-	Z_Free(s);
 }
 
-static void M_DrawThinkFrameStats(void)
+static void M_DrawThinkFrameStats(char *s)
 {
-	size_t cursize = 99, size = cursize;
-	char *s = Z_Malloc(size + 1, PU_STATIC, NULL);
-
 	if (!(gamestate == GS_LEVEL || (gamestate == GS_TITLESCREEN && titlemapinaction)))
 		return;
 	if (vid.width < 640 || vid.height < 400) // low resolution
@@ -449,24 +435,24 @@ static void M_DrawThinkFrameStats(void)
 			}
 		}
 	}
-
-	Z_Free(s);
 }
 
 void M_DrawPerfStats(void)
 {
+	char s[PERFSTRALLOC];
+
 	// This function is so tiny now... ~Golden
 
 	switch (cv_perfstats.value)
 	{
 		case 1: // rendering
-			M_DrawRenderStats();
+			M_DrawRenderStats(s);
 			break;
 		case 2: // logic
-			M_DrawLogicStats();
+			M_DrawLogicStats(s);
 			break;
 		case 3: // lua thinkframe
-			M_DrawThinkFrameStats();
+			M_DrawThinkFrameStats(s);
 			break;
 		default:
 			break;
