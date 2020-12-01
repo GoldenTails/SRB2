@@ -457,10 +457,18 @@ void M_DrawPerfStats(void)
 {
 	// This function is so tiny now... ~Golden
 
-	if (cv_perfstats.value == 1) // rendering
-		M_DrawRenderStats();
-	else if (cv_perfstats.value == 2) // logic
-		M_DrawLogicStats();
-	else if (cv_perfstats.value == 3) // lua thinkframe
-		M_DrawThinkFrameStats();
+	switch (cv_perfstats.value)
+	{
+		case 1: // rendering
+			M_DrawRenderStats();
+			break;
+		case 2: // logic
+			M_DrawLogicStats();
+			break;
+		case 3: // lua thinkframe
+			M_DrawThinkFrameStats();
+			break;
+		default:
+			break;
+	}
 }
