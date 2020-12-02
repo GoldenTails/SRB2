@@ -271,6 +271,8 @@ else
 		 $(OBJDIR)/hw_md2load.o $(OBJDIR)/hw_md3load.o $(OBJDIR)/hw_model.o $(OBJDIR)/u_list.o $(OBJDIR)/hw_batching.o
 endif
 
+OBJS+=$(OBJDIR)/sw_main.o
+
 OPTS += -DCOMPVERSION
 
 ifndef NONX86
@@ -684,6 +686,7 @@ $(OBJDIR)/depend.dep:
 ifndef NOHW
 	$(CC) $(CFLAGS) -MM hardware/*.c >> $(OBJDIR)/depend.ped
 endif
+	$(CC) $(CFLAGS) -MM software/*.c >> $(OBJDIR)/depend.ped
 	$(CC) $(CFLAGS) -MM blua/*.c >> $(OBJDIR)/depend.ped
 	@sed -e 's,\(.*\)\.o: ,$(subst /,\/,$(OBJDIR))\/&,g' < $(OBJDIR)/depend.ped > $(OBJDIR)/depend.dep
 	$(REMOVE) $(OBJDIR)/depend.ped
@@ -719,6 +722,10 @@ $(OBJDIR)/%.o: sdl/macosx/%.c
 endif
 
 $(OBJDIR)/%.o: hardware/%.c
+	$(echoName)
+	$(CC) $(CFLAGS) $(WFLAGS) -c $< -o $@
+
+$(OBJDIR)/%.o: software/%.c
 	$(echoName)
 	$(CC) $(CFLAGS) $(WFLAGS) -c $< -o $@
 

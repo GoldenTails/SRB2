@@ -25,6 +25,9 @@
     <Filter Include="H_Hud">
       <UniqueIdentifier>{32aefb9c-2644-4093-9ef5-e91d44aa1037}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sw_Software">
+      <UniqueIdentifier>{aaf10f98-f24f-4f57-9a12-409ae8fa160c}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Hw_Hardware">
       <UniqueIdentifier>{b7a026c5-1987-42c4-bc59-4eeb4f54b7c9}</UniqueIdentifier>
     </Filter>
@@ -209,6 +212,9 @@
     </ClInclude>
     <ClInclude Include="..\y_inter.h">
       <Filter>H_Hud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\software\sw_main.h">
+      <Filter>Sw_Software</Filter>
     </ClInclude>
     <ClInclude Include="..\hardware\hw3dsdrv.h">
       <Filter>Hw_Hardware</Filter>
@@ -647,6 +653,9 @@
     </ClCompile>
     <ClCompile Include="..\y_inter.c">
       <Filter>H_Hud</Filter>
+    </ClCompile>
+    <ClCompile Include="..\software\sw_main.c">
+      <Filter>Sw_Software</Filter>
     </ClCompile>
     <ClCompile Include="..\hardware\hw3sound.c">
       <Filter>Hw_Hardware</Filter>

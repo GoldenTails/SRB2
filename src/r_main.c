@@ -40,6 +40,8 @@
 #include "hardware/hw_main.h"
 #endif
 
+#include "software/sw_main.h"
+
 //profile stuff ---------------------------------------------------------
 //#define TIMING
 #ifdef TIMING
@@ -49,9 +51,6 @@ INT64 mytotal = 0;
 //unsigned long  nombre = 100000;
 #endif
 //profile stuff ---------------------------------------------------------
-
-// Fineangles in the SCREENWIDTH wide window.
-#define FIELDOFVIEW 2048
 
 // increment every time a check is made
 size_t validcount = 1;
@@ -130,7 +129,7 @@ static CV_PossibleValue_t drawdist_precip_cons_t[] = {
 	{1024, "1024"},	{1536, "1536"},	{2048, "2048"},
 	{0, "None"},	{0, NULL}};
 
-static CV_PossibleValue_t fov_cons_t[] = {{60*FRACUNIT, "MIN"}, {179*FRACUNIT, "MAX"}, {0, NULL}};
+static CV_PossibleValue_t fov_cons_t[] = {{1*FRACUNIT, "MIN"}, {179*FRACUNIT, "MAX"}, {0, NULL}};
 static CV_PossibleValue_t translucenthud_cons_t[] = {{0, "MIN"}, {10, "MAX"}, {0, NULL}};
 static CV_PossibleValue_t maxportals_cons_t[] = {{0, "MIN"}, {12, "MAX"}, {0, NULL}}; // lmao rendering 32 portals, you're a card
 static CV_PossibleValue_t homremoval_cons_t[] = {{0, "No"}, {1, "Yes"}, {2, "Flash"}, {0, NULL}};
@@ -447,38 +446,7 @@ fixed_t R_ScaleFromGlobalAngle(angle_t visangle)
 // if ML_NOCLIMB is set, the camera view is required to be in the same area for culling to occur
 boolean R_DoCulling(line_t *cullheight, line_t *viewcullheight, fixed_t vz, fixed_t bottomh, fixed_t toph)
 {
-	fixed_t cullplane;
-
-	if (!cullheight)
-		return false;
-
-	cullplane = cullheight->frontsector->floorheight;
-	if (cullheight->flags & ML_NOCLIMB) // Group culling
-	{
-		if (!viewcullheight)
-			return false;
-
-		// Make sure this is part of the same group
-		if (viewcullheight->frontsector == cullheight->frontsector)
-		{
-			// OK, we can cull
-			if (vz > cullplane && toph < cullplane) // Cull if below plane
-				return true;
-
-			if (bottomh > cullplane && vz <= cullplane) // Cull if above plane
-				return true;
-		}
-	}
-	else // Quick culling
-	{
-		if (vz > cullplane && toph < cullplane) // Cull if below plane
-			return true;
-
-		if (bottomh > cullplane && vz <= cullplane) // Cull if above plane
-			return true;
-	}
-
-	return false;
+	return SWR_DoCulling(cullheight, viewcullheight, vz, bottomh, toph);
 }
 
 //

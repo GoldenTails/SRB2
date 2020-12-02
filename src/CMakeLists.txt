@@ -494,6 +494,14 @@ if(${SRB2_CONFIG_HAVE_THREADS})
 	add_definitions(-DHAVE_THREADS)
 endif()
 
+set(SRB2_SWRENDER_SOURCES
+	${CMAKE_CURRENT_SOURCE_DIR}/software/sw_main.c
+)
+
+set(SRB2_SWRENDER_HEADERS
+	${CMAKE_CURRENT_SOURCE_DIR}/software/sw_main.h
+)
+
 if(${SRB2_CONFIG_HWRENDER})
 	add_definitions(-DHWRENDER)
 	set(SRB2_HWRENDER_SOURCES
