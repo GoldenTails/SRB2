@@ -183,6 +183,8 @@ if(${SRB2_CONFIG_HWRENDER})
 	add_subdirectory(hardware)
 endif()
 
+add_subdirectory(software)
+
 if(${SRB2_CONFIG_HWRENDER} AND ${SRB2_CONFIG_STATIC_OPENGL})
 	find_package(OpenGL)
 	if(${OPENGL_FOUND})

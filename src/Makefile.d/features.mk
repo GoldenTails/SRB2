@@ -18,6 +18,9 @@ opts+=-DHWRENDER
 sources+=$(call List,hardware/Sourcefile)
 endif
 
+# maybe place behind ifdef in the future
+sources+=$(call List,software/Sourcefile)
+
 ifndef NOASM
 ifndef NONX86
 sources+=tmap.nas tmap_mmx.nas
