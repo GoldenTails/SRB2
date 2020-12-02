@@ -291,6 +291,8 @@ else
 		 $(OBJDIR)/hw_md2load.o $(OBJDIR)/hw_md3load.o $(OBJDIR)/hw_model.o $(OBJDIR)/u_list.o $(OBJDIR)/hw_batching.o
 endif
 
+OBJS+=$(OBJDIR)/sw_main.o
+
 OPTS += -DCOMPVERSION
 
 ifndef NONX86
@@ -720,6 +722,9 @@ $(DEPDIR)/%.d: $(INTERFACE)/%.c
 $(DEPDIR)/%.d: hardware/%.c
 	$(deps_rule)
 
+$(DEPDIR)/%.d: software/%.c
+	$(deps_rule)
+
 $(DEPDIR)/%.d: blua/%.c
 	$(deps_rule)
 
@@ -756,6 +761,10 @@ $(OBJDIR)/%.o: sdl/macosx/%.c
 endif
 
 $(OBJDIR)/%.o: hardware/%.c
+	$(echoName)
+	$(CC) $(CFLAGS) $(WFLAGS) -c $< -o $@
+
+$(OBJDIR)/%.o: software/%.c
 	$(echoName)
 	$(CC) $(CFLAGS) $(WFLAGS) -c $< -o $@
 
