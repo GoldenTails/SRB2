@@ -262,10 +262,11 @@ static void write_backtrace(INT32 signal)
 	int fd = -1;
 	size_t size;
 	time_t rawtime;
-	struct tm * timeinfo;
+	struct tm timeinfo;
 
-	enum { MAX_SIZE = 1024 };
-	void *array[MAX_SIZE];
+	enum { BT_SIZE = 1024, STR_SIZE = 32 };
+	void *array[BT_SIZE];
+	char timestr[STR_SIZE];
 
 	const char *error = "An error occurred within SRB2! Send this stack trace to someone who can help!\n";
 	const char *error2 = "(Or find crash-log.txt in your SRB2 directory.)\n"; // Shown only to stderr.
@@ -275,8 +276,10 @@ static void write_backtrace(INT32 signal)
 	if (fd == -1)
 		I_OutputMsg("\nWARNING: Couldn't open crash log for writing! Make sure your permissions are correct. Please save the below report!\n");
 
+	// Get the current time as a string.
 	time(&rawtime);
-	timeinfo = localtime(&rawtime);
+	localtime_r(&rawtime, &timeinfo);
+	strftime(timestr, STR_SIZE, "%a, %d %b %Y %T %z", &timeinfo);
 
 	CRASHLOG_WRITE("------------------------\n"); // Nice looking seperator
 
@@ -286,7 +289,8 @@ static void write_backtrace(INT32 signal)
 
 	// Tell the log when we crashed.
 	CRASHLOG_WRITE("Time of crash: ");
-	CRASHLOG_WRITE(asctime(timeinfo));
+	CRASHLOG_WRITE(timestr);
+	CRASHLOG_WRITE("\n");
 
 	// Give the crash log the cause and a nice 'Backtrace:' thing
 	// The signal is given to the user when the parent process sees we crashed.
@@ -296,8 +300,8 @@ static void write_backtrace(INT32 signal)
 
 	CRASHLOG_STDERR_WRITE("\nBacktrace:\n");
 
-		// Flood the output and log with the backtrace
-	size = backtrace(array, MAX_SIZE);
+	// Flood the output and log with the backtrace
+	size = backtrace(array, BT_SIZE);
 	backtrace_symbols_fd(array, size, fd);
 	backtrace_symbols_fd(array, size, STDERR_FILENO);
 
