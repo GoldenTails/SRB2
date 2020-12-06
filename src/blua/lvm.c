@@ -371,7 +371,7 @@ static void Compound (lua_State *L, StkId ra, TValue *rb, TMS op) {
       default: lua_assert(0); break;
     }
   }
-  else if (!call_compTM(L, ra, rb, ra, op))
+  else if (!call_compTM(L, ra, rb, ra, op) && !call_compTM(L, ra, rb, ra, op - (TM_ADD_EQ - TM_ADD)))
     luaG_aritherror(L, ra, rb);
 }
 
