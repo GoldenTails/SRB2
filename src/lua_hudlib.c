@@ -1435,8 +1435,8 @@ void LUAh_CutsceneHUD(INT32 cutnum, INT32 scenenum, INT32 stoptimer)
 	I_Assert(lua_istable(gL, -1));
 	lua_remove(gL, -3); // pop HUD
 
-	lua_pushinteger(gL, cutnum);
-	lua_pushinteger(gL, scenenum);
+	lua_pushinteger(gL, cutnum + 1); // + 1 because
+	lua_pushinteger(gL, scenenum + 1); // it's more intuitive
 	lua_pushinteger(gL, stoptimer);
 	lua_pushnil(gL);
 
