@@ -4004,6 +4004,8 @@ void F_CutsceneDrawer(void)
 	}
 
 	V_DrawString(textxpos, textypos, V_ALLOWLOWERCASE, cutscene_disptext);
+
+	LUAh_CutsceneHUD(cutnum, scenenum, stoptimer);
 }
 
 void F_CutsceneTicker(void)

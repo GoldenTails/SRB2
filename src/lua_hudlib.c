@@ -98,7 +98,8 @@ enum hudhook {
 	hudhook_scores,
 	hudhook_intermission,
 	hudhook_title,
-	hudhook_titlecard
+	hudhook_titlecard,
+	hudhook_cutscene
 };
 static const char *const hudhook_opt[] = {
 	"game",
@@ -106,6 +107,7 @@ static const char *const hudhook_opt[] = {
 	"intermission",
 	"title",
 	"titlecard",
+	"cutscene",
 	NULL};
 
 // alignment types for v.drawString
@@ -1205,6 +1207,9 @@ int LUA_HudLib(lua_State *L)
 
 		lua_newtable(L);
 		lua_rawseti(L, -2, 6); // HUD[6] = title card rendering functions array
+
+		lua_newtable(L);
+		lua_rawseti(L, -2, 7); // HUD[7] = cutscene rendering functions array
 	lua_setfield(L, LUA_REGISTRYINDEX, "HUD");
 
 	luaL_newmetatable(L, META_HUDINFO);
@@ -1406,6 +1411,41 @@ void LUAh_IntermissionHUD(void)
 	while (lua_next(gL, -3) != 0) {
 		lua_pushvalue(gL, -3); // graphics library (HUD[1])
 		LUA_Call(gL, 1, 0, 1);
+	}
+	lua_settop(gL, 0);
+	hud_running = false;
+}
+
+void LUAh_CutsceneHUD(INT32 cutnum, INT32 scenenum, INT32 stoptimer)
+{
+	if (!gL || !(hudAvailable & (1<<hudhook_cutscene)))
+		return;
+
+	hud_running = true;
+	lua_settop(gL, 0);
+
+	lua_pushcfunction(gL, LUA_GetErrorMessage);
+
+	lua_getfield(gL, LUA_REGISTRYINDEX, "HUD");
+	I_Assert(lua_istable(gL, -1));
+	lua_rawgeti(gL, -1, 2+hudhook_cutscene); // HUD[7] = rendering funcs
+	I_Assert(lua_istable(gL, -1));
+
+	lua_rawgeti(gL, -2, 1); // HUD[1] = lib_draw
+	I_Assert(lua_istable(gL, -1));
+	lua_remove(gL, -3); // pop HUD
+
+	lua_pushinteger(gL, cutnum);
+	lua_pushinteger(gL, scenenum);
+	lua_pushinteger(gL, stoptimer);
+	lua_pushnil(gL);
+
+	while (lua_next(gL, -6) != 0) {
+		lua_pushvalue(gL, -6); // graphics library (HUD[1])
+		lua_pushvalue(gL, -6); // cutnum
+		lua_pushvalue(gL, -6); // scenenum
+		lua_pushvalue(gL, -6); // stoptimer
+		LUA_Call(gL, 4, 0, 1);
 	}
 	lua_settop(gL, 0);
 	hud_running = false;
