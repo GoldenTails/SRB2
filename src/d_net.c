@@ -715,8 +715,8 @@ void Net_CloseConnection(INT32 node)
 
 	InitNode(&nodes[node]);
 	SV_AbortSendFiles(node);
-	if (server)
-		SV_AbortLuaFileTransfer(node);
+	/* lua_api */
+	/* abort lua file transfers here if server */
 	I_NetFreeNodenum(node);
 #endif
 }
@@ -802,9 +802,8 @@ static const char *packettypename[NUMPACKETTYPE] =
 	"CANRECEIVEGAMESTATE",
 	"RECEIVEDGAMESTATE",
 
-	"SENDINGLUAFILE",
-	"ASKLUAFILE",
-	"HASLUAFILE",
+	/* lua_api */
+	/* sending, asking, and acknowledging lua file packet names here */
 
 	"FILEFRAGMENT",
 	"FILEACK",

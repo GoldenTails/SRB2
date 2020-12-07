@@ -61,7 +61,6 @@
 #include "r_picformats.h"
 #include "i_system.h"
 #include "md5.h"
-#include "lua_script.h"
 #ifdef SCANTHINGS
 #include "p_setup.h" // P_ScanThings
 #endif
@@ -188,6 +187,25 @@ FILE *W_OpenWadFile(const char **filename, boolean useerrors)
 		}
 	}
 	return handle;
+}
+
+/* lua_api */
+/* implement these next 2 functions */
+
+static void LUA_LoadFile(MYFILE *f, char *name, boolean noresults)
+{
+	(void)f;
+	(void)name;
+	(void)noresults;
+	CONS_Alert(CONS_WARNING, "Lua is not supported in this build.");
+}
+
+static void LUA_LoadLump(UINT16 wad, UINT16 lump, boolean noresults)
+{
+	(void)wad;
+	(void)lump;
+	(void)noresults;
+	CONS_Alert(CONS_WARNING, "Lua is not supported in this build.");
 }
 
 // Look for all DEHACKED and Lua scripts inside a PK3 archive.

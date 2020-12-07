@@ -42,8 +42,6 @@
 #include "hardware/hw_main.h"
 #endif
 
-#include "lua_hud.h"
-
 UINT16 objectsdrawn = 0;
 
 //
@@ -963,7 +961,9 @@ static void ST_drawLivesArea(void)
 		V_DrawThinString(hudinfo[HUD_LIVES].x+18, hudinfo[HUD_LIVES].y, v_colmap, skins[stplyr->skin].hudname);
 
 	// Power Stones collected
-	if (G_RingSlingerGametype() && LUA_HudEnabled(hud_powerstones))
+	/* lua_api */
+	/* also check if hud_powerstones is enabled in lua */
+	if (G_RingSlingerGametype()) 
 	{
 		INT32 workx = hudinfo[HUD_LIVES].x+1, j;
 		if ((leveltime & 1) && stplyr->powers[pw_invulnerability] && (stplyr->powers[pw_sneakers] == stplyr->powers[pw_invulnerability])) // hack; extremely unlikely to be activated unintentionally
@@ -1340,8 +1340,8 @@ void ST_drawTitleCard(void)
 	if (!G_IsTitleCardAvailable())
 		return;
 
-	if (!LUA_HudEnabled(hud_stagetitle))
-		goto luahook;
+	/* lua_api */
+	/* if hud_stagetitle isn't enabled in lua, goto luahook */
 
 	if (lt_ticker >= (lt_endtime + TICRATE))
 		goto luahook;
@@ -1395,7 +1395,9 @@ void ST_drawTitleCard(void)
 	lt_lasttic = lt_ticker;
 
 luahook:
-	LUAh_TitleCardHUD(stplyr);
+	/* lua_api */
+	/* lua title card hud callback */
+	;
 }
 
 //
@@ -1781,7 +1783,9 @@ static void ST_drawNiGHTSHUD(void)
 	const boolean oldspecialstage = (G_IsSpecialStage(gamemap) && !(maptol & TOL_NIGHTS));
 
 	// Drill meter
-	if (LUA_HudEnabled(hud_nightsdrill) && stplyr->powers[pw_carry] == CR_NIGHTSMODE)
+	/* lua_api */
+	/* also check if hud_nightsdrill is enabled in lua */
+	if (stplyr->powers[pw_carry] == CR_NIGHTSMODE)
 	{
 		INT32 locx = 16, locy = 180;
 		INT32 dfill;
@@ -1819,11 +1823,15 @@ static void ST_drawNiGHTSHUD(void)
 		splitscreen = false;
 	}*/
 
+
+
+	/* lua_api */
+	/* in the below checks, also check if hud_nightslink is enabled in lua */
+
 	// Link drawing
 	if (!oldspecialstage
 	// Don't display when the score is showing (it popping up for a split second when exiting a map is intentional)
 	&& !(stplyr->texttimer && stplyr->textvar == 4)
-	&& LUA_HudEnabled(hud_nightslink)
 	&& ((cv_debug & DBG_NIGHTSBASIC) || stplyr->linkcount > 1)) // When debugging, show "0 Link".
 	{
 		ST_drawNiGHTSLink();
@@ -1837,7 +1845,8 @@ static void ST_drawNiGHTSHUD(void)
 	}
 
 	// Begin drawing brackets/chip display
-	if (LUA_HudEnabled(hud_nightsspheres))
+	/* lua_api */
+	/* check if hud_nightsspheres is enabled in lua here */
 	{
 	ST_DrawTopLeftOverlayPatch(16, 8, nbracket);
 	if (G_IsSpecialStage(gamemap))
@@ -1978,11 +1987,15 @@ static void ST_drawNiGHTSHUD(void)
 	}
 
 	// Score
-	if (!stplyr->exiting && !oldspecialstage && LUA_HudEnabled(hud_nightsscore))
+	/* lua_api */
+	/* in the below check, also check if hud_nightsscore is enabled in lua */
+	if (!stplyr->exiting && !oldspecialstage)
 		ST_DrawNightsOverlayNum(304<<FRACBITS, 14<<FRACBITS, FRACUNIT, V_PERPLAYER|V_SNAPTOTOP|V_SNAPTORIGHT, stplyr->marescore, nightsnum, SKINCOLOR_AZURE);
 
 	// TODO give this its own section for Lua
-	if (!stplyr->exiting && LUA_HudEnabled(hud_nightsscore))
+	/* lua_api */
+	/* in the below check, also check if hud_nightsscore is enabled in lua */
+	if (!stplyr->exiting)
 	{
 		if (modeattacking == ATTACKING_NIGHTS)
 		{
@@ -2005,7 +2018,9 @@ static void ST_drawNiGHTSHUD(void)
 	}
 
 	// Ideya time remaining
-	if (!stplyr->exiting && stplyr->nightstime > 0 && LUA_HudEnabled(hud_nightstime))
+	/* lua_api */
+	/* in the below check, also check if hud_nightstime is enabled in lua */
+	if (!stplyr->exiting && stplyr->nightstime > 0)
 	{
 		INT32 realnightstime = stplyr->nightstime/TICRATE;
 		INT32 numbersize;
@@ -2096,7 +2111,8 @@ static void ST_drawNiGHTSHUD(void)
 		}
 
 		// Records/extra text
-		if (LUA_HudEnabled(hud_nightsrecords))
+		/* lua_api */
+		/* in the below check, check if hud_nightsscore is enabled in lua before drawing */
 			ST_drawNightsRecords();
 	}
 }
@@ -2374,7 +2390,8 @@ static void ST_drawTeamHUD(void)
 	else
 		p = bmatcico;
 
-	if (LUA_HudEnabled(hud_teamscores))
+	/* lua_api */
+	/* in the below check, check if hud_teamscores is enabled in lua before drawing */
 		V_DrawSmallScaledPatch(BASEVIDWIDTH/2 - SEP - (p->width / 4), 4, V_HUDTRANS|V_PERPLAYER|V_SNAPTOTOP, p);
 
 	if (gametyperules & GTR_TEAMFLAGS)
@@ -2382,7 +2399,8 @@ static void ST_drawTeamHUD(void)
 	else
 		p = rmatcico;
 
-	if (LUA_HudEnabled(hud_teamscores))
+	/* lua_api */
+	/* in the below check, check if hud_teamscores is enabled in lua before drawing */
 		V_DrawSmallScaledPatch(BASEVIDWIDTH/2 + SEP - (p->width / 4), 4, V_HUDTRANS|V_PERPLAYER|V_SNAPTOTOP, p);
 
 	if (!(gametyperules & GTR_TEAMFLAGS))
@@ -2395,11 +2413,15 @@ static void ST_drawTeamHUD(void)
 		for (i = 0; i < MAXPLAYERS; i++)
 		{
 			// Blue flag isn't at base
-			if (players[i].gotflag & GF_BLUEFLAG && LUA_HudEnabled(hud_teamscores))
+			/* lua_api */
+			/* in the below check, also check if hud_teamscores is enabled in lua */
+			if (players[i].gotflag & GF_BLUEFLAG)
 				V_DrawScaledPatch(BASEVIDWIDTH/2 - SEP - (nonicon->width / 2), 0, V_HUDTRANS|V_PERPLAYER|V_SNAPTOTOP, nonicon);
 
 			// Red flag isn't at base
-			if (players[i].gotflag & GF_REDFLAG && LUA_HudEnabled(hud_teamscores))
+			/* lua_api */
+			/* in the below check, also check if hud_teamscores is enabled in lua */
+			if (players[i].gotflag & GF_REDFLAG)
 				V_DrawScaledPatch(BASEVIDWIDTH/2 + SEP - (nonicon2->width / 2), 0, V_HUDTRANS|V_PERPLAYER|V_SNAPTOTOP, nonicon2);
 
 			whichflag |= players[i].gotflag;
@@ -2410,19 +2432,25 @@ static void ST_drawTeamHUD(void)
 
 		// Display a countdown timer showing how much time left until the flag returns to base.
 		{
-			if (blueflag && blueflag->fuse > 1 && LUA_HudEnabled(hud_teamscores))
+			/* lua_api */
+			/* in the below check, also check if hud_teamscores is enabled in lua */
+			if (blueflag && blueflag->fuse > 1)
 				V_DrawCenteredString(BASEVIDWIDTH/2 - SEP, 8, V_YELLOWMAP|V_HUDTRANS|V_PERPLAYER|V_SNAPTOTOP, va("%u", (blueflag->fuse / TICRATE)));
 
-			if (redflag && redflag->fuse > 1 && LUA_HudEnabled(hud_teamscores))
+			/* lua_api */
+			/* in the below check, also check if hud_teamscores is enabled in lua */
+			if (redflag && redflag->fuse > 1)
 				V_DrawCenteredString(BASEVIDWIDTH/2 + SEP, 8, V_YELLOWMAP|V_HUDTRANS|V_PERPLAYER|V_SNAPTOTOP, va("%u", (redflag->fuse / TICRATE)));
 		}
 	}
 
 num:
-	if (LUA_HudEnabled(hud_teamscores))
+	/* lua_api */
+	/* in the below check, check if hud_teamscores is enabled in lua before drawing */
 		V_DrawCenteredString(BASEVIDWIDTH/2 - SEP, 16, V_HUDTRANS|V_PERPLAYER|V_SNAPTOTOP, va("%u", bluescore));
 
-	if (LUA_HudEnabled(hud_teamscores))
+	/* lua_api */
+	/* in the below check, check if hud_teamscores is enabled in lua before drawing */
 		V_DrawCenteredString(BASEVIDWIDTH/2 + SEP, 16, V_HUDTRANS|V_PERPLAYER|V_SNAPTOTOP, va("%u", redscore));
 
 #undef SEP
@@ -2610,14 +2638,19 @@ static void ST_overlayDrawer(void)
 			ST_drawNiGHTSHUD();
 		else
 		{
-			if (LUA_HudEnabled(hud_score))
+			/* lua_api */
+			/* check if hud_score is enabled in lua before drawing */
 				ST_drawScore();
-			if (LUA_HudEnabled(hud_time))
+			/* lua_api */
+			/* check if hud_time is enabled in lua before drawing */
 				ST_drawTime();
-			if (LUA_HudEnabled(hud_rings))
+			/* lua_api */
+			/* check if hud_rings is enabled in lua before drawing */
 				ST_drawRings();
 
-			if (!modeattacking && LUA_HudEnabled(hud_lives))
+			/* lua_api */
+			/* also check if hud_live is enabled in lua before drawing */
+			if (!modeattacking)
 				ST_drawLivesArea();
 		}
 	}
@@ -2692,7 +2725,9 @@ static void ST_overlayDrawer(void)
 		// Draw Match-related stuff
 		//\note Match HUD is drawn no matter what gametype.
 		// ... just not if you're a spectator.
-		if (!stplyr->spectator && LUA_HudEnabled(hud_weaponrings))
+		/* lua_api */
+		/* also check if hud_weaponrings is enabled in lua before drawing */
+		if (!stplyr->spectator)
 			ST_drawMatchHUD();
 
 		// Race HUD Stuff
@@ -2734,13 +2769,17 @@ static void ST_overlayDrawer(void)
 		ST_drawPowerupHUD(); // same as it ever was...
 
 	if (!(netgame || multiplayer) || !hu_showscores)
-		LUAh_GameHUD(stplyr);
+		/* lua_api */
+		/* lua game hud callback here */
+		;
 
 	// draw level title Tails
 	if (stagetitle && (!WipeInAction) && (!WipeStageTitle))
 		ST_drawTitleCard();
 
-	if (!hu_showscores && (netgame || multiplayer) && LUA_HudEnabled(hud_textspectator))
+	/* lua_api */
+	/* also check if hud_textspectator is enabled in lua before drawing */
+	if (!hu_showscores && (netgame || multiplayer))
 		ST_drawTextHUD();
 
 	if (modeattacking && !(demoplayback && hu_showscores))

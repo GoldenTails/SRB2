@@ -47,9 +47,6 @@
 #include "hardware/hw_main.h"
 #endif
 
-#include "lua_hud.h"
-#include "lua_hook.h"
-
 // coords are scaled
 #define HU_INPUTX 0
 #define HU_INPUTY 0
@@ -683,9 +680,8 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 		stop_spamming[playernum] = 4; // you can hold off for 4 tics, can you?
 
 	// run the lua hook even if we were supposed to eat the msg, netgame consistency goes first.
-
-	if (LUAh_PlayerMsg(playernum, target, flags, msg))
-		return;
+	/* lua_api */
+	/* lua player chat message callback here */
 
 	if (spam_eatmsg)
 		return; // don't proceed if we were supposed to eat the message.
@@ -2095,14 +2091,16 @@ void HU_Drawer(void)
 	{
 		if (netgame || multiplayer)
 		{
-			if (LUA_HudEnabled(hud_rankings))
+			/* lua_api */
+			/* run only if hud is enabled */
 				HU_DrawRankings();
 			if (gametyperules & GTR_CAMPAIGN)
 				HU_DrawNetplayCoopOverlay();
 		}
 		else
 			HU_DrawCoopOverlay();
-		LUAh_ScoresHUD();
+		/* lua_api */
+		/* lua scores hud callback */
 	}
 
 	if (gamestate != GS_LEVEL)
@@ -3085,20 +3083,24 @@ static void HU_DrawRankings(void)
 
 static void HU_DrawCoopOverlay(void)
 {
-	if (token && LUA_HudEnabled(hud_tokens))
+	/* lua_api */
+	/* run only if token hud is enabled */
+	if (token)
 	{
 		V_DrawString(168, 176, 0, va("- %d", token));
 		V_DrawSmallScaledPatch(148, 172, 0, tokenicon);
 	}
 
-	if (LUA_HudEnabled(hud_tabemblems) && (!modifiedgame || savemoddata))
+	/* lua_api */
+	/* run only if tab emblems hud is enabled */
+	if ((!modifiedgame || savemoddata))
 	{
 		V_DrawString(160, 144, 0, va("- %d/%d", M_CountEmblems(), numemblems+numextraemblems));
 		V_DrawScaledPatch(128, 144 - emblemicon->height/4, 0, emblemicon);
 	}
 
-	if (!LUA_HudEnabled(hud_coopemeralds))
-		return;
+	/* lua_api */
+	/* return here if coop emeralds hud is disabled */
 
 	if (emeralds & EMERALD1)
 		V_DrawScaledPatch((BASEVIDWIDTH/2)-8   , (BASEVIDHEIGHT/3)-32, 0, emeraldpics[0][0]);
@@ -3120,14 +3122,16 @@ static void HU_DrawNetplayCoopOverlay(void)
 {
 	int i;
 
-	if (token && LUA_HudEnabled(hud_tokens))
+	/* lua_api */
+	/* run only if token hud is enabled */
+	if (token)
 	{
 		V_DrawString(168, 10, 0, va("- %d", token));
 		V_DrawSmallScaledPatch(148, 6, 0, tokenicon);
 	}
 
-	if (!LUA_HudEnabled(hud_coopemeralds))
-		return;
+	/* lua_api */
+	/* return here if coop emeralds hud is disabled */
 
 	for (i = 0; i < 7; ++i)
 	{

@@ -32,7 +32,6 @@
 #include "r_main.h"
 #include "r_sky.h"
 #include "p_polyobj.h"
-#include "lua_script.h"
 #include "p_slopes.h"
 
 savedata_t savedata;
@@ -4240,43 +4239,14 @@ static inline boolean P_NetUnArchiveMisc(boolean reloading)
 
 static inline void P_ArchiveLuabanksAndConsistency(void)
 {
-	UINT8 i, banksinuse = NUM_LUABANKS;
-
-	while (banksinuse && !luabanks[banksinuse-1])
-		banksinuse--; // get the last used bank
-
-	if (banksinuse)
-	{
-		WRITEUINT8(save_p, 0xb7); // luabanks marker
-		WRITEUINT8(save_p, banksinuse);
-		for (i = 0; i < banksinuse; i++)
-			WRITEINT32(save_p, luabanks[i]);
-	}
-
-	WRITEUINT8(save_p, 0x1d); // consistency marker
+	/* lua_api */
+	/* luabanks archival */
 }
 
 static inline boolean P_UnArchiveLuabanksAndConsistency(void)
 {
-	switch (READUINT8(save_p))
-	{
-		case 0xb7:
-			{
-				UINT8 i, banksinuse = READUINT8(save_p);
-				if (banksinuse > NUM_LUABANKS)
-					return false;
-				for (i = 0; i < banksinuse; i++)
-					luabanks[i] = READINT32(save_p);
-				if (READUINT8(save_p) != 0x1d)
-					return false;
-			}
-		case 0x1d:
-			break;
-		default:
-			return false;
-	}
-
-	return true;
+	/* lua_api */
+	/* luabanks unarchival */
 }
 
 void P_SaveGame(INT16 mapnum)
@@ -4317,7 +4287,9 @@ void P_SaveNetGame(boolean resending)
 		P_NetArchiveColormaps();
 		P_NetArchiveWaypoints();
 	}
-	LUA_Archive();
+
+	/* lua_api */
+	/* lua object netgame archiving function here */
 
 	P_ArchiveLuabanksAndConsistency();
 }
@@ -4358,7 +4330,9 @@ boolean P_LoadNetGame(boolean reloading)
 		P_RelinkPointers();
 		P_FinishMobjs();
 	}
-	LUA_UnArchive();
+
+	/* lua_api */
+	/* lua object netgame unarchiving function here */
 
 	// This is stupid and hacky, but maybe it'll work!
 	P_SetRandSeed(P_GetInitSeed());

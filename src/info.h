@@ -4304,7 +4304,6 @@ extern state_t states[NUMSTATES];
 extern char sprnames[NUMSPRITES + 1][5];
 extern char spr2names[NUMPLAYERSPRITES][5];
 extern playersprite_t spr2defaults[NUMPLAYERSPRITES];
-extern state_t *astate;
 extern playersprite_t free_spr2;
 
 typedef enum mobj_type

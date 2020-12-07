@@ -37,8 +37,6 @@
 #include "hu_stuff.h"
 // We need to affect the NiGHTS hud
 #include "st_stuff.h"
-#include "lua_script.h"
-#include "lua_hook.h"
 #include "b_bot.h"
 // Objectplace
 #include "m_cheat.h"
@@ -1110,15 +1108,8 @@ boolean P_PlayerCanDamage(player_t *player, mobj_t *thing)
 	if (!player->mo || player->spectator || !thing || P_MobjWasRemoved(thing))
 		return false;
 
-	{
-		UINT8 shouldCollide = LUAh_PlayerCanDamage(player, thing);
-		if (P_MobjWasRemoved(thing))
-			return false; // removed???
-		if (shouldCollide == 1)
-			return true; // force yes
-		else if (shouldCollide == 2)
-			return false; // force no
-	}
+	/* lua_api */
+	/* lua player can damage callback here, if returns true, force yes, if returns false or removed, force no */
 
 	// Invinc/super. Not for Monitors.
 	if (!(thing->flags & MF_MONITOR) && (player->powers[pw_invulnerability] || player->powers[pw_super]))
@@ -1513,10 +1504,9 @@ void P_PlayJingle(player_t *player, jingletype_t jingletype)
 
 	char newmusic[7];
 	strncpy(newmusic, musname, 7);
-#ifdef HAVE_LUA_MUSICPLUS
- 	if(LUAh_MusicJingle(jingletype, newmusic, &musflags, &looping))
- 		return;
-#endif
+
+	/* lua_api */
+	/* lua music jingle callback here, if returns true, stop execution */
 	newmusic[6] = 0;
 
 	P_PlayJingleMusic(player, newmusic, musflags, looping, jingletype);
@@ -1594,7 +1584,8 @@ boolean P_EvaluateMusicStatus(UINT16 status, const char *musname)
 				break;
 
 			case JT_OTHER:  // Other state
-				result = LUAh_ShouldJingleContinue(&players[i], musname);
+				/* lua_api */
+				/* lua should jingle continue callback here, yes if true, no if false */
 				break;
 
 			case JT_NONE:   // Null state
@@ -1860,8 +1851,8 @@ void P_SpawnShieldOrb(player_t *player)
 		I_Error("P_SpawnShieldOrb: player->mo is NULL!\n");
 #endif
 
-	if (LUAh_ShieldSpawn(player))
-		return;
+	/* lua_api */
+	/* lua shield spawning callback here, if returns true don't spawn */
 
 	if (player->powers[pw_shield] & SH_FORCE)
 		orbtype = MT_FORCE_ORB;
@@ -4577,8 +4568,8 @@ static void P_DoSpinAbility(player_t *player, ticcmd_t *cmd)
 
 	if (cmd->buttons & BT_SPIN)
 	{
-		if (LUAh_SpinSpecial(player))
-			return;
+		/* lua_api */
+		/* lua spin button callback here, if returns true then don't continue execution */
 	}
 
 	canstand = (!player->mo->standingslope || (player->mo->standingslope->flags & SL_NOPHYSICS) || abs(player->mo->standingslope->zdelta) < FRACUNIT/2);
@@ -5043,7 +5034,10 @@ static boolean P_PlayerShieldThink(player_t *player, ticcmd_t *cmd, mobj_t *lock
 				}
 			}
 		}
-		if (cmd->buttons & BT_SPIN && !LUAh_ShieldSpecial(player)) // Spin button effects
+
+		/* lua_api */
+		/* call lua shield action callback here too, if it returns true then it overrides default behavior */
+		if (cmd->buttons & BT_SPIN) // Spin button effects
 		{
 			// Force stop
 			if ((player->powers[pw_shield] & ~(SH_FORCEHP|SH_STACK)) == SH_FORCE)
@@ -5167,7 +5161,9 @@ static void P_DoJumpStuff(player_t *player, ticcmd_t *cmd)
 				// and you don't have a shield, do it!
 				P_DoSuperTransformation(player, false);
 			}
-			else if (!LUAh_JumpSpinSpecial(player))
+			/* lua_api */
+			/* call lua jump+spin callback here, if returns true then overrides default behavior */
+			else
 				switch (player->charability)
 				{
 					case CA_THOK:
@@ -5240,10 +5236,12 @@ static void P_DoJumpStuff(player_t *player, ticcmd_t *cmd)
 
 	if (cmd->buttons & BT_JUMP && !player->exiting && !P_PlayerInPain(player))
 	{
-		if (LUAh_JumpSpecial(player))
+		/* lua_api */
+		/* lua jump callback here, if returns true then override default behavior */
+		/*if (hook(player))
 			;
 		// all situations below this require jump button not to be pressed already
-		else if (player->pflags & PF_JUMPDOWN)
+		else*/ if (player->pflags & PF_JUMPDOWN)
 			;
 		// Jump S3&K style while in quicksand.
 		else if (P_InQuicksand(player->mo))
@@ -5275,7 +5273,8 @@ static void P_DoJumpStuff(player_t *player, ticcmd_t *cmd)
 		}*/
 		else if (player->pflags & PF_JUMPED)
 		{
-			if (!LUAh_AbilitySpecial(player))
+			/* lua_api */
+			/* lua jump ability callback here, if returns true then override default behavior */
 			switch (player->charability)
 			{
 				case CA_THOK:
@@ -5468,7 +5467,8 @@ static void P_DoJumpStuff(player_t *player, ticcmd_t *cmd)
 		}
 		else if (player->pflags & PF_THOKKED)
 		{
-			if (!LUAh_AbilitySpecial(player))
+			/* lua_api */
+			/* lua jump ability callback here, if returns true then override default behavior */
 				switch (player->charability)
 				{
 					case CA_FLY:
@@ -10490,8 +10490,8 @@ boolean P_SpectatorJoinGame(player_t *player)
 		else
 			changeto = (P_RandomFixed() & 1) + 1;
 
-		if (!LUAh_TeamSwitch(player, changeto, true, false, false))
-			return false;
+		/* lua_api */
+		/* lua team switching callback here, if returns true then override default behavior */
 
 		if (player->mo)
 		{
@@ -10507,7 +10507,8 @@ boolean P_SpectatorJoinGame(player_t *player)
 		{
 			// Call ViewpointSwitch hooks here.
 			// The viewpoint was forcibly changed.
-			LUAh_ViewpointSwitch(player, &players[consoleplayer], true);
+			/* lua_api */
+			/* lua viewpoint switching callback here */
 			displayplayer = consoleplayer;
 		}
 
@@ -10525,8 +10526,8 @@ boolean P_SpectatorJoinGame(player_t *player)
 		// respawn in place and sit there for the rest of the round.
 		if (!((gametyperules & GTR_HIDEFROZEN) && leveltime > (hidetime * TICRATE)))
 		{
-			if (!LUAh_TeamSwitch(player, 3, true, false, false))
-				return false;
+			/* lua_api */
+			/* lua team switch callback here, if returns true then override default behavior */
 			if (player->mo)
 			{
 				P_RemoveMobj(player->mo);
@@ -10552,7 +10553,8 @@ boolean P_SpectatorJoinGame(player_t *player)
 			{
 				// Call ViewpointSwitch hooks here.
 				// The viewpoint was forcibly changed.
-				LUAh_ViewpointSwitch(player, &players[consoleplayer], true);
+				/* lua_api */
+				/* lua viewpoint switching callback here */
 				displayplayer = consoleplayer;
 			}
 
@@ -11477,7 +11479,8 @@ void P_PlayerThink(player_t *player)
 		}
 		if (player->playerstate == PST_REBORN)
 		{
-			LUAh_PlayerThink(player);
+			/* lua_api */
+			/* lua player thinker callback here */
 			return;
 		}
 	}
@@ -11581,7 +11584,8 @@ void P_PlayerThink(player_t *player)
 
 			if (player->playerstate == PST_DEAD)
 			{
-				LUAh_PlayerThink(player);
+				/* lua_api */
+				/* lua player thinker callback here */
 				return;
 			}
 		}
@@ -11702,7 +11706,8 @@ void P_PlayerThink(player_t *player)
 	{
 		player->mo->flags2 &= ~MF2_SHADOW;
 		P_DeathThink(player);
-		LUAh_PlayerThink(player);
+		/* lua_api */
+		/* lua player thinker callback here */
 		return;
 	}
 
@@ -11744,7 +11749,8 @@ void P_PlayerThink(player_t *player)
 	{
 		if (P_SpectatorJoinGame(player))
 		{
-			LUAh_PlayerThink(player);
+			/* lua_api */
+			/* lua player thinker callback here */
 			return; // player->mo was removed.
 		}
 	}
@@ -11849,7 +11855,8 @@ void P_PlayerThink(player_t *player)
 
 	if (!player->mo)
 	{
-		LUAh_PlayerThink(player);
+		/* lua_api */
+		/* lua player thinker callback here */
 		return; // P_MovePlayer removed player->mo.
 	}
 
@@ -12303,7 +12310,8 @@ void P_PlayerThink(player_t *player)
 	}
 #undef dashmode
 
-	LUAh_PlayerThink(player);
+	/* lua_api */
+	/* lua player thinker callback here */
 
 /*
 //	Colormap verification
@@ -12863,9 +12871,8 @@ void P_PlayerAfterThink(player_t *player)
 
 		if (player->followmobj)
 		{
-			if (LUAh_FollowMobj(player, player->followmobj) || P_MobjWasRemoved(player->followmobj))
-				{;}
-			else
+			/* lua_api */
+			/* lua follower mobj callback here, if returns true or mobj is removed, override default behavior */
 			{
 				switch (player->followmobj->type)
 				{

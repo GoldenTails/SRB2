@@ -16,7 +16,6 @@
 #include "doomdef.h" // Constants
 #include "d_think.h" // actionf_t
 #include "info.h" // Mobj, state, sprite, etc constants
-#include "lua_script.h"
 
 // Free slot names
 // The crazy word-reading stuff uses these.
@@ -50,7 +49,9 @@ typedef struct
 struct int_const_s {
 	const char *n;
 	// has to be able to hold both fixed_t and angle_t, so drastic measure!!
-	lua_Integer v;
+	/* lua_api */
+	/* PLEASE change to something else when the new lua api is implemented */
+	INT32 v;
 };
 
 extern const char NIGHTSGRADE_LIST[];

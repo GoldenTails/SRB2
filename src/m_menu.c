@@ -45,7 +45,6 @@
 #include "p_local.h"
 #include "p_setup.h"
 #include "f_finale.h"
-#include "lua_hook.h"
 
 #ifdef HWRENDER
 #include "hardware/hw_main.h"
@@ -6937,8 +6936,8 @@ static void M_SelectableClearMenus(INT32 choice)
 static void M_UltimateCheat(INT32 choice)
 {
 	(void)choice;
-	if (Playing())
-		LUAh_GameQuit();
+	/* lua_api */
+	/* perform ultra k00l ultimate cheat lua callback here */
 	I_Quit();
 }
 
@@ -8208,7 +8207,8 @@ static void M_StartTutorial(INT32 choice)
 	tutorialmode = true; // turn on tutorial mode
 
 	emeralds = 0;
-	memset(&luabanks, 0, sizeof(luabanks));
+	/* lua_api */
+	/* zero out luabanks here */
 	M_ClearMenus(true);
 	gamecomplete = 0;
 	cursaveslot = 0;
@@ -8674,29 +8674,9 @@ static void M_ReadSavegameInfo(UINT32 slot)
 
 	// File end marker check
 	CHECKPOS
-	switch (READUINT8(save_p))
-	{
-		case 0xb7:
-			{
-				UINT8 i, banksinuse;
-				CHECKPOS
-				banksinuse = READUINT8(save_p);
-				CHECKPOS
-				if (banksinuse > NUM_LUABANKS)
-					BADSAVE
-				for (i = 0; i < banksinuse; i++)
-				{
-					(void)READINT32(save_p);
-					CHECKPOS
-				}
-				if (READUINT8(save_p) != 0x1d)
-					BADSAVE
-			}
-		case 0x1d:
-			break;
-		default:
-			BADSAVE
-	}
+
+	/* lua_api */
+	/* read luabanks here */
 
 	// done
 	Z_Free(savebuffer);
@@ -10164,7 +10144,8 @@ static void M_ChooseNightsAttack(INT32 choice)
 	char nameofdemo[256];
 	(void)choice;
 	emeralds = 0;
-	memset(&luabanks, 0, sizeof(luabanks));
+	/* lua_api */
+	/* zero out luabanks here */
 	M_ClearMenus(true);
 	modeattacking = ATTACKING_NIGHTS;
 
@@ -10193,7 +10174,8 @@ static void M_ChooseTimeAttack(INT32 choice)
 	char nameofdemo[256];
 	(void)choice;
 	emeralds = 0;
-	memset(&luabanks, 0, sizeof(luabanks));
+	/* lua_api */
+	/* zero out luabanks here */
 	M_ClearMenus(true);
 	modeattacking = ATTACKING_RECORD;
 
@@ -13372,8 +13354,8 @@ void M_QuitResponse(INT32 ch)
 
 	if (ch != 'y' && ch != KEY_ENTER)
 		return;
-	if (Playing())
-		LUAh_GameQuit();
+	/* lua_api */
+	/* lua game quitting callback here */
 	if (!(netgame || cv_debug))
 	{
 		S_ResetCaptions();

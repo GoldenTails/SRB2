@@ -42,8 +42,6 @@
 #include "filesrch.h"
 #include "mserv.h"
 #include "z_zone.h"
-#include "lua_script.h"
-#include "lua_hook.h"
 #include "m_cond.h"
 #include "m_anigif.h"
 #include "md5.h"
@@ -411,10 +409,9 @@ const char *netxcmdnames[MAXNETXCMD - 1] =
 	"REQADDFILE",
 	"DELFILE", // replace next time we add an XD
 	"SETMOTD",
-	"SUICIDE",
-	"LUACMD",
-	"LUAVAR",
-	"LUAFILE"
+	"SUICIDE"
+	/* lua_api */
+	/* lua command, lua variable, and lua file netxcmd names here */
 };
 
 // =========================================================================
@@ -447,8 +444,8 @@ void D_RegisterServerCommands(void)
 	RegisterNetXCmd(XD_PAUSE, Got_Pause);
 	RegisterNetXCmd(XD_SUICIDE, Got_Suicide);
 	RegisterNetXCmd(XD_RUNSOC, Got_RunSOCcmd);
-	RegisterNetXCmd(XD_LUACMD, Got_Luacmd);
-	RegisterNetXCmd(XD_LUAFILE, Got_LuaFile);
+	/* lua_api */
+	/* register lua command and lua file netxcmds here */
 
 	// Remote Administration
 	COM_AddCommand("password", Command_Changepassword_f);
@@ -904,9 +901,8 @@ void D_RegisterClientCommands(void)
 #ifdef _DEBUG
 	COM_AddCommand("causecfail", Command_CauseCfail_f);
 #endif
-#ifdef LUA_ALLOW_BYTECODE
-	COM_AddCommand("dumplua", Command_Dumplua_f);
-#endif
+	/* lua_api */
+	/* lua bytecode dumping command here (behind a disabled ifdef preferably) */
 }
 
 /** Checks if a name (as received from another player) is okay.
@@ -2092,7 +2088,8 @@ static void Got_Mapcmd(UINT8 **cp, INT32 playernum)
 	if (resetplayer && !FLS)
 	{
 		emeralds = 0;
-		memset(&luabanks, 0, sizeof(luabanks));
+		/* lua_api */
+		/* zero out luabanks here */
 	}
 
 	if (modeattacking)
@@ -2103,7 +2100,8 @@ static void Got_Mapcmd(UINT8 **cp, INT32 playernum)
 	}
 
 	mapnumber = M_MapNumber(mapname[3], mapname[4]);
-	LUAh_MapChange(mapnumber);
+	/* lua_api */
+	/* lua map changing callback here */
 
 	G_InitNew(ultimatemode, mapname, resetplayer, skipprecutscene, FLS);
 	if (demoplayback && !timingdemo)
@@ -2688,8 +2686,8 @@ static void Got_Teamchange(UINT8 **cp, INT32 playernum)
 	}
 
 	// Don't switch team, just go away, please, go awaayyyy, aaauuauugghhhghgh
-	if (!LUAh_TeamSwitch(&players[playernum], NetPacket.packet.newteam, players[playernum].spectator, NetPacket.packet.autobalance, NetPacket.packet.scrambled))
-		return;
+	/* lua_api */
+	/* lua team changing callback here (return false to disable rest of code) */
 
 	//no status changes after hidetime
 	if ((gametyperules & GTR_HIDEFROZEN) && (leveltime >= (hidetime * TICRATE)))
@@ -2848,8 +2846,8 @@ static void Got_Teamchange(UINT8 **cp, INT32 playernum)
 	{
 		// Call ViewpointSwitch hooks here.
 		// The viewpoint was forcibly changed.
-		if (displayplayer != consoleplayer) // You're already viewing yourself. No big deal.
-			LUAh_ViewpointSwitch(&players[consoleplayer], &players[consoleplayer], true);
+		/* lua_api */
+		/* lua viewpoint switching callback if we're not viewing ourselves */
 		displayplayer = consoleplayer;
 	}
 
@@ -3606,8 +3604,8 @@ static void Command_Playintro_f(void)
   */
 FUNCNORETURN static ATTRNORETURN void Command_Quit_f(void)
 {
-	if (Playing())
-		LUAh_GameQuit();
+	/* lua_api */
+	/* lua game quitting callback */
 	I_Quit();
 }
 
@@ -4269,8 +4267,8 @@ void Command_ExitGame_f(void)
 {
 	INT32 i;
 
-	if (Playing())
-		LUAh_GameQuit();
+	/* lua_api */
+	/* lua game quitting callback */
 
 	D_QuitNetGame();
 	CL_Reset();
@@ -4287,7 +4285,8 @@ void Command_ExitGame_f(void)
 	botskin = 0;
 	cv_debug = 0;
 	emeralds = 0;
-	memset(&luabanks, 0, sizeof(luabanks));
+	/* lua_api */
+	/* zero out luabanks here */
 
 	if (dirmenu)
 		closefilemenu(true);
@@ -4395,19 +4394,20 @@ static void Command_Archivetest_f(void)
 	buf = save_p = ZZ_Alloc(1024);
 
 	// test archive
-	CONS_Printf("LUA_Archive...\n");
-	LUA_Archive();
+	/* lua_api */
+	/* lua save archiving call here */
 	WRITEUINT8(save_p, 0x7F);
 	wrote = (UINT32)(save_p-buf);
 
 	// clear Lua state, so we can really see what happens!
 	CONS_Printf("Clearing state!\n");
-	LUA_ClearExtVars();
+	/* lua_api */
+	/* clear lua state here */
 
 	// test unarchive
 	save_p = buf;
-	CONS_Printf("LUA_UnArchive...\n");
-	LUA_UnArchive();
+	/* lua_api */
+	/* lua save unarchiving call here */
 	i = READUINT8(save_p);
 	if (i != 0x7F || wrote != (UINT32)(save_p-buf))
 		CONS_Printf("Savegame corrupted. (write %u, read %u)\n", wrote, (UINT32)(save_p-buf));

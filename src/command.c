@@ -31,7 +31,6 @@
 #include "d_netcmd.h"
 #include "hu_stuff.h"
 #include "p_setup.h"
-#include "lua_script.h"
 #include "d_netfil.h" // findfile
 #include "r_data.h" // Color_cons_t
 
@@ -494,12 +493,13 @@ void COM_AddCommand(const char *name, com_func_t func)
 	{
 		if (!stricmp(name, cmd->name)) //case insensitive now that we have lower and uppercase!
 		{
+			/* lua_api */
 			// don't I_Error for Lua commands
 			// Lua commands can replace game commands, and they have priority.
 			// BUT, if for some reason we screwed up and made two console commands with the same name,
 			// it's good to have this here so we find out.
-			if (cmd->function != COM_Lua_f)
-				I_Error("Command %s already exists\n", name);
+			/* dont run this I_Error if this is a lua command */
+			I_Error("Command %s already exists\n", name);
 
 			return;
 		}
@@ -512,38 +512,8 @@ void COM_AddCommand(const char *name, com_func_t func)
 	com_commands = cmd;
 }
 
-/** Adds a console command for Lua.
-  * No I_Errors allowed; return a negative code instead.
-  *
-  * \param name Name of the command.
-  */
-int COM_AddLuaCommand(const char *name)
-{
-	xcommand_t *cmd;
-
-	// fail if the command is a variable name
-	if (CV_StringValue(name)[0] != '\0')
-		return -1;
-
-	// command already exists
-	for (cmd = com_commands; cmd; cmd = cmd->next)
-	{
-		if (!stricmp(name, cmd->name)) //case insensitive now that we have lower and uppercase!
-		{
-			// replace the built in command.
-			cmd->function = COM_Lua_f;
-			return 1;
-		}
-	}
-
-	// Add a new command.
-	cmd = ZZ_Alloc(sizeof *cmd);
-	cmd->name = name;
-	cmd->function = COM_Lua_f;
-	cmd->next = com_commands;
-	com_commands = cmd;
-	return 0;
-}
+/* lua_api */
+/* add lua command registration function here */
 
 /** Tests if a command exists.
   *
@@ -1577,7 +1547,8 @@ finish:
 	}
 	var->flags |= CV_MODIFIED;
 	// raise 'on change' code
-	LUA_CVarChanged(var->name); // let consolelib know what cvar this is.
+	/* lua_api */
+	/* shouldForce bot respawning hook code here */
 	if (var->flags & CV_CALL && !stealth)
 		var->func();
 

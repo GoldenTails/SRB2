@@ -19,8 +19,6 @@
 #include "st_stuff.h"
 #include "p_polyobj.h"
 #include "m_random.h"
-#include "lua_script.h"
-#include "lua_hook.h"
 #include "m_perfstats.h"
 #include "i_system.h" // I_GetTimeMicros
 
@@ -271,7 +269,8 @@ void P_RemoveThinkerDelayed(thinker_t *thinker)
 //
 void P_RemoveThinker(thinker_t *thinker)
 {
-	LUA_InvalidateUserdata(thinker);
+	/* lua_api */
+	/* invalidate thinker userdata here */
 	thinker->function.acp1 = (actionf_p1)P_RemoveThinkerDelayed;
 }
 
@@ -656,7 +655,8 @@ void P_Ticker(boolean run)
 		ps_lua_mobjhooks = 0;
 		ps_checkposition_calls = 0;
 
-		LUAh_PreThinkFrame();
+		/* lua_api */
+		/* lua pre-thinkframe callback here */
 
 		ps_playerthink_time = I_GetTimeMicros();
 		for (i = 0; i < MAXPLAYERS; i++)
@@ -687,7 +687,8 @@ void P_Ticker(boolean run)
 				P_PlayerAfterThink(&players[i]);
 
 		ps_lua_thinkframe_time = I_GetTimeMicros();
-		LUAh_ThinkFrame();
+		/* lua_api */
+		/* lua thinkframe callback here */
 		ps_lua_thinkframe_time = I_GetTimeMicros() - ps_lua_thinkframe_time;
 	}
 
@@ -760,7 +761,8 @@ void P_Ticker(boolean run)
 		if (modeattacking)
 			G_GhostTicker();
 
-		LUAh_PostThinkFrame();
+		/* lua_api */
+		/* lua post-thinkframe callback here */
 	}
 
 	P_MapEnd();
@@ -783,7 +785,8 @@ void P_PreTicker(INT32 frames)
 	{
 		P_MapStart();
 
-		LUAh_PreThinkFrame();
+		/* lua_api */
+		/* lua pre-thinkframe callback here */
 
 		for (i = 0; i < MAXPLAYERS; i++)
 			if (playeringame[i] && players[i].mo && !P_MobjWasRemoved(players[i].mo))
@@ -810,7 +813,8 @@ void P_PreTicker(INT32 frames)
 			if (playeringame[i] && players[i].mo && !P_MobjWasRemoved(players[i].mo))
 				P_PlayerAfterThink(&players[i]);
 
-		LUAh_ThinkFrame();
+		/* lua_api */
+		/* lua thinkframe callback here */
 
 		// Run shield positioning
 		P_RunShields();
@@ -819,7 +823,8 @@ void P_PreTicker(INT32 frames)
 		P_UpdateSpecials();
 		P_RespawnSpecials();
 
-		LUAh_PostThinkFrame();
+		/* lua_api */
+		/* lua post-thinkframe callback here */
 
 		P_MapEnd();
 	}

@@ -36,7 +36,6 @@
 #include "r_skins.h"
 #include "y_inter.h"
 #include "v_video.h"
-#include "lua_hook.h"
 #include "md5.h" // demo checksums
 
 boolean timingdemo; // if true, exit with report on completion
@@ -1956,9 +1955,8 @@ void G_DoPlayDemo(char *defdemoname)
 	// Set skin
 	SetPlayerSkin(0, skin);
 
-#ifdef HAVE_BLUA
-	LUAh_MapChange(gamemap);
-#endif
+	/* lua_api */
+	/* lua map change callback here */
 	displayplayer = consoleplayer = 0;
 	memset(playeringame,0,sizeof(playeringame));
 	playeringame[0] = true;

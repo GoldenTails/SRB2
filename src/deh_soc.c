@@ -33,7 +33,6 @@
 #include "r_things.h" // R_Char2Frame
 #include "r_sky.h"
 #include "fastcmp.h"
-#include "lua_script.h" // Reluctantly included for LUA_EvalMath
 #include "d_clisrv.h"
 
 #ifdef HWRENDER
@@ -44,25 +43,12 @@
 
 #include "dehacked.h"
 #include "deh_soc.h"
-#include "deh_lua.h" // included due to some LUA_SetLuaAction hack smh
 #include "deh_tables.h"
 
 // Loops through every constant and operation in word and performs its calculations, returning the final value.
 fixed_t get_number(const char *word)
 {
-	return LUA_EvalMath(word);
-
-	/*// DESPERATELY NEEDED: Order of operations support! :x
-	fixed_t i = find_const(&word);
-	INT32 o;
-	while(*word) {
-		o = operation_pad(&word);
-		if (o != -1)
-			i = OPERATIONS[o].v(i,find_const(&word));
-		else
-			break;
-	}
-	return i;*/
+	return 0; // pfffffff nahhhhhhhhhhhhhhhhhhhh
 }
 
 #define PARAMCHECK(n) do { if (!params[n]) { deh_warning("Too few parameters, need %d", n); return; }} while (0)
@@ -1324,7 +1310,7 @@ void readlevelheader(MYFILE *f, INT32 num)
 			if (s == tmp)
 				continue; // Skip comment lines, but don't break.
 
-			// Set / reset word, because some things (Lua.) move it
+			// Set / reset word, because some things move it
 			word = s;
 
 			// Get the part before the " = "
@@ -1355,6 +1341,8 @@ void readlevelheader(MYFILE *f, INT32 num)
 				continue;
 			}
 
+			/* lua_api */
+			/* i'm keeping these because it doesn't *really* need to be removed for a clean lua slate */
 			// Lua custom options also go above, contents may be case sensitive.
 			if (fastncmp(word, "LUA.", 4))
 			{
@@ -2798,7 +2786,10 @@ void readframe(MYFILE *f, INT32 num)
 				}
 
 				z = 0;
-				found = LUA_SetLuaAction(&states[num], actiontocompare);
+
+				/* lua_api */
+				/* there used to be a LUA_SetLuaAction call here, it put its result in `found' */
+
 				if (!found)
 					while (actionpointers[z].name)
 					{

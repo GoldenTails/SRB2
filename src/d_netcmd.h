@@ -143,9 +143,8 @@ typedef enum
 	XD_SETMOTD,     // 19
 	XD_SUICIDE,     // 20
 	XD_DEMOTED,     // 21
-	XD_LUACMD,      // 22
-	XD_LUAVAR,      // 23
-	XD_LUAFILE,     // 24
+	/* lua_api */
+	/* lua command, lua variable, and lua file netxcmd constants here */
 	MAXNETXCMD
 } netxcmd_t;
 

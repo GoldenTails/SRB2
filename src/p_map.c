@@ -31,8 +31,6 @@
 
 #include "z_zone.h"
 
-#include "lua_hook.h"
-
 #include "m_perfstats.h" // ps_checkposition_calls
 
 fixed_t tmbbox[4];
@@ -747,8 +745,9 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			return true; // underneath
 
 		// REX HAS SEEN YOU
-		if (!LUAh_SeenPlayer(tmthing->target->player, thing->player))
-			return false;
+
+		/* lua_api */
+		/* lua player seen callback here, if it returns false then return false */
 
 		seenplayer = thing->player;
 		return false;
@@ -937,21 +936,23 @@ static boolean PIT_CheckThing(mobj_t *thing)
 	}
 
 	{
-		UINT8 shouldCollide = LUAh_MobjCollide(thing, tmthing); // checks hook for thing's type
+		/* lua_api */
+		/* lua mobj collision callback, returned value is placed in UINT8 shouldCollide */
 		if (P_MobjWasRemoved(tmthing) || P_MobjWasRemoved(thing))
 			return true; // one of them was removed???
-		if (shouldCollide == 1)
+		/*if (shouldCollide == 1)
 			return false; // force collide
 		else if (shouldCollide == 2)
-			return true; // force no collide
+			return true; // force no collide*/
 
-		shouldCollide = LUAh_MobjMoveCollide(tmthing, thing); // checks hook for tmthing's type
+		/* lua_api */
+		/* same as above, but reverse tmthing and thing in the arguments list */
 		if (P_MobjWasRemoved(tmthing) || P_MobjWasRemoved(thing))
 			return true; // one of them was removed???
-		if (shouldCollide == 1)
+		/*if (shouldCollide == 1)
 			return false; // force collide
 		else if (shouldCollide == 2)
-			return true; // force no collide
+			return true; // force no collide*/
 	}
 
 	if (tmthing->type == MT_LAVAFALL_LAVA && (thing->type == MT_RING || thing->type == MT_REDTEAMRING || thing->type == MT_BLUETEAMRING || thing->type == MT_FLINGRING))
@@ -1927,13 +1928,15 @@ static boolean PIT_CheckLine(line_t *ld)
 	blockingline = ld;
 
 	{
-		UINT8 shouldCollide = LUAh_MobjLineCollide(tmthing, blockingline); // checks hook for thing's type
+		/* lua_api */
+		/* lua mobj against line collision callback here, if returns true, force collide, if returns false, force no collide. */
+		/* if mobj was removed, will always force no collide */
 		if (P_MobjWasRemoved(tmthing))
 			return true; // one of them was removed???
-		if (shouldCollide == 1)
+		/*if (shouldCollide == 1)
 			return false; // force collide
 		else if (shouldCollide == 2)
-			return true; // force no collide
+			return true; // force no collide*/
 	}
 
 	if (!ld->backsector) // one sided line

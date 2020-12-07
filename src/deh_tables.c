@@ -17,7 +17,6 @@
 #include "y_inter.h" // Intermission constants
 #include "p_local.h" // some more constants
 #include "r_draw.h" // Colormap constants
-#include "lua_script.h" // Lua stuff
 #include "m_cond.h" // Emblem constants
 #include "v_video.h" // video flags (for lua)
 #include "i_sound.h" // musictype_t (for lua)
@@ -5213,10 +5212,14 @@ struct int_const_s const INT_CONST[] = {
 	{"POF_NOSPECIALS",POF_NOSPECIALS},             ///< Don't apply sector specials.
 	{"POF_SPLAT",POF_SPLAT},                       ///< Use splat flat renderer (treat cyan pixels as invisible).
 
+	/* lua_api */
+	/* commenting this out because i dont know if it should be removed or not */
+/*
 #ifdef HAVE_LUA_SEGS
 	// Node flags
 	{"NF_SUBSECTOR",NF_SUBSECTOR}, // Indicate a leaf.
 #endif
+*/
 
 	// Slope flags
 	{"SL_NOPHYSICS",SL_NOPHYSICS},
@@ -5286,10 +5289,8 @@ struct int_const_s const INT_CONST[] = {
 	{"BT_CUSTOM2",BT_CUSTOM2}, // Lua customizable
 	{"BT_CUSTOM3",BT_CUSTOM3}, // Lua customizable
 
-	// Lua command registration flags
-	{"COM_ADMIN",COM_ADMIN},
-	{"COM_SPLITSCREEN",COM_SPLITSCREEN},
-	{"COM_LOCAL",COM_LOCAL},
+	/* lua_api */
+	/* insert lua command registration flags */
 
 	// cvflags_t
 	{"CV_SAVE",CV_SAVE},

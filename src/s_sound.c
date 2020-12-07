@@ -29,7 +29,6 @@
 #include "fastcmp.h"
 #include "m_misc.h" // for tunes command
 #include "m_cond.h" // for conditionsets
-#include "lua_hook.h" // MusicChange hook
 
 #ifdef HW3SOUND
 // 3D Sound Interface
@@ -2269,8 +2268,8 @@ void S_ChangeMusicEx(const char *mmusic, UINT16 mflags, boolean looping, UINT32 
 		return;
 
 	strncpy(newmusic, mmusic, 7);
-	if (LUAh_MusicChange(music_name, newmusic, &mflags, &looping, &position, &prefadems, &fadeinms))
-		return;
+	/* lua_api */
+	/* lua music changing callback here, if returns true, override execution */
 	newmusic[6] = 0;
 
  	// No Music (empty string)

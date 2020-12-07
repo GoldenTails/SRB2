@@ -35,9 +35,6 @@
 #include "p_local.h"
 
 #include "m_cond.h" // condition sets
-#include "lua_hook.h" // IntermissionThinker hook
-
-#include "lua_hud.h"
 
 #ifdef HWRENDER
 #include "hardware/hw_main.h"
@@ -347,9 +344,11 @@ void Y_IntermissionDrawer(void)
 	else if (bgtile)
 		V_DrawPatchFill(bgtile);
 
-	LUAh_IntermissionHUD();
-	if (!LUA_HudEnabled(hud_intermissiontally))
-		goto skiptallydrawer;
+	/* lua_api */
+	/* lua intermission hud callback */
+
+	/* lua_api */
+	/* if hud_intermissiontally isn't enabled in lua, goto skiptallydrawer */
 
 	if (intertype == int_coop)
 	{
@@ -901,8 +900,8 @@ void Y_IntermissionDrawer(void)
 	}
 
 skiptallydrawer:
-	if (!LUA_HudEnabled(hud_intermissionmessages))
-		return;
+	/* lua_api */
+	/* if hud_intermissionmessages isn't enabled in lua, don't continue execution */
 
 	if (timer)
 		V_DrawCenteredString(BASEVIDWIDTH/2, 188, V_YELLOWMAP,
@@ -927,7 +926,8 @@ void Y_Ticker(void)
 	if (paused || P_AutoPause())
 		return;
 
-	LUAh_IntermissionThinker();
+	/* lua_api */
+	/* lua intermission thinker callback here */
 
 	intertic++;
 

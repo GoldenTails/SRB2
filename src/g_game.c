@@ -42,11 +42,9 @@
 #include "r_skins.h"
 #include "y_inter.h"
 #include "v_video.h"
-#include "lua_hook.h"
 #include "b_bot.h"
 #include "m_cond.h" // condition sets
 
-#include "lua_hud.h"
 
 gameaction_t gameaction;
 gamestate_t gamestate = GS_NULL;
@@ -172,7 +170,8 @@ static boolean retryingmodeattack = false;
 UINT8 stagefailed; // Used for GEMS BONUS? Also to see if you beat the stage.
 
 UINT16 emeralds;
-INT32 luabanks[NUM_LUABANKS];
+/* lua_api */
+/* define luabanks here */
 UINT32 token; // Number of tokens collected in a level
 UINT32 tokenlist; // List of tokens collected
 boolean gottoken; // Did you get a token? Used for end of act
@@ -1689,7 +1688,8 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 
 		cmd->angleturn = orighookangle;
 
-		LUAh_PlayerCmd(player, cmd);
+		/* lua_api */
+		/* player ticcmd modification callback */
 
 		extra = cmd->angleturn - orighookangle;
 		cmd->angleturn = origangle + extra;
@@ -1703,7 +1703,8 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	{
 		// Call ViewpointSwitch hooks here.
 		// The viewpoint was forcibly changed.
-		LUAh_ViewpointSwitch(player, &players[consoleplayer], true);
+		/* lua_api */
+		/* call viewpoint switching callbacks */
 		displayplayer = consoleplayer;
 	}
 
@@ -2076,11 +2077,9 @@ boolean G_Responder(event_t *ev)
 					continue;
 
 				// Call ViewpointSwitch hooks here.
-				canSwitchView = LUAh_ViewpointSwitch(&players[consoleplayer], &players[displayplayer], false);
-				if (canSwitchView == 1) // Set viewpoint to this player
-					break;
-				else if (canSwitchView == 2) // Skip this player
-					continue;
+
+				/* lua_api */
+				/* lua viewpoint switching callback (with control over whether to do nothing, break, or continue) */
 
 				if (players[displayplayer].spectator)
 					continue;
@@ -2713,7 +2712,8 @@ void G_SpawnPlayer(INT32 playernum)
 
 	P_SpawnPlayer(playernum);
 	G_MovePlayerToSpawnOrStarpost(playernum);
-	LUAh_PlayerSpawn(&players[playernum]); // Lua hook for player spawning :)
+	/* lua_api */
+	/* lua player spawning callback */
 }
 
 void G_MovePlayerToSpawnOrStarpost(INT32 playernum)
@@ -3092,7 +3092,8 @@ void G_DoReborn(INT32 playernum)
 		}
 		else
 		{
-			LUAh_MapChange(gamemap);
+			/* lua_api */
+			/* lua map changing callback */
 			titlecardforreload = true;
 			G_DoLoadLevel(true);
 			titlecardforreload = false;
@@ -4624,29 +4625,9 @@ void G_SaveGameOver(UINT32 slot, boolean modifylives)
 
 		// File end marker check
 		CHECKPOS
-		switch (READUINT8(save_p))
-		{
-			case 0xb7:
-				{
-					UINT8 i, banksinuse;
-					CHECKPOS
-					banksinuse = READUINT8(save_p);
-					CHECKPOS
-					if (banksinuse > NUM_LUABANKS)
-						BADSAVE
-					for (i = 0; i < banksinuse; i++)
-					{
-						(void)READINT32(save_p);
-						CHECKPOS
-					}
-					if (READUINT8(save_p) != 0x1d)
-						BADSAVE
-				}
-			case 0x1d:
-				break;
-			default:
-				BADSAVE
-		}
+
+		/* lua_api */
+		/* implement luabanks saving here */
 
 		// done
 		saved = FIL_WriteFile(backup, savebuffer, length);

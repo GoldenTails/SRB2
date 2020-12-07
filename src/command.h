@@ -20,13 +20,8 @@
 // Command buffer & command execution
 //===================================
 
-/* Lua command registration flags. */
-enum
-{
-	COM_ADMIN       = 1,
-	COM_SPLITSCREEN = 2,
-	COM_LOCAL       = 4,
-};
+/* lua_api */
+/* lua command registration flags here */
 
 /* Command buffer flags. */
 enum
@@ -37,7 +32,8 @@ enum
 typedef void (*com_func_t)(void);
 
 void COM_AddCommand(const char *name, com_func_t func);
-int COM_AddLuaCommand(const char *name);
+/* lua_api */
+/* lua command registration header here */
 
 size_t COM_Argc(void);
 const char *COM_Argv(size_t arg); // if argv > argc, returns empty string

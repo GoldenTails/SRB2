@@ -29,7 +29,6 @@
 #include "m_misc.h"
 #include "info.h"
 #include "i_video.h"
-#include "lua_hook.h"
 #include "b_bot.h"
 #include "p_slopes.h"
 #include "f_finale.h"
@@ -56,7 +55,6 @@ void P_RunCachedActions(void)
 	{
 		var1 = states[ac->statenum].var1;
 		var2 = states[ac->statenum].var2;
-		astate = &states[ac->statenum];
 		if (ac->mobj && !P_MobjWasRemoved(ac->mobj)) // just in case...
 			states[ac->statenum].action.acp1(ac->mobj);
 		next = ac->next;
@@ -457,7 +455,6 @@ boolean P_SetPlayerMobjState(mobj_t *mobj, statenum_t state)
 		{
 			var1 = st->var1;
 			var2 = st->var2;
-			astate = st;
 			st->action.acp1(mobj);
 
 			// woah. a player was removed by an action.
@@ -581,7 +578,6 @@ boolean P_SetMobjState(mobj_t *mobj, statenum_t state)
 		{
 			var1 = st->var1;
 			var2 = st->var2;
-			astate = st;
 			st->action.acp1(mobj);
 			if (P_MobjWasRemoved(mobj))
 				return false;
@@ -1844,14 +1840,9 @@ void P_XYMovement(mobj_t *mo)
 				B_MoveBlocked(player);
 		}
 
-		if (LUAh_MobjMoveBlocked(mo))
-		{
-			if (P_MobjWasRemoved(mo))
-				return;
-		}
-		else if (P_MobjWasRemoved(mo))
-			return;
-		else if (mo->flags & MF_BOUNCE)
+		/* lua_api */
+		/* lua mobj blocked movement callback, irregardless of return value it will check if the mobj was removed and return if so */
+		if (mo->flags & MF_BOUNCE)
 		{
 			P_BounceMove(mo);
 			xmove = ymove = 0;
@@ -7513,8 +7504,8 @@ static void P_RosySceneryThink(mobj_t *mobj)
 
 static void P_MobjSceneryThink(mobj_t *mobj)
 {
-	if (LUAh_MobjThinker(mobj))
-		return;
+	/* lua_api */
+	/* lua mobj thinking callback, if returns true then don't continue execution here */
 	if (P_MobjWasRemoved(mobj))
 		return;
 
@@ -7861,8 +7852,8 @@ static void P_MobjSceneryThink(mobj_t *mobj)
 
 		if (!mobj->fuse)
 		{
-			if (!LUAh_MobjFuse(mobj))
-				P_RemoveMobj(mobj);
+			/* lua_api */
+			/* lua mobj fuse timer ending callback, if returns false then remove the mobj */
 			return;
 		}
 		if (mobj->fuse < 0)
@@ -7920,8 +7911,8 @@ static void P_MobjSceneryThink(mobj_t *mobj)
 			mobj->fuse--;
 			if (!mobj->fuse)
 			{
-				if (!LUAh_MobjFuse(mobj))
-					P_RemoveMobj(mobj);
+			/* lua_api */
+			/* lua mobj fuse timer ending callback, if returns false then remove the mobj */
 				return;
 			}
 		}
@@ -7949,14 +7940,16 @@ static boolean P_MobjPushableThink(mobj_t *mobj)
 
 static boolean P_MobjBossThink(mobj_t *mobj)
 {
-	if (LUAh_BossThinker(mobj))
+	/* lua_api */
+	/* lua boss object thinker callback, irregardless of if it returned true, it will check if the mobj is removed */
+	/*if (hook(mobj))
 	{
 		if (P_MobjWasRemoved(mobj))
 			return false;
 	}
 	else if (P_MobjWasRemoved(mobj))
 		return false;
-	else
+	else*/
 		switch (mobj->type)
 		{
 		case MT_EGGMOBILE:
@@ -9870,9 +9863,9 @@ static boolean P_FuseThink(mobj_t *mobj)
 	if (mobj->fuse)
 		return true;
 
-	if (LUAh_MobjFuse(mobj) || P_MobjWasRemoved(mobj))
-		;
-	else if (mobj->info->flags & MF_MONITOR)
+	/* lua_api */
+	/* lua mobj fuse timer ending callback, if returns true or the mobj was removed, do nothing */
+	if (mobj->info->flags & MF_MONITOR)
 	{
 		P_MonitorFuseThink(mobj);
 		return false;
@@ -10046,15 +10039,15 @@ void P_MobjThinker(mobj_t *mobj)
 	// Check for a Lua thinker first
 	if (!mobj->player)
 	{
-		if (LUAh_MobjThinker(mobj) || P_MobjWasRemoved(mobj))
-			return;
+		/* lua_api */
+		/* lua mobj thinker callback, if returns true or the mobj is removed, don't continue execution */
 	}
 	else if (!mobj->player->spectator)
 	{
 		// You cannot short-circuit the player thinker like you can other thinkers.
-		LUAh_MobjThinker(mobj);
-		if (P_MobjWasRemoved(mobj))
-			return;
+
+		/* lua_api */
+		/* lua mobj thinker callback, if the mobj was removed, don't continue execution */
 	}
 
 	// if it's pushable, or if it would be pushable other than temporary disablement, use the
@@ -10521,16 +10514,12 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 	// Set shadowscale here, before spawn hook so that Lua can change it
 	mobj->shadowscale = P_DefaultMobjShadowScale(mobj);
 
+	/* lua_api */
+	/* don't mind these implementation details :) */
 	// DANGER! This can cause P_SpawnMobj to return NULL!
 	// Avoid using P_RemoveMobj on the newly created mobj in "MobjSpawn" Lua hooks!
-	if (LUAh_MobjSpawn(mobj))
-	{
-		if (P_MobjWasRemoved(mobj))
-			return NULL;
-	}
-	else if (P_MobjWasRemoved(mobj))
-		return NULL;
-	else
+
+	/* lua mobj spawning callback, irregardless of if it returns true or not, it will return if the mobj is removed */
 	switch (mobj->type)
 	{
 		case MT_ALTVIEWMAN:
@@ -10800,7 +10789,6 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 		{
 			var1 = st->var1;
 			var2 = st->var2;
-			astate = st;
 			st->action.acp1(mobj);
 			// DANGER! This can cause P_SpawnMobj to return NULL!
 			// Avoid using MF_RUNSPAWNFUNC on mobjs whose spawn state expects target or tracer to already be set!
@@ -10910,7 +10898,10 @@ void P_RemoveMobj(mobj_t *mobj)
 		return; // something already removing this mobj.
 
 	mobj->thinker.function.acp1 = (actionf_p1)P_RemoveThinkerDelayed; // shh. no recursing.
-	LUAh_MobjRemoved(mobj);
+
+	/* lua_api */
+	/* lua mobj removed callback here */
+
 	mobj->thinker.function.acp1 = (actionf_p1)P_MobjThinker; // needed for P_UnsetThingPosition, etc. to work.
 
 	// Rings only, please!
@@ -12556,13 +12547,14 @@ static boolean P_SetupBooster(mapthing_t* mthing, mobj_t* mobj, boolean strong)
 
 static boolean P_SetupSpawnedMapThing(mapthing_t *mthing, mobj_t *mobj, boolean *doangle)
 {
-	boolean override = LUAh_MapThingSpawn(mobj, mthing);
+	/* lua_api */
+	/* lua mapthing spawning callback here, writes result to boolean override */
 
 	if (P_MobjWasRemoved(mobj))
 		return false;
 
-	if (override)
-		return true;
+	/*if (override)
+		return true;*/
 
 	switch (mobj->type)
 	{

@@ -40,8 +40,6 @@
 #include "fastcmp.h"
 #include "console.h"
 
-#include "lua_hud.h"
-
 // Stage of animation:
 // 0 = text, 1 = art screen
 INT32 finalecount;
@@ -2696,8 +2694,9 @@ void F_TitleScreenDrawer(void)
 
 	// rei|miru: use title pics?
 	hidepics = curhidepics;
-	if (hidepics)
-		goto luahook;
+	/* lua_api */
+	/*if (hidepics)
+		goto luahook;*/
 
 	switch(curttmode)
 	{
@@ -3418,9 +3417,9 @@ void F_TitleScreenDrawer(void)
 				ttuser_count++;
 			break;
 	}
-
-luahook:
-	LUAh_TitleHUD();
+/* lua_api */
+/*luahook:*/
+/* lua title hud callback here */
 }
 
 // separate animation timer for backgrounds, since we also count

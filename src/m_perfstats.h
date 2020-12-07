@@ -13,7 +13,6 @@
 #define __M_PERFSTATS_H__
 
 #include "doomdef.h"
-#include "lua_script.h"
 #include "p_local.h"
 
 extern int ps_tictime;
@@ -28,11 +27,8 @@ extern int ps_checkposition_calls;
 extern int ps_lua_thinkframe_time;
 extern int ps_lua_mobjhooks;
 
-typedef struct
-{
-	UINT32 time_taken;
-	char short_src[LUA_IDSIZE];
-} ps_hookinfo_t;
+/* lua_api */
+/* define ps_hookinfo_t here */
 
 void PS_SetThinkFrameHookInfo(int index, UINT32 time_taken, char* short_src);
 

@@ -87,8 +87,6 @@
 #include "hardware/hw3sound.h"
 #endif
 
-#include "lua_script.h"
-
 // Version numbers for netplay :upside_down_face:
 int    VERSION;
 int SUBVERSION;
@@ -758,7 +756,8 @@ void D_SRB2Loop(void)
 		HW3S_EndFrameUpdate();
 #endif
 
-		LUA_Step();
+		/* lua_api */
+		/* lua stepping here */
 	}
 }
 
@@ -821,7 +820,8 @@ void D_StartTitle(void)
 	botskin = 0;
 	cv_debug = 0;
 	emeralds = 0;
-	memset(&luabanks, 0, sizeof(luabanks));
+	/* lua_api */
+	/* handle luabanks here */
 	lastmaploaded = 0;
 
 	// In case someone exits out at the same time they start a time attack run,
@@ -1131,7 +1131,8 @@ void D_SRB2Main(void)
 			strcatbf(savegamename, srb2home, PATHSEP);
 			strcatbf(liveeventbackup, srb2home, PATHSEP);
 
-			snprintf(luafiledir, sizeof luafiledir, "%s" PATHSEP "luafiles", srb2home);
+			/* lua_api */
+			/* handle luafiles directory location here */
 #else // DEFAULTDIR
 			snprintf(srb2home, sizeof srb2home, "%s", userhome);
 			snprintf(downloaddir, sizeof downloaddir, "%s", userhome);
@@ -1144,7 +1145,8 @@ void D_SRB2Main(void)
 			strcatbf(savegamename, userhome, PATHSEP);
 			strcatbf(liveeventbackup, userhome, PATHSEP);
 
-			snprintf(luafiledir, sizeof luafiledir, "%s" PATHSEP "luafiles", userhome);
+			/* lua_api */
+			/* handle luafiles directory location here */
 #endif // DEFAULTDIR
 		}
 

@@ -83,42 +83,17 @@ boolean CL_CheckDownloadable(void);
 boolean CL_SendFileRequest(void);
 boolean PT_RequestFile(INT32 node);
 
-typedef enum
-{
-	LFTNS_WAITING, // This node is waiting for the server to send the file
-	LFTNS_ASKED, // The server has told the node they're ready to send the file
-	LFTNS_SENDING, // The server is sending the file to this node
-	LFTNS_SENT // The node already has the file
-} luafiletransfernodestatus_t;
+/* lua_api */
+/* lua file transfer node status enum here */
 
-typedef struct luafiletransfer_s
-{
-	char *filename;
-	char *realfilename;
-	char mode[4]; // rb+/wb+/ab+ + null character
-	INT32 id; // Callback ID
-	boolean ongoing;
-	luafiletransfernodestatus_t nodestatus[MAXNETNODES];
-	struct luafiletransfer_s *next;
-} luafiletransfer_t;
+/* lua_api */
+/* lua file transfer struct here */
 
-extern luafiletransfer_t *luafiletransfers;
-extern boolean waitingforluafiletransfer;
-extern boolean waitingforluafilecommand;
-extern char luafiledir[256 + 16];
+/* lua_api */
+/* lua file transfer variables here */
 
-void AddLuaFileTransfer(const char *filename, const char *mode);
-void SV_PrepareSendLuaFile(void);
-boolean AddLuaFileToSendQueue(INT32 node, const char *filename);
-void SV_HandleLuaFileSent(UINT8 node);
-void RemoveLuaFileTransfer(void);
-void RemoveAllLuaFileTransfers(void);
-void SV_AbortLuaFileTransfer(INT32 node);
-void CL_PrepareDownloadLuaFile(void);
-void Got_LuaFile(UINT8 **cp, INT32 playernum);
-void StoreLuaFileCallback(INT32 id);
-void RemoveLuaFileCallback(INT32 id);
-void MakePathDirs(char *path);
+/* lua_api */
+/* lua file transfer functions here */
 
 void SV_AbortSendFiles(INT32 node);
 void CloseNetFile(void);

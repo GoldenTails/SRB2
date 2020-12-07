@@ -33,7 +33,6 @@
 #include "i_video.h" // rendermode
 #include "z_zone.h"
 #include "m_misc.h" // M_Memcpy
-#include "lua_script.h"
 
 #ifdef HWRENDER
 #include "hardware/hw_main.h" // For hardware memory info
@@ -219,8 +218,8 @@ void Z_Free(void *ptr)
 #endif
 
 	// anything that isn't by lua gets passed to lua just in case.
-	if (block->tag != PU_LUA)
-		LUA_InvalidateUserdata(ptr);
+	/* lua_api */
+	/* if the block isn't tagged PU_LUA, invalidate the userdata just in case */
 
 	// TODO: if zdebugging, make sure no other block has a user
 	// that is about to be freed.

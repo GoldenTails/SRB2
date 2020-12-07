@@ -33,9 +33,6 @@
 #include "z_zone.h"
 #include "p_slopes.h"
 
-#include "lua_script.h"
-#include "lua_hook.h"
-
 //
 // CHEAT SEQUENCE PACKAGE
 //
@@ -793,7 +790,9 @@ void Command_CauseCfail_f(void)
 }
 #endif
 
-#ifdef LUA_ALLOW_BYTECODE
+/* lua_api */
+/* not sure if to delete or keep, commenting */
+/*#ifdef LUA_ALLOW_BYTECODE
 void Command_Dumplua_f(void)
 {
 	if (modifiedgame)
@@ -809,9 +808,11 @@ void Command_Dumplua_f(void)
 		return;
 	}
 
-	LUA_DumpFile(COM_Argv(1));
-}
-#endif
+	*/
+	/* lua_api */
+	/* dump lua bytecode here */
+//}
+//#endif
 
 void Command_Savecheckpoint_f(void)
 {
@@ -1065,7 +1066,8 @@ static mapthing_t *OP_CreateNewMapThing(player_t *player, UINT16 type, boolean c
 	mapthing_t *mt = mapthings;
 	sector_t *sec = player->mo->subsector->sector;
 
-	LUA_InvalidateMapthings();
+	/* lua_api */
+	/* invalidate mapthing userdata here */
 
 	mapthings = Z_Realloc(mapthings, ++nummapthings * sizeof (*mapthings), PU_LEVEL, NULL);
 

@@ -41,8 +41,6 @@
 #include "m_argv.h"
 #include "p_setup.h"
 #include "lzf.h"
-#include "lua_script.h"
-#include "lua_hook.h"
 #include "md5.h"
 #include "m_perfstats.h"
 
@@ -1595,9 +1593,8 @@ static void CL_ReloadReceivedSavegame(void)
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
-#ifdef HAVE_BLUA
-		LUA_InvalidatePlayer(&players[i]);
-#endif
+		/* lua_api */
+		/* invalidate player here */
 		sprintf(player_names[i], "Player %d", i + 1);
 	}
 
@@ -2539,14 +2536,14 @@ static void CL_RemovePlayer(INT32 playernum, kickreason_t reason)
 		}
 	}
 
-	LUAh_PlayerQuit(&players[playernum], reason); // Lua hook for player quitting
+	/* lua_api */
+	/* player quitting callback here */
 
 	// don't look through someone's view who isn't there
 	if (playernum == displayplayer)
 	{
-		// Call ViewpointSwitch hooks here.
-		// The viewpoint was forcibly changed.
-		LUAh_ViewpointSwitch(&players[consoleplayer], &players[consoleplayer], true);
+		/* lua_api */
+		/* viewpoint switching callback here */
 		displayplayer = consoleplayer;
 	}
 
@@ -2569,7 +2566,8 @@ static void CL_RemovePlayer(INT32 playernum, kickreason_t reason)
 		RemoveAdminPlayer(playernum); // don't stay admin after you're gone
 	}
 
-	LUA_InvalidatePlayer(&players[playernum]);
+	/* lua_api */
+	/* invalidate player here */
 
 	if (G_TagGametype()) //Check if you still have a game. Location flexible. =P
 		P_CheckSurvivors();
@@ -3026,8 +3024,8 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 
 	if (pnum == consoleplayer)
 	{
-		if (Playing())
-			LUAh_GameQuit();
+		/* lua_api */
+		/* game quitting callback here */
 #ifdef DUMPCONSISTENCY
 		if (msg == KICK_MSG_CON_FAIL) SV_SavedGame();
 #endif
@@ -3205,7 +3203,8 @@ void SV_ResetServer(void)
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
-		LUA_InvalidatePlayer(&players[i]);
+		/* lua_api */
+		/* invalidate player here */
 		playeringame[i] = false;
 		playernode[i] = UINT8_MAX;
 		memset(playeraddress[i], 0, sizeof(*playeraddress));
@@ -3269,9 +3268,8 @@ void D_QuitNetGame(void)
 
 	// abort send/receive of files
 	CloseNetFile();
-	RemoveAllLuaFileTransfers();
-	waitingforluafiletransfer = false;
-	waitingforluafilecommand = false;
+	/* lua_api */
+	/* abort lua file transfer here */
 
 	if (server)
 	{
@@ -3446,8 +3444,8 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 	if (server && multiplayer && motd[0] != '\0')
 		COM_BufAddText(va("sayto %d %s\n", newplayernum, motd));
 
-	if (!rejoined)
-		LUAh_PlayerJoin(newplayernum);
+	/* lua_api */
+	/* player joining callback here (if not rejoined) */
 }
 
 static boolean SV_AddWaitingPlayers(const char *name, const char *name2)
@@ -3656,8 +3654,8 @@ static void HandleConnect(SINT8 node)
 		SV_SendRefuse(node, M_GetText("Too many players from\nthis node."));
 	else if (netgame && !netbuffer->u.clientcfg.localplayers) // Stealth join?
 		SV_SendRefuse(node, M_GetText("No players from\nthis node."));
-	else if (luafiletransfers)
-		SV_SendRefuse(node, M_GetText("The server is broadcasting a file\nrequested by a Lua script.\nPlease wait a bit and then\ntry rejoining."));
+	/* lua_api */
+	/* lua file transfer refuse here */
 	else if (netgame && joindelay > 2 * (tic_t)cv_joindelay.value * TICRATE)
 		SV_SendRefuse(node, va(M_GetText("Too many people are connecting.\nPlease wait %d seconds and then\ntry rejoining."),
 			(joindelay - 2 * cv_joindelay.value * TICRATE) / TICRATE));
@@ -3727,8 +3725,8 @@ static void HandleConnect(SINT8 node)
 static void HandleShutdown(SINT8 node)
 {
 	(void)node;
-	if (Playing())
-		LUAh_GameQuit();
+	/* lua_api */
+	/* game quitting callback here */
 	D_QuitNetGame();
 	CL_Reset();
 	D_StartTitle();
@@ -3743,8 +3741,8 @@ static void HandleShutdown(SINT8 node)
 static void HandleTimeout(SINT8 node)
 {
 	(void)node;
-	if (Playing())
-		LUAh_GameQuit();
+	/* lua_api */
+	/* game quitting callback here */
 	D_QuitNetGame();
 	CL_Reset();
 	D_StartTitle();
@@ -3936,6 +3934,8 @@ static void HandlePacketFromAwayNode(SINT8 node)
 			DEBFILE(va("Server accept join gametic=%u mynode=%d\n", gametic, mynode));
 
 #ifndef NONET
+			/* lua_api */
+			/* useful note */
 			/// \note Wait. What if a Lua script uses some global custom variables synched with the NetVars hook?
 			///       Shouldn't them be downloaded even at intermission time?
 			///       Also, according to HandleConnect, the server will send the savegame even during intermission...
@@ -4254,14 +4254,10 @@ static void HandlePacketFromPlayer(SINT8 node)
 		case PT_CANRECEIVEGAMESTATE:
 			PT_CanReceiveGamestate(node);
 			break;
-		case PT_ASKLUAFILE:
-			if (server && luafiletransfers && luafiletransfers->nodestatus[node] == LFTNS_ASKED)
-				AddLuaFileToSendQueue(node, luafiletransfers->realfilename);
-			break;
-		case PT_HASLUAFILE:
-			if (server && luafiletransfers && luafiletransfers->nodestatus[node] == LFTNS_SENDING)
-				SV_HandleLuaFileSent(node);
-			break;
+		/* lua_api */
+		/* handle clients asking for lua files here */
+		/* lua_api */
+		/* handle clients acknowledging lua files here */
 		case PT_RECEIVEDGAMESTATE:
 			sendingsavegame[node] = false;
 			resendingsavegame[node] = false;
@@ -4375,10 +4371,8 @@ static void HandlePacketFromPlayer(SINT8 node)
 		case PT_WILLRESENDGAMESTATE:
 			PT_WillResendGamestate();
 			break;
-		case PT_SENDINGLUAFILE:
-			if (client)
-				CL_PrepareDownloadLuaFile();
-			break;
+		/* lua_api */
+		/* handle server telling you to recieve lua files here */
 		default:
 			DEBFILE(va("UNKNOWN PACKET TYPE RECEIVED %d from host %d\n",
 				netbuffer->packettype, node));

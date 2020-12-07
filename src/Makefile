@@ -386,8 +386,6 @@ CFLAGS+=-DHAVE_MINIUPNPC
 endif
 endif
 
-include blua/Makefile.cfg
-
 ifdef NOMD5
 	OPTS+=-DNOMD5
 else
@@ -466,7 +464,6 @@ OBJS:=$(i_main_o) \
 		$(OBJDIR)/d_netcmd.o \
 		$(OBJDIR)/dehacked.o \
 		$(OBJDIR)/deh_soc.o  \
-		$(OBJDIR)/deh_lua.o  \
 		$(OBJDIR)/deh_tables.o \
 		$(OBJDIR)/z_zone.o   \
 		$(OBJDIR)/f_finale.o \
@@ -745,7 +742,6 @@ $(OBJDIR)/depend.dep:
 ifndef NOHW
 	$(CC) $(CFLAGS) -MM hardware/*.c >> $(OBJDIR)/depend.ped
 endif
-	$(CC) $(CFLAGS) -MM blua/*.c >> $(OBJDIR)/depend.ped
 	@sed -e 's,\(.*\)\.o: ,$(subst /,\/,$(OBJDIR))\/&,g' < $(OBJDIR)/depend.ped > $(OBJDIR)/depend.dep
 	$(REMOVE) $(OBJDIR)/depend.ped
 	@echo "Created dependency file, depend.dep"
@@ -782,10 +778,6 @@ endif
 $(OBJDIR)/%.o: hardware/%.c
 	$(echoName)
 	$(CC) $(CFLAGS) $(WFLAGS) -c $< -o $@
-
-$(OBJDIR)/%.o: blua/%.c
-	$(echoName)
-	$(CC) $(CFLAGS) $(LUA_CFLAGS) $(WFLAGS) -c $< -o $@
 
 $(OBJDIR)/%.o: %.nas
 	$(echoName)

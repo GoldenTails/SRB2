@@ -505,6 +505,8 @@ extern INT32 cv_debug;
 #define DBG_NETPLAY     0x0100
 #define DBG_MEMORY      0x0200
 #define DBG_SETUP       0x0400
+/* lua_api */
+/* also not worth removing */
 #define DBG_LUA         0x0800
 #define DBG_RANDOMIZER  0x1000
 #define DBG_VIEWMORPH   0x2000

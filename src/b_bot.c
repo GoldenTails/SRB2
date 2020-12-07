@@ -16,7 +16,6 @@
 #include "r_main.h"
 #include "p_local.h"
 #include "b_bot.h"
-#include "lua_hook.h"
 
 // If you want multiple bots, variables like this will
 // have to be stuffed in something accessible through player_t.
@@ -74,9 +73,8 @@ static void B_BuildTailsTiccmd(mobj_t *sonic, mobj_t *tails, ticcmd_t *cmd)
 	if (!sonic || sonic->health <= 0)
 		return;
 
-	// Lua can handle it!
-	if (LUAh_BotAI(sonic, tails, cmd))
-		return;
+	/* lua_api */
+	/* bot AI hook code here (can modify basic movement) */
 
 	if (tails->player->powers[pw_carry] == CR_MACESPIN || tails->player->powers[pw_carry] == CR_GENERIC)
 	{
@@ -362,9 +360,8 @@ void B_BuildTiccmd(player_t *player, ticcmd_t *cmd)
 	// Bot AI isn't programmed in analog.
 	CV_SetValue(&cv_analog[1], false);
 
-	// Let Lua scripts build ticcmds
-	if (LUAh_BotTiccmd(player, cmd))
-		return;
+	/* lua_api */
+	/* bot ticcmd building hook code here (can override normal code) */
 
 	// We don't have any main character AI, sorry. D:
 	if (player-players == consoleplayer)
@@ -460,17 +457,9 @@ boolean B_CheckRespawn(player_t *player)
 		return false;
 
 	// B_RespawnBot doesn't do anything if the condition above this isn't met
-	{
-		UINT8 shouldForce = LUAh_BotRespawn(sonic, tails);
-
-		if (P_MobjWasRemoved(sonic) || P_MobjWasRemoved(tails))
-			return (shouldForce == 1); // mobj was removed
-
-		if (shouldForce == 1)
-			return true;
-		else if (shouldForce == 2)
-			return false;
-	}
+	
+	/* lua_api */
+	/* shouldForce bot respawning hook code here */
 
 	// Check if Sonic is busy first.
 	// If he's doing any of these things, he probably doesn't want to see us.

@@ -51,13 +51,18 @@ int ps_lua_thinkframe_time = 0;
 int ps_lua_mobjhooks = 0;
 
 // dynamically allocated resizeable array for thinkframe hook stats
-ps_hookinfo_t *thinkframe_hooks = NULL;
+
+/* lua_api */
+/* define thinkframe hook info here */
+/*ps_hookinfo_t *thinkframe_hooks = NULL;
 int thinkframe_hooks_length = 0;
-int thinkframe_hooks_capacity = 16;
+int thinkframe_hooks_capacity = 16;*/
 
 void PS_SetThinkFrameHookInfo(int index, UINT32 time_taken, char* short_src)
 {
-	if (!thinkframe_hooks)
+	/* lua_api */
+	/* set thinkframe hook info here */
+	/*if (!thinkframe_hooks)
 	{
 		// array needs to be initialized
 		thinkframe_hooks = Z_Malloc(sizeof(ps_hookinfo_t) * thinkframe_hooks_capacity, PU_STATIC, NULL);
@@ -73,7 +78,7 @@ void PS_SetThinkFrameHookInfo(int index, UINT32 time_taken, char* short_src)
 	memcpy(thinkframe_hooks[index].short_src, short_src, LUA_IDSIZE * sizeof(char));
 	// since the values are set sequentially from begin to end, the last call should leave
 	// the correct value to this variable
-	thinkframe_hooks_length = index + 1;
+	thinkframe_hooks_length = index + 1;*/
 }
 
 void M_DrawPerfStats(void)
@@ -359,6 +364,8 @@ void M_DrawPerfStats(void)
 				snprintf(s, sizeof s - 1, thlist_shortnames[i], ps_thlist_times[i]);
 				V_DrawThinString(28, 26+yoffset1, V_MONOSPACE | V_YELLOWMAP, s);
 			}
+			/* lua_api */
+			/* do perfstats stuff too */
 			snprintf(s, sizeof s - 1, "lthinkf %d", ps_lua_thinkframe_time);
 			V_DrawThinString(24, 34+yoffset1, V_MONOSPACE | V_YELLOWMAP, s);
 			snprintf(s, sizeof s - 1, "other   %d",
@@ -452,89 +459,7 @@ void M_DrawPerfStats(void)
 	}
 	else if (cv_perfstats.value == 3) // lua thinkframe
 	{
-		if (!(gamestate == GS_LEVEL || (gamestate == GS_TITLESCREEN && titlemapinaction)))
-			return;
-		if (vid.width < 640 || vid.height < 400) // low resolution
-		{
-			// it's not gonna fit very well..
-			V_DrawThinString(30, 30, V_MONOSPACE | V_ALLOWLOWERCASE | V_YELLOWMAP, "Not available for resolutions below 640x400");
-		}
-		else // high resolution
-		{
-			int i;
-			// text writing position
-			int x = 2;
-			int y = 4;
-			UINT32 text_color;
-			char tempbuffer[LUA_IDSIZE];
-			char last_mod_name[LUA_IDSIZE];
-			last_mod_name[0] = '\0';
-			for (i = 0; i < thinkframe_hooks_length; i++)
-			{
-				char* str = thinkframe_hooks[i].short_src;
-				char* tempstr = tempbuffer;
-				int len = (int)strlen(str);
-				char* str_ptr;
-				if (strcmp(".lua", str + len - 4) == 0)
-				{
-					str[len-4] = '\0'; // remove .lua at end
-					len -= 4;
-				}
-				// we locate the wad/pk3 name in the string and compare it to
-				// what we found on the previous iteration.
-				// if the name has changed, print it out on the screen
-				strcpy(tempstr, str);
-				str_ptr = strrchr(tempstr, '|');
-				if (str_ptr)
-				{
-					*str_ptr = '\0';
-					str = str_ptr + 1; // this is the name of the hook without the mod file name
-					str_ptr = strrchr(tempstr, PATHSEP[0]);
-					if (str_ptr)
-						tempstr = str_ptr + 1;
-					// tempstr should now point to the mod name, (wad/pk3) possibly truncated
-					if (strcmp(tempstr, last_mod_name) != 0)
-					{
-						strcpy(last_mod_name, tempstr);
-						len = (int)strlen(tempstr);
-						if (len > 25)
-							tempstr += len - 25;
-						snprintf(s, sizeof s - 1, "%s", tempstr);
-						V_DrawSmallString(x, y, V_MONOSPACE | V_ALLOWLOWERCASE | V_GRAYMAP, s);
-						y += 4; // repeated code!
-						if (y > 192)
-						{
-							y = 4;
-							x += 106;
-							if (x > 214)
-								break;
-						}
-					}
-					text_color = V_YELLOWMAP;
-				}
-				else
-				{
-					// probably a standalone lua file
-					// cut off the folder if it's there
-					str_ptr = strrchr(tempstr, PATHSEP[0]);
-					if (str_ptr)
-						str = str_ptr + 1;
-					text_color = 0; // white
-				}
-				len = (int)strlen(str);
-				if (len > 20)
-					str += len - 20;
-				snprintf(s, sizeof s - 1, "%20s: %u", str, thinkframe_hooks[i].time_taken);
-				V_DrawSmallString(x, y, V_MONOSPACE | V_ALLOWLOWERCASE | text_color, s);
-				y += 4; // repeated code!
-				if (y > 192)
-				{
-					y = 4;
-					x += 106;
-					if (x > 214)
-						break;
-				}
-			}
-		}
+		/* lua_api */
+		/* do thinkframe stats here */
 	}
 }

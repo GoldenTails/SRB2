@@ -18,7 +18,6 @@
 #include "r_skins.h"
 #include "z_zone.h"
 #include "w_wad.h"
-#include "lua_script.h"
 
 //
 // Information about all the sfx

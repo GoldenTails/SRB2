@@ -68,8 +68,10 @@ void Command_Toggletwod_f(void);
 #ifdef _DEBUG
 void Command_CauseCfail_f(void);
 #endif
-#ifdef LUA_ALLOW_BYTECODE
+/* lua_api */
+/* not sure if to delete or keep, commenting */
+/*#ifdef LUA_ALLOW_BYTECODE
 void Command_Dumplua_f(void);
-#endif
+#endif*/
 
 #endif

@@ -59,15 +59,9 @@
 
 #include "filesrch.h" // refreshdirmenu
 
-#include "lua_hud.h" // level title
-
 #include "f_finale.h" // wipes
 
 #include "md5.h" // map MD5
-
-// for LUAh_MapLoad
-#include "lua_script.h"
-#include "lua_hook.h"
 
 #ifdef _WIN32
 #include <malloc.h>
@@ -3015,13 +3009,8 @@ static void P_ConvertBinaryMap(void)
 			break;
 		}
 		case 443: //Call Lua function
-			if (lines[i].text)
-			{
-				lines[i].stringargs[0] = Z_Malloc(strlen(lines[i].text) + 1, PU_LEVEL, NULL);
-				M_Memcpy(lines[i].stringargs[0], lines[i].text, strlen(lines[i].text) + 1);
-			}
-			else
-				CONS_Alert(CONS_WARNING, "Linedef %s is missing the hook name of the Lua function to call! (This should be given in the front texture fields)\n", sizeu1(i));
+			/* lua_api */
+			/* call a lua function */
 			break;
 		case 447: //Change colormap
 			lines[i].args[0] = Tag_FGet(&lines[i].tags);
@@ -4122,7 +4111,8 @@ boolean P_LoadLevel(boolean fromnetsave, boolean reloadinggamestate)
 	// Close text prompt before freeing the old level
 	F_EndTextPrompt(false, true);
 
-	LUA_InvalidateLevel();
+	/* lua_api */
+	/* invalidate level data here */
 
 	for (ss = sectors; sectors+numsectors != ss; ss++)
 	{
@@ -4271,7 +4261,8 @@ boolean P_LoadLevel(boolean fromnetsave, boolean reloadinggamestate)
 				G_CopyTiccmd(&players[i].cmd, &netcmds[buf][i], 1);
 		}
 		P_PreTicker(2);
-		LUAh_MapLoad();
+		/* lua_api */
+		/* lua map loading callback here */
 	}
 
 	// No render mode or reloading gamestate, stop here.
