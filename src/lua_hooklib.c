@@ -80,14 +80,18 @@ const char *const hookNames[hook_MAX+1] = {
 	NULL
 };
 
+char **customHookNames;
+UINT32 customHookCount = 0;
+
 // Hook metadata
 struct hook_s
 {
 	struct hook_s *next;
+	boolean customhook;
 	enum hook type;
 	UINT16 id;
 	union {
-		mobjtype_t mt;
+		UINT32 num;
 		char *str;
 	} s;
 	boolean error;
@@ -112,6 +116,9 @@ static hook_p playerhooks;
 // A linked list for linedef executor hooks
 static hook_p linedefexecutorhooks;
 
+// A linked list per custom hook
+static hook_p *customhooks;
+
 // For other hooks, a unique linked list
 hook_p roothook;
 
@@ -121,115 +128,211 @@ static void PushHook(lua_State *L, hook_p hookp)
 	lua_gettable(L, LUA_REGISTRYINDEX);
 }
 
+static int lib_createHook(lua_State *L)
+{
+	const char *name = luaL_checkstring(L, 1);
+
+	for (int i = 0; hookNames[i]; i++)
+		if (strcmp(hookNames[i], name) == 0)
+			return luaL_error(L, "You cannot replace vanilla hooks!");
+
+	customHookCount++;
+
+	if (!customhooks)
+		customhooks = Z_Calloc(sizeof(hook_p), PU_LUA, NULL);
+	else
+		customhooks = Z_Realloc(customhooks, customHookCount * sizeof(hook_p), PU_LUA, NULL);
+
+	if (!customHookNames)
+		customHookNames = Z_Calloc(sizeof(char *), PU_LUA, NULL);
+	else
+		customHookNames = Z_Realloc(customHookNames, customHookCount * sizeof(char *), PU_LUA, NULL);
+
+	customHookNames[customHookCount - 1] = strcpy(Z_Calloc(strlen(name) + 1, PU_LUA, NULL), name);
+
+	return 0;
+}
+
+static int lib_callHook(lua_State *L)
+{
+	hook_p hookp;
+	UINT32 i;
+	boolean foundHook = false;
+
+	const char *name = luaL_checkstring(L, 1);
+
+	lua_remove(L, 1);
+
+	for (i = 0; i < customHookCount; i++)
+		if (!strcmp(name, customHookNames[i]))
+		{
+			foundHook = true;
+			break;
+		}
+
+	if (!foundHook)
+		return luaL_error(L, "This hook either does not exist, or is a vanilla hook! Call createHook() with a name first!");
+
+	for (hookp = customhooks[i]; hookp; hookp = hookp->next)
+	{
+		PushHook(L, hookp);
+		lua_insert(L, 1);
+
+		if (lua_pcall(L, lua_gettop(L) - 1, LUA_MULTRET, 1)) {
+			CONS_Alert(CONS_WARNING,"%s\n",lua_tostring(L, -1));
+			lua_pop(L, 1);
+		}
+	}
+
+	return lua_gettop(L);
+}
+
 // Takes hook, function, and additional arguments (mobj type to act on, etc.)
 static int lib_addHook(lua_State *L)
 {
-	static struct hook_s hook = {NULL, 0, 0, {0}, false};
+	static struct hook_s hook = {NULL, false, 0, 0, {0}, false};
 	static UINT32 nextid;
-	hook_p hookp, *lastp;
-
-	hook.type = luaL_checkoption(L, 1, NULL, hookNames);
-	lua_remove(L, 1);
-
-	luaL_checktype(L, 1, LUA_TFUNCTION);
+	hook_p hookp, *lastp = NULL;
+	const char *name = luaL_checkstring(L, 1);
+	boolean customhook = false;
 
 	if (!lua_lumploading)
 		return luaL_error(L, "This function cannot be called from within a hook or coroutine!");
 
-	switch(hook.type)
-	{
-	// Take a mobjtype enum which this hook is specifically for.
-	case hook_MobjSpawn:
-	case hook_MobjCollide:
-	case hook_MobjLineCollide:
-	case hook_MobjMoveCollide:
-	case hook_TouchSpecial:
-	case hook_MobjFuse:
-	case hook_MobjThinker:
-	case hook_BossThinker:
-	case hook_ShouldDamage:
-	case hook_MobjDamage:
-	case hook_MobjDeath:
-	case hook_BossDeath:
-	case hook_MobjRemoved:
-	case hook_HurtMsg:
-	case hook_MobjMoveBlocked:
-	case hook_MapThingSpawn:
-	case hook_FollowMobj:
-		hook.s.mt = MT_NULL;
-		if (lua_isnumber(L, 2))
-			hook.s.mt = lua_tonumber(L, 2);
-		luaL_argcheck(L, hook.s.mt < NUMMOBJTYPES, 2, "invalid mobjtype_t");
-		break;
-	case hook_BotAI:
-	case hook_ShouldJingleContinue:
-		hook.s.str = NULL;
-		if (lua_isstring(L, 2))
-		{ // lowercase copy
-			hook.s.str = Z_StrDup(lua_tostring(L, 2));
-			strlwr(hook.s.str);
-		}
-		break;
-	case hook_LinedefExecute: // Linedef executor functions
-		hook.s.str = Z_StrDup(luaL_checkstring(L, 2));
-		strupr(hook.s.str);
-		break;
-	default:
-		break;
-	}
-	lua_settop(L, 1); // lua stack contains only the function now.
+	for (UINT32 i = 0; i < customHookCount; i++)
+		if (!strcmp(name, customHookNames[i]))
+		{
+			if (!lua_isnoneornil(L, 3))
+			{
+				int luatype = lua_type(L, 3);
 
-	hooksAvailable[hook.type/8] |= 1<<(hook.type%8);
+				if (luatype != LUA_TNUMBER && luatype != LUA_TSTRING)
+					return luaL_typerror(L, 3, "string or number");
+
+				if (luatype == LUA_TNUMBER)
+					hook.s.num = (UINT32)luaL_checkinteger(L, 3);
+				else
+					hook.s.str = Z_StrDup(lua_tostring(L, 3));
+			}
+
+			hook.type = i;
+			hook.customhook = true;
+
+			lastp = &customhooks[i];
+
+			customhook = true;
+
+			break;
+		}
+
+	if (!customhook)
+		hook.type = luaL_checkoption(L, 1, NULL, hookNames);
+
+	lua_remove(L, 1);
+
+	luaL_checktype(L, 1, LUA_TFUNCTION);
+
+	if (!customhook)
+	{
+		switch(hook.type)
+		{
+		// Take a mobjtype enum which this hook is specifically for.
+		case hook_MobjSpawn:
+		case hook_MobjCollide:
+		case hook_MobjLineCollide:
+		case hook_MobjMoveCollide:
+		case hook_TouchSpecial:
+		case hook_MobjFuse:
+		case hook_MobjThinker:
+		case hook_BossThinker:
+		case hook_ShouldDamage:
+		case hook_MobjDamage:
+		case hook_MobjDeath:
+		case hook_BossDeath:
+		case hook_MobjRemoved:
+		case hook_HurtMsg:
+		case hook_MobjMoveBlocked:
+		case hook_MapThingSpawn:
+		case hook_FollowMobj:
+			hook.s.num = MT_NULL;
+			if (lua_isnumber(L, 2))
+				hook.s.num = lua_tonumber(L, 2);
+			luaL_argcheck(L, hook.s.num < NUMMOBJTYPES, 2, "invalid mobjtype_t");
+			break;
+		case hook_BotAI:
+		case hook_ShouldJingleContinue:
+			hook.s.str = NULL;
+			if (lua_isstring(L, 2))
+			{ // lowercase copy
+				hook.s.str = Z_StrDup(lua_tostring(L, 2));
+				strlwr(hook.s.str);
+			}
+			break;
+		case hook_LinedefExecute: // Linedef executor functions
+			hook.s.str = Z_StrDup(luaL_checkstring(L, 2));
+			strupr(hook.s.str);
+			break;
+		default:
+			break;
+		}
+
+		// Special cases for some hook types (see the comments above mobjthinkerhooks declaration)
+		switch(hook.type)
+		{
+		case hook_MobjThinker:
+			lastp = &mobjthinkerhooks[hook.s.num];
+			break;
+		case hook_MobjCollide:
+		case hook_MobjLineCollide:
+		case hook_MobjMoveCollide:
+			lastp = &mobjcollidehooks[hook.s.num];
+			break;
+		case hook_MobjSpawn:
+		case hook_TouchSpecial:
+		case hook_MobjFuse:
+		case hook_BossThinker:
+		case hook_ShouldDamage:
+		case hook_MobjDamage:
+		case hook_MobjDeath:
+		case hook_BossDeath:
+		case hook_MobjRemoved:
+		case hook_MobjMoveBlocked:
+		case hook_MapThingSpawn:
+		case hook_FollowMobj:
+			lastp = &mobjhooks[hook.s.num];
+			break;
+		case hook_JumpSpecial:
+		case hook_AbilitySpecial:
+		case hook_SpinSpecial:
+		case hook_JumpSpinSpecial:
+		case hook_PlayerSpawn:
+		case hook_PlayerCanDamage:
+		case hook_TeamSwitch:
+		case hook_ViewpointSwitch:
+		case hook_SeenPlayer:
+		case hook_ShieldSpawn:
+		case hook_ShieldSpecial:
+		case hook_PlayerThink:
+			lastp = &playerhooks;
+			break;
+		case hook_LinedefExecute:
+			lastp = &linedefexecutorhooks;
+			break;
+		default:
+			lastp = &roothook;
+			break;
+		}
+
+		hooksAvailable[hook.type/8] |= 1<<(hook.type%8);
+	}
+
+	lua_settop(L, 1); // lua stack contains only the function now.
 
 	// set hook.id to the highest id + 1
 	hook.id = nextid++;
 
-	// Special cases for some hook types (see the comments above mobjthinkerhooks declaration)
-	switch(hook.type)
-	{
-	case hook_MobjThinker:
-		lastp = &mobjthinkerhooks[hook.s.mt];
-		break;
-	case hook_MobjCollide:
-	case hook_MobjLineCollide:
-	case hook_MobjMoveCollide:
-		lastp = &mobjcollidehooks[hook.s.mt];
-		break;
-	case hook_MobjSpawn:
-	case hook_TouchSpecial:
-	case hook_MobjFuse:
-	case hook_BossThinker:
-	case hook_ShouldDamage:
-	case hook_MobjDamage:
-	case hook_MobjDeath:
-	case hook_BossDeath:
-	case hook_MobjRemoved:
-	case hook_MobjMoveBlocked:
-	case hook_MapThingSpawn:
-	case hook_FollowMobj:
-		lastp = &mobjhooks[hook.s.mt];
-		break;
-	case hook_JumpSpecial:
-	case hook_AbilitySpecial:
-	case hook_SpinSpecial:
-	case hook_JumpSpinSpecial:
-	case hook_PlayerSpawn:
-	case hook_PlayerCanDamage:
-	case hook_TeamSwitch:
-	case hook_ViewpointSwitch:
-	case hook_SeenPlayer:
-	case hook_ShieldSpawn:
-	case hook_ShieldSpecial:
-	case hook_PlayerThink:
-		lastp = &playerhooks;
-		break;
-	case hook_LinedefExecute:
-		lastp = &linedefexecutorhooks;
-		break;
-	default:
-		lastp = &roothook;
-		break;
-	}
+	if (!lastp)
+		I_Error("bruh moment");
 
 	// iterate the hook metadata structs
 	// set lastp to the last hook struct's "next" pointer.
@@ -253,6 +356,8 @@ int LUA_HookLib(lua_State *L)
 	memset(hooksAvailable,0,sizeof(UINT8[(hook_MAX/8)+1]));
 	roothook = NULL;
 	lua_register(L, "addHook", lib_addHook);
+	lua_register(L, "createHook", lib_createHook);
+	lua_register(L, "callHook", lib_callHook);
 	return 0;
 }
 
@@ -1343,7 +1448,7 @@ boolean LUAh_HurtMsg(player_t *player, mobj_t *inflictor, mobj_t *source, UINT8 
 	for (hookp = roothook; hookp; hookp = hookp->next)
 	{
 		if (hookp->type != hook_HurtMsg
-		|| (hookp->s.mt && !(inflictor && hookp->s.mt == inflictor->type)))
+		|| (hookp->s.num && !(inflictor && hookp->s.num == inflictor->type)))
 			continue;
 
 		if (lua_gettop(gL) == 1)
