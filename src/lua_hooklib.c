@@ -343,9 +343,6 @@ static int lib_addHook(lua_State *L)
 	// set hook.id to the highest id + 1
 	hook.id = nextid++;
 
-	if (!lastp)
-		I_Error("bruh moment");
-
 	// iterate the hook metadata structs
 	// set lastp to the last hook struct's "next" pointer.
 	for (hookp = *lastp; hookp; hookp = hookp->next)
