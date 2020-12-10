@@ -128,31 +128,6 @@ static void PushHook(lua_State *L, hook_p hookp)
 	lua_gettable(L, LUA_REGISTRYINDEX);
 }
 
-static int lib_createHook(lua_State *L)
-{
-	const char *name = luaL_checkstring(L, 1);
-
-	for (int i = 0; hookNames[i]; i++)
-		if (strcmp(hookNames[i], name) == 0)
-			return luaL_error(L, "You cannot replace vanilla hooks!");
-
-	customHookCount++;
-
-	if (!customhooks)
-		customhooks = Z_Calloc(sizeof(hook_p), PU_LUA, NULL);
-	else
-		customhooks = Z_Realloc(customhooks, customHookCount * sizeof(hook_p), PU_LUA, NULL);
-
-	if (!customHookNames)
-		customHookNames = Z_Calloc(sizeof(char *), PU_LUA, NULL);
-	else
-		customHookNames = Z_Realloc(customHookNames, customHookCount * sizeof(char *), PU_LUA, NULL);
-
-	customHookNames[customHookCount - 1] = strcpy(Z_Calloc(strlen(name) + 1, PU_LUA, NULL), name);
-
-	return 0;
-}
-
 static int lib_callHook(lua_State *L)
 {
 	hook_p hookp;
@@ -171,7 +146,19 @@ static int lib_callHook(lua_State *L)
 		}
 
 	if (!foundHook)
-		return luaL_error(L, "This hook either does not exist, or is a vanilla hook! Call createHook() with a name first!");
+	{
+		for (i = 0; hookNames[i]; i++)
+			if (!strcmp(hookNames[i], name))
+			{
+				foundHook = true;
+				break;
+			}
+
+		if (foundHook)
+			return luaL_error(L, "You cannot call vanilla hooks!");
+		else
+			return 0;
+	}
 
 	for (hookp = customhooks[i]; hookp; hookp = hookp->next)
 	{
@@ -194,36 +181,61 @@ static int lib_addHook(lua_State *L)
 	static UINT32 nextid;
 	hook_p hookp, *lastp = NULL;
 	const char *name = luaL_checkstring(L, 1);
+	boolean vanillaHookName = false;
 	boolean customhook = false;
 
 	if (!lua_lumploading)
 		return luaL_error(L, "This function cannot be called from within a hook or coroutine!");
 
-	for (UINT32 i = 0; i < customHookCount; i++)
-		if (!strcmp(name, customHookNames[i]))
+	for (int i = 0; hookNames[i]; i++)
+		if (!strcmp(hookNames[i], name))
 		{
-			if (!lua_isnoneornil(L, 3))
-			{
-				int luatype = lua_type(L, 3);
-
-				if (luatype != LUA_TNUMBER && luatype != LUA_TSTRING)
-					return luaL_typerror(L, 3, "string or number");
-
-				if (luatype == LUA_TNUMBER)
-					hook.s.num = (UINT32)luaL_checkinteger(L, 3);
-				else
-					hook.s.str = Z_StrDup(lua_tostring(L, 3));
-			}
-
-			hook.type = i;
-			hook.customhook = true;
-
-			lastp = &customhooks[i];
-
-			customhook = true;
-
+			vanillaHookName = true;
 			break;
 		}
+
+	if (!vanillaHookName)
+	{
+		customHookCount++;
+
+		if (!customhooks)
+			customhooks = Z_Calloc(sizeof(hook_p), PU_LUA, NULL);
+		else
+			customhooks = Z_Realloc(customhooks, customHookCount * sizeof(hook_p), PU_LUA, NULL);
+
+		if (!customHookNames)
+			customHookNames = Z_Calloc(sizeof(char *), PU_LUA, NULL);
+		else
+			customHookNames = Z_Realloc(customHookNames, customHookCount * sizeof(char *), PU_LUA, NULL);
+
+		customHookNames[customHookCount - 1] = strcpy(Z_Calloc(strlen(name) + 1, PU_LUA, NULL), name);
+
+		for (UINT32 i = 0; i < customHookCount; i++)
+			if (!strcmp(name, customHookNames[i]))
+			{
+				if (!lua_isnoneornil(L, 3))
+				{
+					int luatype = lua_type(L, 3);
+
+					if (luatype != LUA_TNUMBER && luatype != LUA_TSTRING)
+						return luaL_typerror(L, 3, "string or number");
+
+					if (luatype == LUA_TNUMBER)
+						hook.s.num = (UINT32)luaL_checkinteger(L, 3);
+					else
+						hook.s.str = Z_StrDup(lua_tostring(L, 3));
+				}
+
+				hook.type = i;
+				hook.customhook = true;
+
+				lastp = &customhooks[i];
+
+				customhook = true;
+
+				break;
+			}
+	}
 
 	if (!customhook)
 		hook.type = luaL_checkoption(L, 1, NULL, hookNames);
@@ -356,7 +368,6 @@ int LUA_HookLib(lua_State *L)
 	memset(hooksAvailable,0,sizeof(UINT8[(hook_MAX/8)+1]));
 	roothook = NULL;
 	lua_register(L, "addHook", lib_addHook);
-	lua_register(L, "createHook", lib_createHook);
 	lua_register(L, "callHook", lib_callHook);
 	return 0;
 }
