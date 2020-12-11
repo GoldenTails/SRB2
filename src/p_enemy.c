@@ -366,7 +366,7 @@ boolean P_JetbCheckMeleeRange(mobj_t *actor)
 	if (dist >= (actor->radius + pl->radius)*2)
 		return false;
 
-	if (actor->eflags & MFE_VERTICALFLIP)
+	if (P_MobjFlipped(actor))
 	{
 		if (pl->z < actor->z + actor->height + FixedMul(40<<FRACBITS, actor->scale))
 			return false;
@@ -419,7 +419,7 @@ boolean P_SkimCheckMeleeRange(mobj_t *actor)
 	if (dist >= FixedMul(MELEERANGE - 20*FRACUNIT, actor->scale) + pl->radius)
 		return false;
 
-	if (actor->eflags & MFE_VERTICALFLIP)
+	if (P_MobjFlipped(actor))
 	{
 		if (pl->z < actor->z + actor->height + FixedMul(24<<FRACBITS, actor->scale))
 			return false;
@@ -1785,8 +1785,8 @@ void A_ArrowBonks(mobj_t *actor)
 	if (LUA_CallAction(A_ARROWBONKS, actor))
 		return;
 
-	if (((actor->eflags & MFE_VERTICALFLIP) && actor->z + actor->height >= actor->ceilingz)
-		|| (!(actor->eflags & MFE_VERTICALFLIP) && actor->z <= actor->floorz))
+	if (((P_MobjFlipped(actor)) && actor->z + actor->height >= actor->ceilingz)
+		|| (!(P_MobjFlipped(actor)) && actor->z <= actor->floorz))
 		actor->angle += ANGLE_180;
 
 	P_SetObjectMomZ(actor, 8*actor->scale, false);
@@ -1859,11 +1859,11 @@ void A_SnailerThink(mobj_t *actor)
 			P_SpawnXYZMissile(actor, actor->target, MT_ROCKET, actor->x, actor->y, z);
 	}
 
-	if ((!(actor->eflags & MFE_VERTICALFLIP) && actor->target->z > actor->z)
-	|| (actor->eflags & MFE_VERTICALFLIP && (actor->target->z + actor->target->height) > (actor->z + actor->height)))
+	if ((!(P_MobjFlipped(actor)) && actor->target->z > actor->z)
+	|| (P_MobjFlipped(actor) && (actor->target->z + actor->target->height) > (actor->z + actor->height)))
 		actor->momz += FixedMul(actor->info->speed, actor->scale);
-	else if ((!(actor->eflags & MFE_VERTICALFLIP) && actor->target->z < actor->z)
-	|| (actor->eflags & MFE_VERTICALFLIP && (actor->target->z + actor->target->height) < (actor->z + actor->height)))
+	else if ((!(P_MobjFlipped(actor)) && actor->target->z < actor->z)
+	|| (P_MobjFlipped(actor) && (actor->target->z + actor->target->height) < (actor->z + actor->height)))
 		actor->momz -= FixedMul(actor->info->speed, actor->scale);
 
 	actor->momz /= 2;
@@ -2670,7 +2670,7 @@ void A_LobShot(mobj_t *actor)
 
 	A_FaceTarget(actor);
 
-	if (actor->eflags & MFE_VERTICALFLIP)
+	if (P_MobjFlipped(actor))
 	{
 		z = actor->z + actor->height - FixedMul(locvar2*FRACUNIT, actor->scale);
 		if (actor->type == MT_BLACKEGGMAN)
@@ -2770,7 +2770,7 @@ void A_FireShot(mobj_t *actor)
 
 	A_FaceTarget(actor);
 
-	if (actor->eflags & MFE_VERTICALFLIP)
+	if (P_MobjFlipped(actor))
 		z = actor->z + actor->height - FixedMul(48*FRACUNIT + locvar2*FRACUNIT, actor->scale);
 	else
 		z = actor->z + FixedMul(48*FRACUNIT + locvar2*FRACUNIT, actor->scale);
@@ -2808,7 +2808,7 @@ void A_SuperFireShot(mobj_t *actor)
 
 	A_FaceTarget(actor);
 
-	if (actor->eflags & MFE_VERTICALFLIP)
+	if (P_MobjFlipped(actor))
 		z = actor->z + actor->height - FixedMul(48*FRACUNIT + locvar2*FRACUNIT, actor->scale);
 	else
 		z = actor->z + FixedMul(48*FRACUNIT + locvar2*FRACUNIT, actor->scale);
@@ -2860,7 +2860,7 @@ void A_BossFireShot(mobj_t *actor)
 		case 0:
 			x = actor->x + P_ReturnThrustX(actor, actor->angle+ANGLE_90, FixedMul(43*FRACUNIT, actor->scale));
 			y = actor->y + P_ReturnThrustY(actor, actor->angle+ANGLE_90, FixedMul(43*FRACUNIT, actor->scale));
-			if (actor->eflags & MFE_VERTICALFLIP)
+			if (P_MobjFlipped(actor))
 				z = actor->z + actor->height - FixedMul(48*FRACUNIT, actor->scale);
 			else
 				z = actor->z + FixedMul(48*FRACUNIT, actor->scale);
@@ -2868,7 +2868,7 @@ void A_BossFireShot(mobj_t *actor)
 		case 1:
 			x = actor->x + P_ReturnThrustX(actor, actor->angle-ANGLE_90, FixedMul(43*FRACUNIT, actor->scale));
 			y = actor->y + P_ReturnThrustY(actor, actor->angle-ANGLE_90, FixedMul(43*FRACUNIT, actor->scale));
-			if (actor->eflags & MFE_VERTICALFLIP)
+			if (P_MobjFlipped(actor))
 				z = actor->z + actor->height - FixedMul(48*FRACUNIT, actor->scale);
 			else
 				z = actor->z + FixedMul(48*FRACUNIT, actor->scale);
@@ -2876,7 +2876,7 @@ void A_BossFireShot(mobj_t *actor)
 		case 2:
 			x = actor->x + P_ReturnThrustX(actor, actor->angle-ANGLE_90, FixedMul(56*FRACUNIT, actor->scale));
 			y = actor->y + P_ReturnThrustY(actor, actor->angle-ANGLE_90, FixedMul(56*FRACUNIT, actor->scale));
-			if (actor->eflags & MFE_VERTICALFLIP)
+			if (P_MobjFlipped(actor))
 				z = actor->z + actor->height - FixedMul(42*FRACUNIT, actor->scale);
 			else
 				z = actor->z + FixedMul(42*FRACUNIT, actor->scale);
@@ -2884,7 +2884,7 @@ void A_BossFireShot(mobj_t *actor)
 		case 3:
 			x = actor->x + P_ReturnThrustX(actor, actor->angle-ANGLE_90, FixedMul(58*FRACUNIT, actor->scale));
 			y = actor->y + P_ReturnThrustY(actor, actor->angle-ANGLE_90, FixedMul(58*FRACUNIT, actor->scale));
-			if (actor->eflags & MFE_VERTICALFLIP)
+			if (P_MobjFlipped(actor))
 				z = actor->z + actor->height - FixedMul(30*FRACUNIT, actor->scale);
 			else
 				z = actor->z + FixedMul(30*FRACUNIT, actor->scale);
@@ -2892,7 +2892,7 @@ void A_BossFireShot(mobj_t *actor)
 		case 4:
 			x = actor->x + P_ReturnThrustX(actor, actor->angle+ANGLE_90, FixedMul(56*FRACUNIT, actor->scale));
 			y = actor->y + P_ReturnThrustY(actor, actor->angle+ANGLE_90, FixedMul(56*FRACUNIT, actor->scale));
-			if (actor->eflags & MFE_VERTICALFLIP)
+			if (P_MobjFlipped(actor))
 				z = actor->z + actor->height - FixedMul(42*FRACUNIT, actor->scale);
 			else
 				z = actor->z + FixedMul(42*FRACUNIT, actor->scale);
@@ -2900,7 +2900,7 @@ void A_BossFireShot(mobj_t *actor)
 		case 5:
 			x = actor->x + P_ReturnThrustX(actor, actor->angle+ANGLE_90, FixedMul(58*FRACUNIT, actor->scale));
 			y = actor->y + P_ReturnThrustY(actor, actor->angle+ANGLE_90, FixedMul(58*FRACUNIT, actor->scale));
-			if (actor->eflags & MFE_VERTICALFLIP)
+			if (P_MobjFlipped(actor))
 				z = actor->z + actor->height - FixedMul(30*FRACUNIT, actor->scale);
 			else
 				z = actor->z + FixedMul(30*FRACUNIT, actor->scale);
@@ -3027,7 +3027,7 @@ void A_Boss1Laser(mobj_t *actor)
 		case 0:
 			x = actor->x + P_ReturnThrustX(actor, actor->angle+ANGLE_90, FixedMul(44*FRACUNIT, actor->scale));
 			y = actor->y + P_ReturnThrustY(actor, actor->angle+ANGLE_90, FixedMul(44*FRACUNIT, actor->scale));
-			if (actor->eflags & MFE_VERTICALFLIP)
+			if (P_MobjFlipped(actor))
 				z = actor->z + actor->height - FixedMul(56*FRACUNIT, actor->scale) - mobjinfo[locvar1].height;
 			else
 				z = actor->z + FixedMul(56*FRACUNIT, actor->scale);
@@ -3035,7 +3035,7 @@ void A_Boss1Laser(mobj_t *actor)
 		case 1:
 			x = actor->x + P_ReturnThrustX(actor, actor->angle-ANGLE_90, FixedMul(44*FRACUNIT, actor->scale));
 			y = actor->y + P_ReturnThrustY(actor, actor->angle-ANGLE_90, FixedMul(44*FRACUNIT, actor->scale));
-			if (actor->eflags & MFE_VERTICALFLIP)
+			if (P_MobjFlipped(actor))
 				z = actor->z + actor->height - FixedMul(56*FRACUNIT, actor->scale) - mobjinfo[locvar1].height;
 			else
 				z = actor->z + FixedMul(56*FRACUNIT, actor->scale);
@@ -3492,13 +3492,13 @@ void A_BossScream(mobj_t *actor)
 
 	if (locvar1 & 2)
 		z = actor->z + (P_RandomKey((actor->height - mobjinfo[explodetype].height)>>FRACBITS)<<FRACBITS);
-	else if (actor->eflags & MFE_VERTICALFLIP)
+	else if (P_MobjFlipped(actor))
 		z = actor->z + actor->height - mobjinfo[explodetype].height - FixedMul((P_RandomByte()<<(FRACBITS-2)) - 8*FRACUNIT, actor->scale);
 	else
 		z = actor->z + FixedMul((P_RandomByte()<<(FRACBITS-2)) - 8*FRACUNIT, actor->scale);
 
 	mo = P_SpawnMobj(x, y, z, explodetype);
-	if (actor->eflags & MFE_VERTICALFLIP)
+	if (P_MobjFlipped(actor))
 		mo->flags2 |= MF2_OBJECTFLIP;
 	mo->destscale = actor->scale;
 	P_SetScale(mo, mo->destscale);
@@ -4499,8 +4499,8 @@ void A_BunnyHop(mobj_t *actor)
 	if (LUA_CallAction(A_BUNNYHOP, actor))
 		return;
 
-	if (((actor->eflags & MFE_VERTICALFLIP) && actor->z + actor->height >= actor->ceilingz)
-		|| (!(actor->eflags & MFE_VERTICALFLIP) && actor->z <= actor->floorz))
+	if (((P_MobjFlipped(actor)) && actor->z + actor->height >= actor->ceilingz)
+		|| (!(P_MobjFlipped(actor)) && actor->z <= actor->floorz))
 	{
 		P_SetObjectMomZ(actor, locvar1*FRACUNIT, false);
 		P_InstaThrust(actor, actor->angle, FixedMul(locvar2*FRACUNIT, actor->scale)); // Launch the hopping action! PHOOM!!
@@ -4766,14 +4766,14 @@ void A_DropMine(mobj_t *actor)
 			return;
 	}
 
-	if (actor->eflags & MFE_VERTICALFLIP)
+	if (P_MobjFlipped(actor))
 		z = actor->z + actor->height - mobjinfo[actor->info->raisestate].height - FixedMul((locvar1*FRACUNIT) - 12*FRACUNIT, actor->scale);
 	else
 		z = actor->z + FixedMul((locvar1*FRACUNIT) - 12*FRACUNIT, actor->scale);
 
 	// Use raisestate instead of MT_MINE
 	mine = P_SpawnMobj(actor->x, actor->y, z, (mobjtype_t)actor->info->raisestate);
-	if (actor->eflags & MFE_VERTICALFLIP)
+	if (P_MobjFlipped(actor))
 		mine->eflags |= MFE_VERTICALFLIP;
 	mine->momz = actor->momz + actor->pmomz;
 
@@ -5097,7 +5097,7 @@ void A_SignSpin(mobj_t *actor)
 		P_SpawnMobjFromMobj(actor,
 			P_ReturnThrustX(actor, actor->tracer->angle, i * actor->radius),
 			P_ReturnThrustY(actor, actor->tracer->angle, i * actor->radius),
-			(actor->eflags & MFE_VERTICALFLIP) ? 0 : actor->height,
+			(P_MobjFlipped(actor)) ? 0 : actor->height,
 			actor->info->painchance)->destscale >>= 1;
 	}
 }
@@ -5293,7 +5293,7 @@ void A_OverlayThink(mobj_t *actor)
 	actor->x = destx;
 	actor->y = desty;
 	P_SetThingPosition(actor);
-	if (actor->eflags & MFE_VERTICALFLIP)
+	if (P_MobjFlipped(actor))
 		actor->z = actor->target->z + actor->target->height - mobjinfo[actor->type].height  - ((var2>>16) ? -1 : 1)*(var2&0xFFFF)*FRACUNIT;
 	else
 		actor->z = actor->target->z + ((var2>>16) ? -1 : 1)*(var2&0xFFFF)*FRACUNIT;
@@ -5574,7 +5574,7 @@ void A_MinusDigging(mobj_t *actor)
 	fixed_t dis = actor->info->speed*4;
 	fixed_t x = FINECOSINE(fa)*dis + actor->x + FRACUNIT*P_RandomRange(-rad, rad);
 	fixed_t y = FINESINE(fa)*dis + actor->y + FRACUNIT*P_RandomRange(-rad, rad);
-	fixed_t mz = (actor->eflags & MFE_VERTICALFLIP) ? actor->ceilingz : actor->floorz;
+	fixed_t mz = (P_MobjFlipped(actor)) ? actor->ceilingz : actor->floorz;
 	mobj_t *par;
 
 	if (LUA_CallAction(A_MINUSDIGGING, actor))
@@ -5587,7 +5587,7 @@ void A_MinusDigging(mobj_t *actor)
 	}
 
 	par = P_SpawnMobj(actor->x, actor->y, mz, MT_MINUSDIRT);
-	if (actor->eflags & MFE_VERTICALFLIP)
+	if (P_MobjFlipped(actor))
 		par->eflags |= MFE_VERTICALFLIP;
 	P_TryMove(par, x, y, false);
 
@@ -5602,7 +5602,7 @@ void A_MinusDigging(mobj_t *actor)
 		par = P_SpawnMobj(actor->x, actor->y, mz, MT_MINUSDIRT);
 		P_SetMobjState(par, actor->info->raisestate);
 		P_SetScale(par, actor->scale*2);
-		if (actor->eflags & MFE_VERTICALFLIP)
+		if (P_MobjFlipped(actor))
 			par->eflags |= MFE_VERTICALFLIP;
 		return;
 	}
@@ -5661,7 +5661,7 @@ void A_MinusPopup(mobj_t *actor)
 	if (LUA_CallAction(A_MINUSPOPUP, actor))
 		return;
 
-	if (actor->eflags & MFE_VERTICALFLIP)
+	if (P_MobjFlipped(actor))
 		actor->momz = -10*FRACUNIT;
 	else
 		actor->momz = 10*FRACUNIT;
@@ -5696,7 +5696,7 @@ void A_MinusCheck(mobj_t *actor)
 	if (LUA_CallAction(A_MINUSCHECK, actor))
 		return;
 
-	if (((actor->eflags & MFE_VERTICALFLIP) && actor->z + actor->height >= actor->ceilingz) || (!(actor->eflags & MFE_VERTICALFLIP) && actor->z <= actor->floorz))
+	if (((P_MobjFlipped(actor)) && actor->z + actor->height >= actor->ceilingz) || (!(P_MobjFlipped(actor)) && actor->z <= actor->floorz))
 	{
 		P_SetMobjState(actor, locvar1 ? (statenum_t)locvar1 : actor->info->seestate);
 		actor->flags = actor->info->flags;
@@ -5727,8 +5727,8 @@ void A_ChickenCheck(mobj_t *actor)
 	if (LUA_CallAction(A_CHICKENCHECK, actor))
 		return;
 
-	if ((!(actor->eflags & MFE_VERTICALFLIP) && actor->z <= actor->floorz)
-	|| (actor->eflags & MFE_VERTICALFLIP && actor->z + actor->height >= actor->ceilingz))
+	if ((!(P_MobjFlipped(actor)) && actor->z <= actor->floorz)
+	|| (P_MobjFlipped(actor) && actor->z + actor->height >= actor->ceilingz))
 	{
 		if (!(actor->momx || actor->momy || actor->momz)
 			&& actor->state > &states[actor->info->seestate])
@@ -5811,8 +5811,8 @@ void A_MouseThink(mobj_t *actor)
 	if (actor->reactiontime)
 		actor->reactiontime--;
 
-	if (((!(actor->eflags & MFE_VERTICALFLIP) && actor->z == actor->floorz)
-		|| (actor->eflags & MFE_VERTICALFLIP && actor->z + actor->height == actor->ceilingz))
+	if (((!(P_MobjFlipped(actor)) && actor->z == actor->floorz)
+		|| (P_MobjFlipped(actor) && actor->z + actor->height == actor->ceilingz))
 		&& !actor->reactiontime)
 	{
 		if (twodlevel || actor->flags2 & MF2_TWOD)
@@ -6024,7 +6024,7 @@ void A_CapeChase(mobj_t *actor)
 	P_UnsetThingPosition(actor);
 	actor->x = chaser->x + foffsetx + boffsetx;
 	actor->y = chaser->y + foffsety + boffsety;
-	if (chaser->eflags & MFE_VERTICALFLIP)
+	if (P_MobjFlipped(chaser))
 	{
 		actor->eflags |= MFE_VERTICALFLIP;
 		actor->flags2 |= MF2_OBJECTFLIP;
@@ -7762,7 +7762,7 @@ void A_SparkFollow(mobj_t *actor)
 		const angle_t fa = actor->angle>>ANGLETOFINESHIFT;
 		actor->x = actor->target->x + FixedMul(FINECOSINE(fa),FixedMul(actor->info->speed, actor->scale));
 		actor->y = actor->target->y + FixedMul(FINESINE(fa),FixedMul(actor->info->speed, actor->scale));
-		if (actor->target->eflags & MFE_VERTICALFLIP)
+		if (P_MobjFlipped(actor->target))
 			actor->z = actor->target->z + actor->target->height - FixedDiv(actor->target->height,3*FRACUNIT);
 		else
 			actor->z = actor->target->z + FixedDiv(actor->target->height,3*FRACUNIT) - actor->height;
@@ -8002,7 +8002,7 @@ void A_EggShield(mobj_t *actor)
 	movey = newy - actor->y;
 
 	actor->angle = actor->target->angle;
-	if (actor->target->eflags & MFE_VERTICALFLIP)
+	if (P_MobjFlipped(actor->target))
 	{
 		actor->eflags |= MFE_VERTICALFLIP;
 		actor->z = actor->target->z + actor->target->height - actor->height;
@@ -8396,7 +8396,7 @@ void A_SmokeTrailer(mobj_t *actor)
 		return;
 
 	// add the smoke behind the rocket
-	if (actor->eflags & MFE_VERTICALFLIP)
+	if (P_MobjFlipped(actor))
 	{
 		th = P_SpawnMobj(actor->x-actor->momx, actor->y-actor->momy, actor->z + actor->height - FixedMul(mobjinfo[locvar1].height, actor->scale), locvar1);
 		th->flags2 |= MF2_OBJECTFLIP;
@@ -8443,7 +8443,7 @@ void A_SpawnObjectAbsolute(mobj_t *actor)
 	// Spawn objects with an angle matching the spawner's, rather than spawning Eastwards - Monster Iestyn
 	mo->angle = actor->angle;
 
-	if (actor->eflags & MFE_VERTICALFLIP)
+	if (P_MobjFlipped(actor))
 		mo->flags2 |= MF2_OBJECTFLIP;
 }
 
@@ -8480,12 +8480,12 @@ void A_SpawnObjectRelative(mobj_t *actor)
 	// NOTE: Doing actor->z + actor->height is the bottom of the object while the object has reverse gravity. - Flame
 	mo = P_SpawnMobj(actor->x + FixedMul(x<<FRACBITS, actor->scale),
 		actor->y + FixedMul(y<<FRACBITS, actor->scale),
-		(actor->eflags & MFE_VERTICALFLIP) ? ((actor->z + actor->height - mobjinfo[type].height) - FixedMul(z<<FRACBITS, actor->scale)) : (actor->z + FixedMul(z<<FRACBITS, actor->scale)), type);
+		(P_MobjFlipped(actor)) ? ((actor->z + actor->height - mobjinfo[type].height) - FixedMul(z<<FRACBITS, actor->scale)) : (actor->z + FixedMul(z<<FRACBITS, actor->scale)), type);
 
 	// Spawn objects with an angle matching the spawner's, rather than spawning Eastwards - Monster Iestyn
 	mo->angle = actor->angle;
 
-	if (actor->eflags & MFE_VERTICALFLIP)
+	if (P_MobjFlipped(actor))
 		mo->flags2 |= MF2_OBJECTFLIP;
 
 }
@@ -8990,7 +8990,7 @@ void A_ZThrust(mobj_t *actor)
 	if (locvar2 & 65535)
 		actor->momx = actor->momy = 0;
 
-	if (actor->eflags & MFE_VERTICALFLIP)
+	if (P_MobjFlipped(actor))
 		actor->z--;
 	else
 		actor->z++;
@@ -9136,7 +9136,7 @@ void A_BossJetFume(mobj_t *actor)
 
 		jetx = actor->x + P_ReturnThrustX(actor, actor->angle, -FixedMul(64*FRACUNIT, actor->scale));
 		jety = actor->y + P_ReturnThrustY(actor, actor->angle, -FixedMul(64*FRACUNIT, actor->scale));
-		if (actor->eflags & MFE_VERTICALFLIP)
+		if (P_MobjFlipped(actor))
 			jetz = actor->z + actor->height - FixedMul(38*FRACUNIT + mobjinfo[MT_JETFUME1].height, actor->scale);
 		else
 			jetz = actor->z + FixedMul(38*FRACUNIT, actor->scale);
@@ -9145,11 +9145,11 @@ void A_BossJetFume(mobj_t *actor)
 		P_SetTarget(&filler->target, actor);
 		filler->destscale = actor->scale;
 		P_SetScale(filler, filler->destscale);
-		if (actor->eflags & MFE_VERTICALFLIP)
+		if (P_MobjFlipped(actor))
 			filler->flags2 |= MF2_OBJECTFLIP;
 		filler->fuse = 56;
 
-		if (actor->eflags & MFE_VERTICALFLIP)
+		if (P_MobjFlipped(actor))
 			jetz = actor->z + actor->height - FixedMul(12*FRACUNIT + mobjinfo[MT_JETFUME1].height, actor->scale);
 		else
 			jetz = actor->z + FixedMul(12*FRACUNIT, actor->scale);
@@ -9160,7 +9160,7 @@ void A_BossJetFume(mobj_t *actor)
 		P_SetTarget(&filler->target, actor);
 		filler->destscale = actor->scale;
 		P_SetScale(filler, filler->destscale);
-		if (actor->eflags & MFE_VERTICALFLIP)
+		if (P_MobjFlipped(actor))
 			filler->flags2 |= MF2_OBJECTFLIP;
 		filler->fuse = 57;
 
@@ -9170,7 +9170,7 @@ void A_BossJetFume(mobj_t *actor)
 		P_SetTarget(&filler->target, actor);
 		filler->destscale = actor->scale;
 		P_SetScale(filler, filler->destscale);
-		if (actor->eflags & MFE_VERTICALFLIP)
+		if (P_MobjFlipped(actor))
 			filler->flags2 |= MF2_OBJECTFLIP;
 		filler->fuse = 58;
 
@@ -9182,7 +9182,7 @@ void A_BossJetFume(mobj_t *actor)
 
 		jetx = actor->x + P_ReturnThrustX(actor, actor->angle, -60*actor->scale);
 		jety = actor->y + P_ReturnThrustY(actor, actor->angle, -60*actor->scale);
-		if (actor->eflags & MFE_VERTICALFLIP)
+		if (P_MobjFlipped(actor))
 			jetz = actor->z + actor->height - FixedMul(17*FRACUNIT + mobjinfo[MT_PROPELLER].height, actor->scale);
 		else
 			jetz = actor->z + FixedMul(17*FRACUNIT, actor->scale);
@@ -9191,7 +9191,7 @@ void A_BossJetFume(mobj_t *actor)
 		P_SetTarget(&filler->target, actor);
 		filler->destscale = actor->scale;
 		P_SetScale(filler, filler->destscale);
-		if (actor->eflags & MFE_VERTICALFLIP)
+		if (P_MobjFlipped(actor))
 			filler->flags2 |= MF2_OBJECTFLIP;
 		filler->angle = actor->angle - ANGLE_180;
 
@@ -9204,7 +9204,7 @@ void A_BossJetFume(mobj_t *actor)
 		filler->fuse = 59;
 		P_SetTarget(&actor->tracer, filler);
 		P_SetScale(filler, (filler->destscale = actor->scale/3));
-		if (actor->eflags & MFE_VERTICALFLIP)
+		if (P_MobjFlipped(actor))
 			filler->flags2 |= MF2_OBJECTFLIP;
 		filler->color = SKINCOLOR_ICY;
 		filler->colorized = true;
@@ -9212,7 +9212,7 @@ void A_BossJetFume(mobj_t *actor)
 	else if (locvar1 == 3) // Boss 4 jet flame
 	{
 		fixed_t jetz;
-		if (actor->eflags & MFE_VERTICALFLIP)
+		if (P_MobjFlipped(actor))
 			jetz = actor->z + actor->height + FixedMul(50*FRACUNIT - mobjinfo[MT_JETFLAME].height, actor->scale);
 		else
 			jetz = actor->z - 50*actor->scale;
@@ -9221,7 +9221,7 @@ void A_BossJetFume(mobj_t *actor)
 		// Boss 4 already uses its tracer for other things
 		filler->destscale = actor->scale;
 		P_SetScale(filler, filler->destscale);
-		if (actor->eflags & MFE_VERTICALFLIP)
+		if (P_MobjFlipped(actor))
 			filler->flags2 |= MF2_OBJECTFLIP;
 	}
 	else if (locvar1 == 4) // Boss 4 Spectator Eggrobo jet flame
@@ -9229,7 +9229,7 @@ void A_BossJetFume(mobj_t *actor)
 		fixed_t jetx, jety, jetz, movefactor = 12;
 
 		jetz = actor->z;
-		if (actor->eflags & MFE_VERTICALFLIP)
+		if (P_MobjFlipped(actor))
 			jetz += (actor->height - FixedMul(mobjinfo[MT_EGGROBO1JET].height, actor->scale));
 
 		while (true)
@@ -9241,7 +9241,7 @@ void A_BossJetFume(mobj_t *actor)
 			P_SetTarget(&filler->target, actor);
 			filler->destscale = actor->scale;
 			P_SetScale(filler, filler->destscale);
-			if (actor->eflags & MFE_VERTICALFLIP)
+			if (P_MobjFlipped(actor))
 				filler->flags2 |= MF2_OBJECTFLIP;
 			if (movefactor <= 0)
 				break;
@@ -9758,7 +9758,7 @@ void A_SplitShot(mobj_t *actor)
 		fixed_t ys = FixedMul(fasin,FixedMul(offs, actor->scale));
 		fixed_t z;
 
-		if (actor->eflags & MFE_VERTICALFLIP)
+		if (P_MobjFlipped(actor))
 			z = actor->z + actor->height - FixedMul(hoffs, actor->scale);
 		else
 			z = actor->z + FixedMul(hoffs, actor->scale);
@@ -9783,7 +9783,7 @@ void A_MissileSplit(mobj_t *actor)
 	if (LUA_CallAction(A_MISSILESPLIT, actor))
 		return;
 
-	if (actor->eflags & MFE_VERTICALFLIP)
+	if (P_MobjFlipped(actor))
 		P_SpawnAlteredDirectionMissile(actor, locvar1, actor->x, actor->y, actor->z+actor->height, locvar2);
 	else
 		P_SpawnAlteredDirectionMissile(actor, locvar1, actor->x, actor->y, actor->z, locvar2);
@@ -9819,7 +9819,7 @@ void A_MultiShot(mobj_t *actor)
 	else
 		ad = FixedMul(loc1lw*FRACUNIT, actor->scale);
 
-	if (actor->eflags & MFE_VERTICALFLIP)
+	if (P_MobjFlipped(actor))
 		z = actor->z + actor->height - FixedMul(48*FRACUNIT + locvar2*FRACUNIT, actor->scale);
 	else
 		z = actor->z + FixedMul(48*FRACUNIT + locvar2*FRACUNIT, actor->scale);
@@ -10892,7 +10892,7 @@ void A_TrapShot(mobj_t *actor)
 	x = actor->x + P_ReturnThrustX(actor, actor->angle, FixedMul(frontoff*FRACUNIT, actor->scale));
 	y = actor->y + P_ReturnThrustY(actor, actor->angle, FixedMul(frontoff*FRACUNIT, actor->scale));
 
-	if (actor->eflags & MFE_VERTICALFLIP)
+	if (P_MobjFlipped(actor))
 		z = actor->z + actor->height - FixedMul(vertoff*FRACUNIT, actor->scale) - FixedMul(mobjinfo[type].height, actor->scale);
 	else
 		z = actor->z + FixedMul(vertoff*FRACUNIT, actor->scale);
@@ -10902,7 +10902,7 @@ void A_TrapShot(mobj_t *actor)
 
 	missile = P_SpawnMobj(x, y, z, type);
 
-	if (actor->eflags & MFE_VERTICALFLIP)
+	if (P_MobjFlipped(actor))
 		missile->flags2 |= MF2_OBJECTFLIP;
 
 	missile->destscale = actor->scale;
@@ -10921,13 +10921,13 @@ void A_TrapShot(mobj_t *actor)
 		missile->momx = FixedMul(FINECOSINE(missile->angle>>ANGLETOFINESHIFT), speed);
 		missile->momy = FixedMul(FINESINE(missile->angle>>ANGLETOFINESHIFT), speed);
 		// The below line basically mimics P_SpawnXYZMissile's momz calculation.
-		missile->momz = (actor->z + ((actor->eflags & MFE_VERTICALFLIP) ? actor->height : 0) - z) / ((fixed_t)(locvar2 & 32767)*FRACUNIT / speed);
+		missile->momz = (actor->z + ((P_MobjFlipped(actor)) ? actor->height : 0) - z) / ((fixed_t)(locvar2 & 32767)*FRACUNIT / speed);
 		P_CheckMissileSpawn(missile);
 	}
 	else
 	{
 		angle_t vertang = FixedAngle(((INT16)(locvar2 & 32767))*FRACUNIT);
-		if (actor->eflags & MFE_VERTICALFLIP)
+		if (P_MobjFlipped(actor))
 				vertang = InvAngle(vertang); // flip firing angle
 		missile->momx = FixedMul(FINECOSINE(vertang>>ANGLETOFINESHIFT), FixedMul(FINECOSINE(missile->angle>>ANGLETOFINESHIFT), speed));
 		missile->momy = FixedMul(FINECOSINE(vertang>>ANGLETOFINESHIFT), FixedMul(FINESINE(missile->angle>>ANGLETOFINESHIFT), speed));
@@ -10969,9 +10969,9 @@ void A_VileTarget(mobj_t *actor)
 	{
 		fog = P_SpawnMobj(actor->target->x,
 							actor->target->y,
-							actor->target->z + ((actor->target->eflags & MFE_VERTICALFLIP) ? actor->target->height - mobjinfo[fogtype].height : 0),
+							actor->target->z + ((P_MobjFlipped(actor->target)) ? actor->target->height - mobjinfo[fogtype].height : 0),
 							fogtype);
-		if (actor->target->eflags & MFE_VERTICALFLIP)
+		if (P_MobjFlipped(actor->target))
 		{
 			fog->eflags |= MFE_VERTICALFLIP;
 			fog->flags2 |= MF2_OBJECTFLIP;
@@ -11000,9 +11000,9 @@ void A_VileTarget(mobj_t *actor)
 
 			fog = P_SpawnMobj(players[i].mo->x,
 							players[i].mo->y,
-							players[i].mo->z + ((players[i].mo->eflags & MFE_VERTICALFLIP) ? players[i].mo->height - mobjinfo[fogtype].height : 0),
+							players[i].mo->z + ((P_MobjFlipped(players[i].mo)) ? players[i].mo->height - mobjinfo[fogtype].height : 0),
 							fogtype);
-			if (players[i].mo->eflags & MFE_VERTICALFLIP)
+			if (P_MobjFlipped(players[i].mo))
 			{
 				fog->eflags |= MFE_VERTICALFLIP;
 				fog->flags2 |= MF2_OBJECTFLIP;
@@ -11164,7 +11164,7 @@ void A_VileFire(mobj_t *actor)
 	// keep to same scale and gravity as tracer ALWAYS
 	actor->destscale = dest->scale;
 	P_SetScale(actor, actor->destscale);
-	if (dest->eflags & MFE_VERTICALFLIP)
+	if (P_MobjFlipped(dest))
 	{
 		actor->eflags |= MFE_VERTICALFLIP;
 		actor->flags2 |= MF2_OBJECTFLIP;
@@ -11178,7 +11178,7 @@ void A_VileFire(mobj_t *actor)
 	P_UnsetThingPosition(actor);
 	actor->x = dest->x + P_ReturnThrustX(actor, dest->angle, FixedMul(24*FRACUNIT, actor->scale));
 	actor->y = dest->y + P_ReturnThrustY(actor, dest->angle, FixedMul(24*FRACUNIT, actor->scale));
-	actor->z = dest->z + ((actor->eflags & MFE_VERTICALFLIP) ? dest->height-actor->height : 0);
+	actor->z = dest->z + ((P_MobjFlipped(actor)) ? dest->height-actor->height : 0);
 	P_SetThingPosition(actor);
 
 	// Play sound, if one's specified
@@ -11370,7 +11370,7 @@ void A_BrakFireShot(mobj_t *actor)
 	y = actor->y
 		+ P_ReturnThrustY(actor, actor->angle, FixedMul(64*FRACUNIT, actor->scale))
 		+ P_ReturnThrustY(actor, actor->angle+ANGLE_270, FixedMul(32*FRACUNIT, actor->scale));
-	if (actor->eflags & MFE_VERTICALFLIP)
+	if (P_MobjFlipped(actor))
 		z = actor->z + actor->height - FixedMul(144*FRACUNIT, actor->scale);
 	else
 		z = actor->z + FixedMul(144*FRACUNIT, actor->scale);
@@ -11901,7 +11901,7 @@ void P_InternalFlickyFly(mobj_t *actor, fixed_t flyspeed, fixed_t targetdist, fi
 
 	chasez *= 8;
 	if (!actor->target || !(actor->fuse > 2*TICRATE))
-		chasez += ((actor->eflags & MFE_VERTICALFLIP) ? actor->ceilingz - 24*FRACUNIT : actor->floorz + 24*FRACUNIT);
+		chasez += ((P_MobjFlipped(actor)) ? actor->ceilingz - 24*FRACUNIT : actor->floorz + 24*FRACUNIT);
 	else
 	{
 		fixed_t add = actor->target->z + (actor->target->height - actor->height)/2;
@@ -12007,8 +12007,8 @@ void A_FlickyCoast(mobj_t *actor)
 // Internal Flicky hopping function.
 void P_InternalFlickyHop(mobj_t *actor, fixed_t momz, fixed_t momh, angle_t angle)
 {
-	if (((!(actor->eflags & MFE_VERTICALFLIP) && actor->z <= actor->floorz)
-	|| ((actor->eflags & MFE_VERTICALFLIP) && actor->z + actor->height >= actor->ceilingz)))
+	if (((!(P_MobjFlipped(actor)) && actor->z <= actor->floorz)
+	|| ((P_MobjFlipped(actor)) && actor->z + actor->height >= actor->ceilingz)))
 	{
 		if (momz)
 		{
@@ -12090,8 +12090,8 @@ void A_FlickyCheck(mobj_t *actor)
 	}
 	else if (locvar2 && P_MobjFlip(actor)*actor->momz < 1)
 		P_SetMobjState(actor, locvar2);
-	else if (locvar1 && ((!(actor->eflags & MFE_VERTICALFLIP) && actor->z <= actor->floorz)
-	|| ((actor->eflags & MFE_VERTICALFLIP) && actor->z + actor->height >= actor->ceilingz)))
+	else if (locvar1 && ((!(P_MobjFlipped(actor)) && actor->z <= actor->floorz)
+	|| ((P_MobjFlipped(actor)) && actor->z + actor->height >= actor->ceilingz)))
 		P_SetMobjState(actor, locvar1);
 	else if (mobjinfo[actor->type].meleestate && (actor->eflags & MFE_UNDERWATER))
 		P_SetMobjState(actor, mobjinfo[actor->type].meleestate);
@@ -12297,7 +12297,7 @@ void A_Boss5Jump(mobj_t *actor)
 	// Okay, complicated math done. Let's make this object jump already.
 	A_FaceTracer(actor);
 
-	if (actor->eflags & MFE_VERTICALFLIP)
+	if (P_MobjFlipped(actor))
 		actor->z--;
 	else
 		actor->z++;
@@ -12505,12 +12505,12 @@ void A_SpawnParticleRelative(mobj_t *actor)
 	// NOTE: Doing actor->z + actor->height is the bottom of the object while the object has reverse gravity. - Flame
 	mo = P_SpawnMobj(actor->x + FixedMul(x<<FRACBITS, actor->scale),
 		actor->y + FixedMul(y<<FRACBITS, actor->scale),
-		(actor->eflags & MFE_VERTICALFLIP) ? ((actor->z + actor->height - mobjinfo[MT_PARTICLE].height) - FixedMul(z<<FRACBITS, actor->scale)) : (actor->z + FixedMul(z<<FRACBITS, actor->scale)), MT_PARTICLE);
+		(P_MobjFlipped(actor)) ? ((actor->z + actor->height - mobjinfo[MT_PARTICLE].height) - FixedMul(z<<FRACBITS, actor->scale)) : (actor->z + FixedMul(z<<FRACBITS, actor->scale)), MT_PARTICLE);
 
 	// Spawn objects with an angle matching the spawner's, rather than spawning Eastwards - Monster Iestyn
 	mo->angle = actor->angle;
 
-	if (actor->eflags & MFE_VERTICALFLIP)
+	if (P_MobjFlipped(actor))
 		mo->flags2 |= MF2_OBJECTFLIP;
 
 	P_SetMobjState(mo, state);
@@ -13076,8 +13076,8 @@ void A_Boss5CheckOnGround(mobj_t *actor)
 	if (LUA_CallAction(A_BOSS5CHECKONGROUND, actor))
 		return;
 
-	if ((!(actor->eflags & MFE_VERTICALFLIP) && actor->z <= actor->floorz)
-	|| (actor->eflags & MFE_VERTICALFLIP && actor->z + actor->height >= actor->ceilingz))
+	if ((!(P_MobjFlipped(actor)) && actor->z <= actor->floorz)
+	|| (P_MobjFlipped(actor) && actor->z + actor->height >= actor->ceilingz))
 	{
 		if (locvar2 && (!actor->health || (actor->health == actor->info->damage && !(actor->flags2 & MF2_STRONGBOX))))
 			P_SetMobjState(actor, locvar2);
@@ -13139,7 +13139,7 @@ void A_Boss5PinchShot(mobj_t *actor)
 	if (actor->health > actor->info->damage)
 		return;
 
-	if (actor->eflags & MFE_VERTICALFLIP)
+	if (P_MobjFlipped(actor))
 		zoffset = actor->z + actor->height - FixedMul((48 + locvar2)*FRACUNIT, actor->scale);
 	else
 		zoffset = actor->z + FixedMul((48 + locvar2)*FRACUNIT, actor->scale);
@@ -13831,7 +13831,7 @@ static void P_SnapperLegPlace(mobj_t *mo)
 	fixed_t rad = mo->radius;
 	INT32 necklen = (32*(mo->info->reactiontime - mo->reactiontime))/mo->info->reactiontime; // Not in FU
 
-	seg->z = mo->z + ((mo->eflags & MFE_VERTICALFLIP) ? (((mo->height<<1)/3) - seg->height) : mo->height/3);
+	seg->z = mo->z + ((P_MobjFlipped(mo)) ? (((mo->height<<1)/3) - seg->height) : mo->height/3);
 	P_TryMove(seg, mo->x + FixedMul(c, rad) + necklen*c, mo->y + FixedMul(s, rad) + necklen*s, true);
 	seg->angle = a;
 
@@ -13852,7 +13852,7 @@ static void P_SnapperLegPlace(mobj_t *mo)
 		{
 			x = c*o2 + s*o1;
 			y = s*o2 - c*o1;
-			seg->z = mo->z + (((mo->eflags & MFE_VERTICALFLIP) ? (mo->height - seg->height) : 0));
+			seg->z = mo->z + (((P_MobjFlipped(mo)) ? (mo->height - seg->height) : 0));
 			P_TryMove(seg, mo->x + x, mo->y + y, true);
 			P_SetMobjState(seg, seg->info->raisestate);
 		}
@@ -14209,7 +14209,7 @@ void A_FallingLavaCheck(mobj_t *actor)
 		actor->flags = MF_NOGRAVITY|MF_NOCLIPTHING;
 		actor->momz = 0;
 		if (actor->eflags & MFE_TOUCHWATER)
-			actor->z = (actor->eflags & MFE_VERTICALFLIP) ? actor->waterbottom : actor->watertop;
+			actor->z = (P_MobjFlipped(actor)) ? actor->waterbottom : actor->watertop;
 		P_SetMobjState(actor, actor->info->deathstate);
 	}
 }
@@ -14316,7 +14316,7 @@ void A_RolloutSpawn(mobj_t *actor)
 	{
 		actor->target = P_SpawnMobj(actor->x, actor->y, actor->z, locvar2);
 		actor->target->flags2 |= (actor->flags2 & (MF2_AMBUSH | MF2_OBJECTFLIP)) | MF2_SLIDEPUSH;
-		actor->target->eflags |= (actor->eflags & MFE_VERTICALFLIP);
+		actor->target->eflags |= (P_MobjFlipped(actor));
 
 		if (actor->target->flags2 & MF2_AMBUSH)
 		{
@@ -14542,7 +14542,7 @@ void A_ChangeHeight(mobj_t *actor)
 	if (LUA_CallAction(A_CHANGEHEIGHT, actor))
 		return;
 
-	reverse = (actor->eflags & MFE_VERTICALFLIP) || (actor->flags2 & MF2_OBJECTFLIP);
+	reverse = (P_MobjFlipped(actor)) || (actor->flags2 & MF2_OBJECTFLIP);
 
 	if (locvar2 & 2)
 		height = FixedMul(height, actor->scale);

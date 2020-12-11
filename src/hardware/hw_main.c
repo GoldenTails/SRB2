@@ -3614,7 +3614,7 @@ static void HWR_DrawDropShadow(mobj_t *thing, fixed_t scale)
 	FBITFIELD blendmode = PF_Translucent|PF_Modulated;
 	INT32 shader = SHADER_DEFAULT;
 	UINT8 i;
-	SINT8 flip = P_MobjFlip(thing);
+	SINT8 flip = P_PlayerMobjFlip(thing);
 
 	INT32 light;
 	fixed_t scalemul;
@@ -3723,7 +3723,7 @@ static void HWR_RotateSpritePolyToAim(gl_vissprite_t *spr, FOutVector *wallVerts
 	{
 		float basey = FIXED_TO_FLOAT(spr->mobj->z);
 		float lowy = wallVerts[0].y;
-		if (!precip && P_MobjFlip(spr->mobj) == -1) // precip doesn't have eflags so they can't flip
+		if (!precip && P_PlayerMobjFlip(spr->mobj) == -1) // precip doesn't have eflags so they can't flip
 		{
 			basey = FIXED_TO_FLOAT(spr->mobj->z + spr->mobj->height);
 		}
@@ -4086,7 +4086,7 @@ static void HWR_DrawSprite(gl_vissprite_t *spr)
 		float xoffset, yoffset;
 		float leftoffset, topoffset;
 		float scale = spr->scale;
-		float zoffset = (P_MobjFlip(spr->mobj) * 0.05f);
+		float zoffset = (P_PlayerMobjFlip(spr->mobj) * 0.05f);
 		pslope_t *splatslope = NULL;
 		INT32 i;
 
@@ -4978,7 +4978,7 @@ static void HWR_ProjectSprite(mobj_t *thing)
 	size_t lumpoff;
 	unsigned rot;
 	UINT16 flip;
-	boolean vflip = (!(thing->eflags & MFE_VERTICALFLIP) != !R_ThingVerticallyFlipped(thing));
+	boolean vflip = (!(P_PlayerMobjFlipped(thing)) != !R_ThingVerticallyFlipped(thing));
 	boolean mirrored = thing->mirrored;
 	boolean hflip = (!R_ThingHorizontallyFlipped(thing) != !mirrored);
 	INT32 dispoffset;
@@ -5192,7 +5192,7 @@ static void HWR_ProjectSprite(mobj_t *thing)
 		if (caster && !P_MobjWasRemoved(caster))
 		{
 			fixed_t groundz = R_GetShadowZ(thing, NULL);
-			fixed_t floordiff = abs(((thing->eflags & MFE_VERTICALFLIP) ? caster->height : 0) + caster->z - groundz);
+			fixed_t floordiff = abs(((P_PlayerMobjFlipped(thing)) ? caster->height : 0) + caster->z - groundz);
 
 			shadowheight = FIXED_TO_FLOAT(floordiff);
 			shadowscale = FIXED_TO_FLOAT(FixedMul(FRACUNIT - floordiff/640, caster->scale));

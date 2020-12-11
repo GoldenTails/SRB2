@@ -897,10 +897,10 @@ static void Polyobj_carryThings(polyobj_t *po, fixed_t dx, fixed_t dy)
 				if (mo->flags & MF_NOCLIP)
 					continue;
 
-				if ((mo->eflags & MFE_VERTICALFLIP) && mo->z + mo->height != po->lines[0]->backsector->floorheight)
+				if ((P_PlayerMobjFlipped(mo)) && mo->z + mo->height != po->lines[0]->backsector->floorheight)
 					continue;
 
-				if (!(mo->eflags & MFE_VERTICALFLIP) && mo->z != po->lines[0]->backsector->ceilingheight)
+				if (!(P_PlayerMobjFlipped(mo)) && mo->z != po->lines[0]->backsector->ceilingheight)
 					continue;
 
 				if (!P_MobjInsidePolyobj(po, mo))
@@ -1127,10 +1127,10 @@ static void Polyobj_rotateThings(polyobj_t *po, vector2_t origin, angle_t delta,
 				if (mo->flags & MF_NOCLIP)
 					continue;
 
-				if ((mo->eflags & MFE_VERTICALFLIP) && mo->z + mo->height != po->lines[0]->backsector->floorheight)
+				if ((P_PlayerMobjFlipped(mo)) && mo->z + mo->height != po->lines[0]->backsector->floorheight)
 					continue;
 
-				if (!(mo->eflags & MFE_VERTICALFLIP) && mo->z != po->lines[0]->backsector->ceilingheight)
+				if (!(P_PlayerMobjFlipped(mo)) && mo->z != po->lines[0]->backsector->ceilingheight)
 					continue;
 
 				if (!P_MobjInsidePolyobj(po, mo))

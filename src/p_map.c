@@ -172,9 +172,9 @@ boolean P_DoSpring(mobj_t *spring, mobj_t *object)
 		if (object->player && object->player->homing) // Sonic Heroes and Shadow the Hedgehog are the only games to contain homing-attackable bumpers!
 		{
 			horizangle = 0;
-			vertiangle = ((object->eflags & MFE_VERTICALFLIP) ? ANGLE_270 : ANGLE_90) >> ANGLETOFINESHIFT;
+			vertiangle = ((P_PlayerMobjFlipped(object)) ? ANGLE_270 : ANGLE_90) >> ANGLETOFINESHIFT;
 			object->player->pflags &= ~PF_THOKKED;
-			if (spring->eflags & MFE_VERTICALFLIP)
+			if (P_MobjFlipped(spring))
 				object->z = spring->z - object->height - 1;
 			else
 				object->z = spring->z + spring->height + 1;
@@ -262,7 +262,7 @@ boolean P_DoSpring(mobj_t *spring, mobj_t *object)
 
 	object->standingslope = NULL; // Okay, now we know it's not going to be relevant - no launching off at silly angles for you.
 
-	if (spring->eflags & MFE_VERTICALFLIP)
+	if (P_MobjFlipped(spring))
 		vertispeed *= -1;
 
 	if (object->player && (object->player->powers[pw_carry] == CR_NIGHTSMODE))
@@ -291,7 +291,7 @@ boolean P_DoSpring(mobj_t *spring, mobj_t *object)
 			object->player->powers[pw_justsprung] = 5;
 			if (horizspeed)
 				object->player->powers[pw_noautobrake] = ((horizspeed*TICRATE)>>(FRACBITS+3))/9; // TICRATE at 72*FRACUNIT
-			else if (P_MobjFlip(object) == P_MobjFlip(spring))
+			else if (P_PlayerMobjFlip(object) == P_MobjFlip(spring))
 				object->player->powers[pw_justsprung] |= (1<<15);
 #else
 			object->player->powers[pw_justsprung] = 15;
@@ -301,7 +301,7 @@ boolean P_DoSpring(mobj_t *spring, mobj_t *object)
 			{
 				if (abs(object->player->rmomx) > object->scale || abs(object->player->rmomy) > object->scale)
 					object->player->drawangle = R_PointToAngle2(0, 0, object->player->rmomx, object->player->rmomy);
-				if (P_MobjFlip(object) == P_MobjFlip(spring))
+				if (P_PlayerMobjFlip(object) == P_MobjFlip(spring))
 					object->player->powers[pw_justsprung] |= (1<<15);
 			}
 #endif
@@ -344,7 +344,7 @@ boolean P_DoSpring(mobj_t *spring, mobj_t *object)
 			if ((spring->info->painchance == 3))
 			{
 				object->z = spring->z;
-				if (spring->eflags & MFE_VERTICALFLIP)
+				if (P_PlayerMobjFlipped(spring))
 					object->z -= object->height;
 				object->momz = 0;
 			}
@@ -424,7 +424,7 @@ boolean P_DoSpring(mobj_t *spring, mobj_t *object)
 			else
 				P_SetPlayerMobjState(object, (object->momz > 0) ? S_PLAY_SPRING : S_PLAY_FALL);
 		}
-		else if (P_MobjFlip(object)*vertispeed > 0)
+		else if (P_PlayerMobjFlip(object)*vertispeed > 0)
 			P_SetPlayerMobjState(object, S_PLAY_SPRING);
 		else
 			P_SetPlayerMobjState(object, S_PLAY_FALL);
@@ -474,7 +474,7 @@ static void P_DoFanAndGasJet(mobj_t *spring, mobj_t *object)
 		return;
 
 	// is object's top below thruster's position? if not, calculate distance between their bottoms
-	if (spring->eflags & MFE_VERTICALFLIP)
+	if (P_MobjFlipped(spring))
 	{
 		if (object->z > spring->z + spring->height)
 			return;
@@ -547,10 +547,10 @@ static void P_DoPterabyteCarry(player_t *player, mobj_t *ptera)
 	if (player->spectator)
 		return;
 
-	if ((player->mo->eflags & MFE_VERTICALFLIP) != (ptera->eflags & MFE_VERTICALFLIP))
+	if ((P_PlayerMobjFlipped(player->mo)) != (P_MobjFlipped(ptera)))
 		return; // Both should be in same gravity
 
-	if (ptera->eflags & MFE_VERTICALFLIP)
+	if (P_MobjFlipped(ptera))
 	{
 		if (ptera->ceilingz - (ptera->z + ptera->height) < player->mo->height - FixedMul(2*FRACUNIT, player->mo->scale))
 			return;
@@ -589,10 +589,10 @@ static void P_DoTailsCarry(player_t *sonic, player_t *tails)
 	if (!(tails->pflags & PF_CANCARRY))
 		return;
 
-	if ((sonic->mo->eflags & MFE_VERTICALFLIP) != (tails->mo->eflags & MFE_VERTICALFLIP))
+	if ((P_PlayerMobjFlipped(sonic->mo)) != (P_PlayerMobjFlipped(tails->mo)))
 		return; // Both should be in same gravity
 
-	if (tails->mo->eflags & MFE_VERTICALFLIP)
+	if (P_PlayerMobjFlipped(tails->mo))
 	{
 		if (tails->mo->ceilingz - (tails->mo->z + tails->mo->height) < sonic->mo->height-FixedMul(2*FRACUNIT, sonic->mo->scale))
 			return;
@@ -616,14 +616,14 @@ static void P_DoTailsCarry(player_t *sonic, player_t *tails)
 		|| (G_GametypeHasTeams() && tails->ctfteam != sonic->ctfteam))
 		return; */
 
-	if (tails->mo->eflags & MFE_VERTICALFLIP)
+	if (P_PlayerMobjFlipped(tails->mo))
 		zdist = (sonic->mo->z + sonic->mo->height) - (tails->mo->z + tails->mo->height);
 	else
 		zdist = tails->mo->z - sonic->mo->z;
 
 	if (zdist <= sonic->mo->height + sonic->mo->scale // FixedMul(FRACUNIT, sonic->mo->scale), but scale == FRACUNIT by default
 		&& zdist > sonic->mo->height*2/3
-		&& P_MobjFlip(tails->mo)*sonic->mo->momz <= 0
+		&& P_PlayerMobjFlip(tails->mo)*sonic->mo->momz <= 0
 		&& !(sonic->powers[pw_ignorelatch] & (1<<15)))
 	{
 		if (sonic-players == consoleplayer && botingame)
@@ -1016,10 +1016,10 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		if ((thing->flags & MF_PUSHABLE) // not carrying a player
 			&& (tmthing->player->powers[pw_carry] == CR_NONE) // player is not already riding something
 			&& !(tmthing->player->powers[pw_ignorelatch] & (1<<15))
-			&& ((tmthing->eflags & MFE_VERTICALFLIP) == (thing->eflags & MFE_VERTICALFLIP))
-			&& (P_MobjFlip(tmthing)*tmthing->momz <= 0)
-			&& ((!(tmthing->eflags & MFE_VERTICALFLIP) && abs(thing->z + thing->height - tmthing->z) < (thing->height>>2))
-				|| (tmthing->eflags & MFE_VERTICALFLIP && abs(tmthing->z + tmthing->height - thing->z) < (thing->height>>2))))
+			&& ((P_PlayerMobjFlipped(tmthing)) == (P_MobjFlipped(thing)))
+			&& (P_PlayerMobjFlip(tmthing)*tmthing->momz <= 0)
+			&& ((!(P_PlayerMobjFlipped(tmthing)) && abs(thing->z + thing->height - tmthing->z) < (thing->height>>2))
+				|| (P_PlayerMobjFlipped(tmthing) && abs(tmthing->z + tmthing->height - thing->z) < (thing->height>>2))))
 		{
 			thing->flags &= ~MF_PUSHABLE; // prevent riding player from applying pushable movement logic
 			thing->flags2 &= ~MF2_DONTDRAW; // don't leave the rock invisible if it was flashing prior to boarding
@@ -1151,7 +1151,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		if (thing->z + thing->height < tmthing->z)
 			return true; // underneath
 
-		if (tmthing->eflags & MFE_VERTICALFLIP)
+		if (P_MobjFlipped(tmthing))
 			thing->z = tmthing->z - thing->height - FixedMul(FRACUNIT, tmthing->scale);
 		else
 			thing->z = tmthing->z + tmthing->height + FixedMul(FRACUNIT, tmthing->scale);
@@ -1224,9 +1224,9 @@ static boolean PIT_CheckThing(mobj_t *thing)
 	 && (tmthing->player || (tmthing->flags & MF_PUSHABLE)) && tmthing->health > 0)
 	{
 		// Multiplying by -1 inherently flips "less than" and "greater than"
-		fixed_t tmz     = ((thing->eflags & MFE_VERTICALFLIP) ? -(tmthing->z + tmthing->height) : tmthing->z);
-		fixed_t tmznext = ((thing->eflags & MFE_VERTICALFLIP) ? -tmthing->momz : tmthing->momz) + tmz;
-		fixed_t thzh    = ((thing->eflags & MFE_VERTICALFLIP) ? -thing->z : thing->z + thing->height);
+		fixed_t tmz     = ((P_MobjFlipped(thing)) ? -(tmthing->z + tmthing->height) : tmthing->z);
+		fixed_t tmznext = ((P_MobjFlipped(thing)) ? -tmthing->momz : tmthing->momz) + tmz;
+		fixed_t thzh    = ((P_MobjFlipped(thing)) ? -thing->z : thing->z + thing->height);
 		fixed_t sprarea = FixedMul(8*FRACUNIT, thing->scale) * P_MobjFlip(thing);
 
 		if ((tmznext <= thzh && tmz > thzh) || (tmznext > thzh - sprarea && tmznext < thzh))
@@ -1469,30 +1469,30 @@ static boolean PIT_CheckThing(mobj_t *thing)
 	// Do not return because solidity code comes below.
 	if (tmthing->type == MT_SPIKE && tmthing->flags & MF_SOLID && thing->player) // moving spike rams into player?!
 	{
-		if (tmthing->eflags & MFE_VERTICALFLIP)
+		if (P_MobjFlipped(tmthing))
 		{
 			if (thing->z + thing->height <= tmthing->z + FixedMul(FRACUNIT, tmthing->scale)
 			&& thing->z + thing->height + thing->momz  >= tmthing->z + FixedMul(FRACUNIT, tmthing->scale) + tmthing->momz
-			&& !(thing->player->charability == CA_BOUNCE && thing->player->panim == PA_ABILITY && thing->eflags & MFE_VERTICALFLIP))
+			&& !(thing->player->charability == CA_BOUNCE && thing->player->panim == PA_ABILITY && P_PlayerMobjFlipped(thing)))
 				P_DamageMobj(thing, tmthing, tmthing, 1, DMG_SPIKE);
 		}
 		else if (thing->z >= tmthing->z + tmthing->height - FixedMul(FRACUNIT, tmthing->scale)
 		&& thing->z + thing->momz <= tmthing->z + tmthing->height - FixedMul(FRACUNIT, tmthing->scale) + tmthing->momz
-		&& !(thing->player->charability == CA_BOUNCE && thing->player->panim == PA_ABILITY && !(thing->eflags & MFE_VERTICALFLIP)))
+		&& !(thing->player->charability == CA_BOUNCE && thing->player->panim == PA_ABILITY && !(P_PlayerMobjFlipped(thing))))
 			P_DamageMobj(thing, tmthing, tmthing, 1, DMG_SPIKE);
 	}
 	else if (thing->type == MT_SPIKE && thing->flags & MF_SOLID && tmthing->player) // unfortunate player falls into spike?!
 	{
-		if (thing->eflags & MFE_VERTICALFLIP)
+		if (P_MobjFlipped(thing))
 		{
 			if (tmthing->z + tmthing->height <= thing->z - FixedMul(FRACUNIT, thing->scale)
 			&& tmthing->z + tmthing->height + tmthing->momz >= thing->z - FixedMul(FRACUNIT, thing->scale)
-			&& !(tmthing->player->charability == CA_BOUNCE && tmthing->player->panim == PA_ABILITY && tmthing->eflags & MFE_VERTICALFLIP))
+			&& !(tmthing->player->charability == CA_BOUNCE && tmthing->player->panim == PA_ABILITY && P_PlayerMobjFlipped(tmthing)))
 				P_DamageMobj(tmthing, thing, thing, 1, DMG_SPIKE);
 		}
 		else if (tmthing->z >= thing->z + thing->height + FixedMul(FRACUNIT, thing->scale)
 		&& tmthing->z + tmthing->momz <= thing->z + thing->height + FixedMul(FRACUNIT, thing->scale)
-		&& !(tmthing->player->charability == CA_BOUNCE && tmthing->player->panim == PA_ABILITY && !(tmthing->eflags & MFE_VERTICALFLIP)))
+		&& !(tmthing->player->charability == CA_BOUNCE && tmthing->player->panim == PA_ABILITY && !(P_PlayerMobjFlipped(tmthing))))
 			P_DamageMobj(tmthing, thing, thing, 1, DMG_SPIKE);
 	}
 
@@ -1501,7 +1501,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		fixed_t bottomz, topz;
 		bottomz = tmthing->z;
 		topz = tmthing->z + tmthing->height;
-		if (tmthing->eflags & MFE_VERTICALFLIP)
+		if (P_MobjFlipped(tmthing))
 			bottomz -= FixedMul(FRACUNIT, tmthing->scale);
 		else
 			topz += FixedMul(FRACUNIT, tmthing->scale);
@@ -1528,7 +1528,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		bottomz = thing->z;
 		topz = thing->z + thing->height;
 
-		if (thing->eflags & MFE_VERTICALFLIP)
+		if (P_MobjFlipped(thing))
 			bottomz -= FixedMul(FRACUNIT, thing->scale);
 		else
 			topz += FixedMul(FRACUNIT, thing->scale);
@@ -1624,11 +1624,11 @@ static boolean PIT_CheckThing(mobj_t *thing)
 	if (thing->player)
 	{
 		// Doesn't matter what gravity player's following! Just do your stuff in YOUR direction only
-		if (tmthing->eflags & MFE_VERTICALFLIP
+		if (P_MobjFlipped(tmthing)
 		&& (tmthing->z + tmthing->height + tmthing->momz < thing->z
 		 || tmthing->z + tmthing->height + tmthing->momz >= thing->z + thing->height))
 			;
-		else if (!(tmthing->eflags & MFE_VERTICALFLIP)
+		else if (!(P_MobjFlipped(tmthing))
 		&& (tmthing->z + tmthing->momz > thing->z + thing->height
 		 || tmthing->z + tmthing->momz <= thing->z))
 			;
@@ -1730,7 +1730,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 	{
 		fixed_t topz, tmtopz;
 
-		if (tmthing->eflags & MFE_VERTICALFLIP)
+		if (P_MobjFlipped(tmthing))
 		{
 			// pass under
 			tmtopz = tmthing->z;
@@ -2088,15 +2088,15 @@ boolean P_CheckPosition(mobj_t *thing, fixed_t x, fixed_t y)
 				&& abs(thing->momz) < minspeed)
 				{
 					// Oh no! The object is stick in between the surface of the goo and sinklevel! help them out!
-					if (!(thing->eflags & MFE_VERTICALFLIP) && thing->z > topheight - sinklevel
+					if (!(P_PlayerMobjFlipped(thing)) && thing->z > topheight - sinklevel
 					&& thing->momz >= 0 && thing->momz < (minspeed>>2))
 						thing->momz += minspeed>>2;
-					else if (thing->eflags & MFE_VERTICALFLIP && thingtop < bottomheight + sinklevel
+					else if (P_PlayerMobjFlipped(thing) && thingtop < bottomheight + sinklevel
 					&& thing->momz <= 0 && thing->momz > -(minspeed>>2))
 						thing->momz -= minspeed>>2;
 
 					// Land on the top or the bottom, depending on gravity flip.
-					if (!(thing->eflags & MFE_VERTICALFLIP) && thing->z >= topheight - sinklevel && thing->momz <= 0)
+					if (!(P_PlayerMobjFlipped(thing)) && thing->z >= topheight - sinklevel && thing->momz <= 0)
 					{
 						if (tmfloorz < topheight - sinklevel) {
 							tmfloorz = topheight - sinklevel;
@@ -2104,7 +2104,7 @@ boolean P_CheckPosition(mobj_t *thing, fixed_t x, fixed_t y)
 							tmfloorslope = *rover->t_slope;
 						}
 					}
-					else if (thing->eflags & MFE_VERTICALFLIP && thingtop <= bottomheight + sinklevel && thing->momz >= 0)
+					else if (P_PlayerMobjFlipped(thing) && thingtop <= bottomheight + sinklevel && thing->momz >= 0)
 					{
 						if (tmceilingz > bottomheight + sinklevel) {
 							tmceilingz = bottomheight + sinklevel;
@@ -2613,8 +2613,8 @@ boolean PIT_PushableMoved(mobj_t *thing)
 	if (abs(thing->x - stand->x) >= blockdist || abs(thing->y - stand->y) >= blockdist)
 		return true; // didn't hit it
 
-	if ((!(stand->eflags & MFE_VERTICALFLIP) && thing->z != stand->z + stand->height + FixedMul(FRACUNIT, stand->scale))
-	|| ((stand->eflags & MFE_VERTICALFLIP) && thing->z + thing->height != stand->z - FixedMul(FRACUNIT, stand->scale)))
+	if ((!(P_MobjFlipped(stand)) && thing->z != stand->z + stand->height + FixedMul(FRACUNIT, stand->scale))
+	|| ((P_MobjFlipped(stand)) && thing->z + thing->height != stand->z - FixedMul(FRACUNIT, stand->scale)))
 		return true; // Not standing on top
 
 	if (!stand->momx && !stand->momy)
@@ -2724,7 +2724,7 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, boolean allowdropoff)
 				// Don't 'step up' while springing,
 				// Only step up "if needed".
 				if (thing->player->panim == PA_SPRING
-				&& P_MobjFlip(thing)*thing->momz > FixedMul(FRACUNIT, thing->scale))
+				&& P_PlayerMobjFlip(thing)*thing->momz > FixedMul(FRACUNIT, thing->scale))
 					maxstep = 0;
 			}
 
@@ -2793,7 +2793,7 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, boolean allowdropoff)
 
 			if (!allowdropoff && !(thing->flags & MF_FLOAT) && thing->type != MT_SKIM && !tmfloorthing)
 			{
-				if (thing->eflags & MFE_VERTICALFLIP)
+				if (P_PlayerMobjFlipped(thing))
 				{
 					if (tmdrpoffceilz - tmceilingz > maxstep)
 						return false;
@@ -2839,7 +2839,7 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, boolean allowdropoff)
 	if (!(thing->flags & MF_NOCLIPHEIGHT))
 	{
 		// Assign thing's standingslope if needed
-		if (thing->z <= tmfloorz && !(thing->eflags & MFE_VERTICALFLIP)) {
+		if (thing->z <= tmfloorz && !(P_PlayerMobjFlipped(thing))) {
 			if (!startingonground && tmfloorslope)
 				P_HandleSlopeLanding(thing, tmfloorslope);
 
@@ -2850,7 +2850,7 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, boolean allowdropoff)
 					P_PlayerHitFloor(thing->player, true);
 			}
 		}
-		else if (thing->z+thing->height >= tmceilingz && (thing->eflags & MFE_VERTICALFLIP)) {
+		else if (thing->z+thing->height >= tmceilingz && (P_PlayerMobjFlipped(thing))) {
 			if (!startingonground && tmceilingslope)
 				P_HandleSlopeLanding(thing, tmceilingslope);
 
@@ -2964,8 +2964,8 @@ static boolean P_ThingHeightClip(mobj_t *thing)
 	if (P_MobjWasRemoved(thing))
 		return true;
 
-	floormoved = (thing->eflags & MFE_VERTICALFLIP && tmceilingz != thing->ceilingz)
-		|| (!(thing->eflags & MFE_VERTICALFLIP) && tmfloorz != thing->floorz);
+	floormoved = (P_PlayerMobjFlipped(thing) && tmceilingz != thing->ceilingz)
+		|| (!(P_PlayerMobjFlipped(thing)) && tmfloorz != thing->floorz);
 
 	thing->floorz = tmfloorz;
 	thing->ceilingz = tmceilingz;
@@ -2981,20 +2981,20 @@ static boolean P_ThingHeightClip(mobj_t *thing)
 
 	if ((onfloor || bouncing) && !(thing->flags & MF_NOGRAVITY) && floormoved)
 	{
-		rover = (thing->eflags & MFE_VERTICALFLIP) ? oldceilingrover : oldfloorrover;
+		rover = (P_PlayerMobjFlipped(thing)) ? oldceilingrover : oldfloorrover;
 
 		// Match the Thing's old floorz to an FOF and check for FF_EXISTS
 		// If ~FF_EXISTS, don't set mobj Z.
 		if (!rover || ((rover->flags & FF_EXISTS) && (rover->flags & FF_SOLID)))
 		{
 			hitfloor = bouncing;
-			if (thing->eflags & MFE_VERTICALFLIP)
+			if (P_PlayerMobjFlipped(thing))
 				thing->pmomz = thing->ceilingz - (thing->z + thing->height);
 			else
 				thing->pmomz = thing->floorz - thing->z;
 			thing->eflags |= MFE_APPLYPMOMZ;
 
-			if (thing->eflags & MFE_VERTICALFLIP)
+			if (P_PlayerMobjFlipped(thing))
 				thing->z = thing->ceilingz - thing->height;
 			else
 				thing->z = thing->floorz;
@@ -3003,7 +3003,7 @@ static boolean P_ThingHeightClip(mobj_t *thing)
 	else if (!tmfloorthing)
 	{
 		// don't adjust a floating monster unless forced to
-		if (thing->eflags & MFE_VERTICALFLIP)
+		if (P_PlayerMobjFlipped(thing))
 		{
 			if (!onfloor && thing->z < tmfloorz)
 				thing->z = thing->floorz;
@@ -3012,7 +3012,7 @@ static boolean P_ThingHeightClip(mobj_t *thing)
 			thing->z = thing->ceilingz - thing->height;
 	}
 
-	if ((P_MobjFlip(thing)*(thing->z - oldz) > 0 || hitfloor) && thing->player)
+	if ((P_PlayerMobjFlip(thing)*(thing->z - oldz) > 0 || hitfloor) && thing->player)
 		P_PlayerHitFloor(thing->player, !onfloor);
 
 	// debug: be sure it falls to the floor
@@ -3254,7 +3254,7 @@ static boolean P_IsClimbingValid(player_t *player, angle_t angle)
 
 			floorclimb = true;
 
-			if (mo->eflags & MFE_VERTICALFLIP)
+			if (P_PlayerMobjFlipped(mo))
 			{
 				if ((topheight < mo->z + mo->height) && ((mo->z + mo->height + mo->momz) < topheight))
 					floorclimb = true;
@@ -3277,7 +3277,7 @@ static boolean P_IsClimbingValid(player_t *player, angle_t angle)
 				break;
 		}
 
-		if (mo->eflags & MFE_VERTICALFLIP)
+		if (P_PlayerMobjFlipped(mo))
 		{
 			if ((floorz <= mo->z + mo->height)
 				&& ((mo->z + mo->height - mo->momz) <= floorz))
@@ -3604,7 +3604,7 @@ static void P_CheckLavaWall(mobj_t *mo, sector_t *sec)
 
 		topheight = P_GetFFloorTopZAt(rover, mo->x, mo->y);
 
-		if (mo->eflags & MFE_VERTICALFLIP)
+		if (P_PlayerMobjFlipped(mo))
 		{
 			if (topheight < mo->z - mo->height)
 				continue;
@@ -3617,7 +3617,7 @@ static void P_CheckLavaWall(mobj_t *mo, sector_t *sec)
 
 		bottomheight = P_GetFFloorBottomZAt(rover, mo->x, mo->y);
 
-		if (mo->eflags & MFE_VERTICALFLIP)
+		if (P_PlayerMobjFlipped(mo))
 		{
 			if (bottomheight > mo->z)
 				continue;
