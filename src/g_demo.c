@@ -1545,7 +1545,7 @@ void G_BeginRecording(void)
 		oldghost.angle = player->mo->angle>>24;
 
 		// preticker started us gravity flipped
-		if (player->mo->eflags & MFE_VERTICALFLIP)
+		if (P_PlayerMobjFlipped(player->mo))
 			ghostext.flags |= EZT_FLIP;
 	}
 }

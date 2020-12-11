@@ -330,7 +330,10 @@ mobj_t *P_SPMAngle(mobj_t *source, mobjtype_t type, angle_t angle, UINT8 aimtype
 #define P_SpawnPlayerMissile(s,t,f) P_SPMAngle(s,t,s->angle,true,f)
 #define P_SpawnNameFinder(s,t) P_SPMAngle(s,t,s->angle,true,0)
 void P_ColorTeamMissile(mobj_t *missile, player_t *source);
+boolean P_MobjFlipped(mobj_t *mobj);
 SINT8 P_MobjFlip(mobj_t *mobj);
+boolean P_PlayerMobjFlipped(mobj_t *p_mo);
+SINT8 P_PlayerMobjFlip(mobj_t *p_mo);
 fixed_t P_GetMobjGravity(mobj_t *mo);
 FUNCMATH boolean P_WeaponOrPanel(mobjtype_t type);
 

@@ -1337,7 +1337,7 @@ void T_NoEnemiesSector(noenemies_t *nobaddies)
 static boolean P_IsObjectOnRealGround(mobj_t *mo, sector_t *sec)
 {
 	// Is the object in reverse gravity?
-	if (mo->eflags & MFE_VERTICALFLIP)
+	if (P_PlayerMobjFlipped(mo))
 	{
 		// Detect if the player is on the ceiling.
 		if (mo->z+mo->height >= P_GetSpecialTopZ(mo, sec, sec))
@@ -2344,7 +2344,7 @@ INT32 EV_StartCrumble(sector_t *sec, ffloor_t *rover, boolean floating,
 	crumble->sector = sec;
 	crumble->speed = 0;
 
-	if (player && player->mo && (player->mo->eflags & MFE_VERTICALFLIP))
+	if (player && player->mo && (P_PlayerMobjFlipped(player->mo)))
 	{
 		crumble->direction = 1; // Up
 		crumble->flags |= CF_REVERSE;

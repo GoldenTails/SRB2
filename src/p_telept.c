@@ -54,7 +54,7 @@ void P_MixUp(mobj_t *thing, fixed_t x, fixed_t y, fixed_t z, angle_t angle,
 
 	if (thing->player)
 	{
-		if (thing->eflags & MFE_VERTICALFLIP)
+		if (P_PlayerMobjFlipped(thing))
 			thing->player->viewz = thing->z + thing->height - thing->player->viewheight;
 		else
 			thing->player->viewz = thing->z + thing->player->viewheight;
@@ -132,7 +132,7 @@ boolean P_Teleport(mobj_t *thing, fixed_t x, fixed_t y, fixed_t z, angle_t angle
 
 	if (thing->player)
 	{
-		if (thing->eflags & MFE_VERTICALFLIP)
+		if (P_PlayerMobjFlipped(thing))
 			thing->player->viewz = thing->z + thing->height - thing->player->viewheight;
 		else
 			thing->player->viewz = thing->z + thing->player->viewheight;

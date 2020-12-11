@@ -50,7 +50,7 @@ static void B_BuildTailsTiccmd(mobj_t *sonic, mobj_t *tails, ticcmd_t *cmd)
 	player_t *player = sonic->player, *bot = tails->player;
 	ticcmd_t *pcmd = &player->cmd;
 	boolean water = tails->eflags & MFE_UNDERWATER;
-	SINT8 flip = P_MobjFlip(tails);
+	SINT8 flip = P_PlayerMobjFlip(tails);
 	boolean _2d = (tails->flags2 & MF2_TWOD) || twodlevel;
 	fixed_t scale = tails->scale;
 
@@ -480,7 +480,7 @@ boolean B_CheckRespawn(player_t *player)
 		return false;
 
 	// Low ceiling, do not want!
-	if (sonic->eflags & MFE_VERTICALFLIP)
+	if (P_PlayerMobjFlipped(sonic))
 	{
 		if (sonic->z - sonic->floorz < (sonic->player->exiting ? 5 : 2)*sonic->height)
 			return false;
@@ -519,7 +519,7 @@ void B_RespawnBot(INT32 playernum)
 
 	x = sonic->x;
 	y = sonic->y;
-	if (sonic->eflags & MFE_VERTICALFLIP) {
+	if (P_PlayerMobjFlipped(sonic)) {
 		tails->eflags |= MFE_VERTICALFLIP;
 		z = sonic->z - (512*sonic->scale);
 		if (z < sonic->floorz)
