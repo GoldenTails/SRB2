@@ -3400,7 +3400,7 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 			{
 				newplayer->viewheight = 41*newplayer->height/48;
 
-				if (newplayer->mo->eflags & MFE_VERTICALFLIP)
+				if (P_PlayerMobjFlip(newplayer->mo))
 					newplayer->viewz = newplayer->mo->z + newplayer->mo->height - newplayer->viewheight;
 				else
 					newplayer->viewz = newplayer->mo->z + newplayer->viewheight;

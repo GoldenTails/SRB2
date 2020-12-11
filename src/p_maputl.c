@@ -841,7 +841,7 @@ void P_SetThingPosition(mobj_t *thing)
 		tfloorz = P_GetFloorZ(thing, ss->sector, thing->x, thing->y, NULL);
 		tceilz = P_GetCeilingZ(thing, ss->sector, thing->x, thing->y, NULL);
 
-		if (thing->eflags & MFE_VERTICALFLIP)
+		if (P_PlayerMobjFlipped(thing))
 		{
 			if (thing->z + thing->height >= tceilz)
 				thing->eflags |= MFE_JUSTSTEPPEDDOWN;

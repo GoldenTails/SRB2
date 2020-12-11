@@ -671,7 +671,7 @@ void Command_Teleport_f(void)
 				intz = ss->sector->ceilingheight - p->mo->height;
 		}
 		else
-			intz = ((p->mo->eflags & MFE_VERTICALFLIP) ? ss->sector->ceilingheight : ss->sector->floorheight);
+			intz = ((P_PlayerMobjFlipped(p->mo)) ? ss->sector->ceilingheight : ss->sector->floorheight);
 
 		i = COM_CheckParm("-ang");
 		if (i)
@@ -1022,7 +1022,7 @@ static void OP_CycleThings(INT32 amt)
 		states[S_OBJPLACE_DUMMY].sprite = states[mobjinfo[op_currentthing].spawnstate].sprite;
 		states[S_OBJPLACE_DUMMY].frame = states[mobjinfo[op_currentthing].spawnstate].frame;
 	}
-	if (players[0].mo->eflags & MFE_VERTICALFLIP) // correct z when flipped
+	if (P_PlayerMobjFlipped(players[0].mo)) // correct z when flipped
 		players[0].mo->z += players[0].mo->height - FixedMul(mobjinfo[op_currentthing].height, players[0].mo->scale);
 	players[0].mo->height = FixedMul(mobjinfo[op_currentthing].height, players[0].mo->scale);
 	P_SetPlayerMobjState(players[0].mo, S_OBJPLACE_DUMMY);
@@ -1338,7 +1338,7 @@ void OP_ObjectplaceMovement(player_t *player)
 	// make sure viewz follows player if in 1st person mode
 	player->deltaviewheight = 0;
 	player->viewheight = FixedMul(41*player->height/48, player->mo->scale);
-	if (player->mo->eflags & MFE_VERTICALFLIP)
+	if (P_PlayerMobjFlipped(player->mo))
 		player->viewz = player->mo->z + player->mo->height - player->viewheight;
 	else
 		player->viewz = player->mo->z + player->viewheight;

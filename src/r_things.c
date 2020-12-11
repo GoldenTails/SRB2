@@ -1123,7 +1123,7 @@ static void R_SplitSprite(vissprite_t *sprite)
 //
 fixed_t R_GetShadowZ(mobj_t *thing, pslope_t **shadowslope)
 {
-	boolean isflipped = thing->eflags & MFE_VERTICALFLIP;
+	boolean isflipped = P_PlayerMobjFlipped(thing);
 	fixed_t z, groundz = isflipped ? INT32_MAX : INT32_MIN;
 	pslope_t *slope, *groundslope = NULL;
 	msecnode_t *node;
@@ -1269,7 +1269,7 @@ static void R_ProjectDropShadow(mobj_t *thing, vissprite_t *vis, fixed_t scale, 
 	fixed_t floordiff;
 	fixed_t groundz;
 	pslope_t *groundslope;
-	boolean isflipped = thing->eflags & MFE_VERTICALFLIP;
+	boolean isflipped = P_PlayerMobjFlipped(thing);
 
 	groundz = R_GetShadowZ(thing, &groundslope);
 
@@ -1405,7 +1405,7 @@ static void R_ProjectSprite(mobj_t *thing)
 
 	size_t frame, rot;
 	UINT16 flip;
-	boolean vflip = (!(thing->eflags & MFE_VERTICALFLIP) != !R_ThingVerticallyFlipped(thing));
+	boolean vflip = (!(P_PlayerMobjFlipped(thing)) != !R_ThingVerticallyFlipped(thing));
 	boolean mirrored = thing->mirrored;
 	boolean hflip = (!R_ThingHorizontallyFlipped(thing) != !mirrored);
 
@@ -1817,7 +1817,7 @@ static void R_ProjectSprite(mobj_t *thing)
 	if (shadowdraw || shadoweffects)
 	{
 		fixed_t groundz = R_GetShadowZ(thing, NULL);
-		boolean isflipped = (thing->eflags & MFE_VERTICALFLIP);
+		boolean isflipped = P_PlayerMobjFlipped(thing);
 
 		if (shadoweffects)
 		{

@@ -820,11 +820,11 @@ void P_HandleSlopeLanding(mobj_t *thing, pslope_t *slope)
 {
 	vector3_t mom; // Ditto.
 	if (slope->flags & SL_NOPHYSICS || (slope->normal.x == 0 && slope->normal.y == 0)) { // No physics, no need to make anything complicated.
-		if (P_MobjFlip(thing)*(thing->momz) < 0) // falling, land on slope
+		if (P_PlayerMobjFlip(thing)*(thing->momz) < 0) // falling, land on slope
 		{
 			thing->standingslope = slope;
 			if (!thing->player || !(thing->player->pflags & PF_BOUNCING))
-				thing->momz = -P_MobjFlip(thing);
+				thing->momz = -P_PlayerMobjFlip(thing);
 		}
 		return;
 	}
@@ -835,12 +835,12 @@ void P_HandleSlopeLanding(mobj_t *thing, pslope_t *slope)
 
 	P_ReverseQuantizeMomentumToSlope(&mom, slope);
 
-	if (P_MobjFlip(thing)*mom.z < 0) { // falling, land on slope
+	if (P_PlayerMobjFlip(thing)*mom.z < 0) { // falling, land on slope
 		thing->momx = mom.x;
 		thing->momy = mom.y;
 		thing->standingslope = slope;
 		if (!thing->player || !(thing->player->pflags & PF_BOUNCING))
-			thing->momz = -P_MobjFlip(thing);
+			thing->momz = -P_PlayerMobjFlip(thing);
 	}
 }
 
@@ -867,14 +867,14 @@ void P_ButteredSlope(mobj_t *mo)
 			return; // Allow the player to stand still on slopes below a certain steepness
 	}
 
-	thrust = FINESINE(mo->standingslope->zangle>>ANGLETOFINESHIFT) * 3 / 2 * (mo->eflags & MFE_VERTICALFLIP ? 1 : -1);
+	thrust = FINESINE(mo->standingslope->zangle>>ANGLETOFINESHIFT) * 3 / 2 * (P_PlayerMobjFlipped(mo) ? 1 : -1);
 
 	if (mo->player && (mo->player->pflags & PF_SPINNING)) {
 		fixed_t mult = 0;
 		if (mo->momx || mo->momy) {
 			angle_t angle = R_PointToAngle2(0, 0, mo->momx, mo->momy) - mo->standingslope->xydirection;
 
-			if (P_MobjFlip(mo) * mo->standingslope->zdelta < 0)
+			if (P_PlayerMobjFlip(mo) * mo->standingslope->zdelta < 0)
 				angle ^= ANGLE_180;
 
 			mult = FINECOSINE(angle >> ANGLETOFINESHIFT);

@@ -410,7 +410,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				break;
 
 			case MT_SPINCUSHION:
-				if (P_MobjFlip(toucher)*(toucher->z - (special->z + special->height/2)) > 0)
+				if (P_PlayerMobjFlip(toucher)*(toucher->z - (special->z + special->height/2)) > 0)
 				{
 					if (player->pflags & PF_BOUNCING)
 					{
@@ -431,7 +431,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 					  || special->state == &states[S_FANG_BOUNCE4]
 					  || special->state == &states[S_FANG_PINCHBOUNCE3]
 					  || special->state == &states[S_FANG_PINCHBOUNCE4])
-					&& P_MobjFlip(special)*((special->z + special->height/2) - (toucher->z + toucher->height/2)) > (toucher->height/2))
+					&& P_PlayerMobjFlip(special)*((special->z + special->height/2) - (toucher->z + toucher->height/2)) > (toucher->height/2))
 					{
 						P_DamageMobj(toucher, special, special, 1, 0);
 						P_SetTarget(&special->tracer, toucher);
@@ -445,7 +445,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 							A_Boss5ExtraRepeat(special);
 							P_SetMobjState(special, S_FANG_PATHINGCONT2); //S_FANG_PATHINGCONT1 if you want him to drop a bomb on the player
 						}
-						if (special->eflags & MFE_VERTICALFLIP)
+						if (P_MobjFlipped(special))
 							special->z = toucher->z - special->height;
 						else
 							special->z = toucher->z + toucher->height;
@@ -465,7 +465,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			if (special->type == MT_PTERABYTE && special->target == player->mo && special->extravalue1 == 1)
 				return; // Can't hurt a Pterabyte if it's trying to pick you up
 
-			if ((P_MobjFlip(toucher)*toucher->momz < 0) && (elementalpierce != 1))
+			if ((P_PlayerMobjFlip(toucher)*toucher->momz < 0) && (elementalpierce != 1))
 			{
 				if (!(player->charability2 == CA2_MELEE && player->panim == PA_ABILITY2))
 				{
@@ -496,7 +496,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				{
 					player->pflags &= ~(PF_GLIDING|PF_JUMPED|PF_NOJUMPDAMAGE);
 					P_SetPlayerMobjState(toucher, S_PLAY_FALL);
-					toucher->momz += P_MobjFlip(toucher) * (player->speed >> 3);
+					toucher->momz += P_PlayerMobjFlip(toucher) * (player->speed >> 3);
 					toucher->momx = 7*toucher->momx>>3;
 					toucher->momy = 7*toucher->momy>>3;
 				}
@@ -1351,7 +1351,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 // ***** //
 		case MT_SHELL:
 			{
-				boolean bounceon = ((P_MobjFlip(toucher)*(toucher->z - (special->z + special->height/2)) > 0) && (P_MobjFlip(toucher)*toucher->momz < 0));
+				boolean bounceon = ((P_PlayerMobjFlip(toucher)*(toucher->z - (special->z + special->height/2)) > 0) && (P_PlayerMobjFlip(toucher)*toucher->momz < 0));
 				if (special->threshold == TICRATE) // it's moving
 				{
 					if (bounceon)
@@ -1472,7 +1472,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				{
 					player->pflags &= ~(PF_GLIDING|PF_JUMPED|PF_NOJUMPDAMAGE);
 					P_SetPlayerMobjState(toucher, S_PLAY_FALL);
-					toucher->momz += P_MobjFlip(toucher) * (player->speed >> 3);
+					toucher->momz += P_PlayerMobjFlip(toucher) * (player->speed >> 3);
 					toucher->momx = 7*toucher->momx>>3;
 					toucher->momy = 7*toucher->momy>>3;
 				}
@@ -1523,7 +1523,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 					{
 						player->pflags &= ~(PF_GLIDING|PF_JUMPED|PF_NOJUMPDAMAGE);
 						P_SetPlayerMobjState(toucher, S_PLAY_FALL);
-						toucher->momz += P_MobjFlip(toucher) * (player->speed >> 3);
+						toucher->momz += P_PlayerMobjFlip(toucher) * (player->speed >> 3);
 						toucher->momx = 7*toucher->momx>>3;
 						toucher->momy = 7*toucher->momy>>3;
 					}
@@ -1563,7 +1563,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			P_ResetPlayer(player);
 			player->drawangle = special->angle + ANGLE_180;
 			P_InstaThrust(toucher, special->angle, FixedMul(3*special->info->speed, special->scale/2));
-			toucher->z += P_MobjFlip(toucher);
+			toucher->z += P_PlayerMobjFlip(toucher);
 			if (toucher->eflags & MFE_UNDERWATER) // unlikely.
 				P_SetObjectMomZ(toucher, FixedDiv(10511*FRACUNIT,2600*FRACUNIT), false);
 			else
@@ -1602,7 +1602,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 		case MT_BIGGRABCHAIN:
 			{
 				boolean macespin = false;
-				if (P_MobjFlip(toucher)*toucher->momz > 0
+				if (P_PlayerMobjFlip(toucher)*toucher->momz > 0
 					|| (player->powers[pw_carry]))
 					return;
 
@@ -1674,7 +1674,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				return;
 			if (special->state-states != S_EXTRALARGEBUBBLE)
 				return; // Don't grab the bubble during its spawn animation
-			else if (toucher->eflags & MFE_VERTICALFLIP)
+			else if (P_PlayerMobjFlipped(toucher))
 			{
 				if (special->z+special->height < toucher->z
 					|| special->z+special->height > toucher->z + (toucher->height*2/3))
@@ -2838,7 +2838,7 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, UINT8 damaget
 		const angle_t ang = ((inflictor) ? inflictor->angle : 0) + ANGLE_90;
 		const fixed_t scale = target->scale;
 		const fixed_t xoffs = P_ReturnThrustX(target, ang, 8*scale), yoffs = P_ReturnThrustY(target, ang, 8*scale);
-		const UINT16 flip = (target->eflags & MFE_VERTICALFLIP);
+		const UINT16 flip = (P_PlayerMobjFlipped(target));
 		mobj_t *chunk;
 		fixed_t momz;
 
@@ -2905,7 +2905,7 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, UINT8 damaget
 		const angle_t ang = (/*(inflictor) ? inflictor->angle : */target->angle) + ANGLE_90;
 		const fixed_t scale = target->scale;
 		const fixed_t xoffs = P_ReturnThrustX(target, ang, 8*scale), yoffs = P_ReturnThrustY(target, ang, 8*scale), forwardxoffs = P_ReturnThrustX(target, target->angle, 7*scale), forwardyoffs = P_ReturnThrustY(target, target->angle, 7*scale);
-		const UINT16 flip = (target->eflags & MFE_VERTICALFLIP);
+		const UINT16 flip = (P_MobjFlipped(target));
 		mobj_t *chunk;
 		boolean sprflip;
 
@@ -3289,7 +3289,7 @@ static void P_SuperDamage(player_t *player, mobj_t *inflictor, mobj_t *source, I
 
 	P_ForceFeed(player, 40, 10, TICRATE, 40 + min(damage, 100)*2);
 
-	if (player->mo->eflags & MFE_VERTICALFLIP)
+	if (P_PlayerMobjFlipped(player->mo))
 		player->mo->z--;
 	else
 		player->mo->z++;
@@ -3830,7 +3830,7 @@ void P_PlayerRingBurst(player_t *player, INT32 num_rings)
 			objType = mobjinfo[(nightsreplace ? MT_NIGHTSCHIP : MT_BLUESPHERE)].reactiontime;
 
 		z = player->mo->z;
-		if (player->mo->eflags & MFE_VERTICALFLIP)
+		if (P_PlayerMobjFlipped(player->mo))
 			z += player->mo->height - mobjinfo[objType].height;
 
 		mo = P_SpawnMobj(player->mo->x, player->mo->y, z, objType);
@@ -3887,7 +3887,7 @@ void P_PlayerRingBurst(player_t *player, INT32 num_rings)
 			if (i & 1)
 				P_SetObjectMomZ(mo, ns, true);
 		}
-		if (player->mo->eflags & MFE_VERTICALFLIP)
+		if (P_PlayerMobjFlipped(player->mo))
 			mo->momz *= -1;
 	}
 
@@ -3960,7 +3960,7 @@ void P_PlayerWeaponPanelBurst(player_t *player)
 		player->powers[power] -= ammoamt;
 
 		z = player->mo->z;
-		if (player->mo->eflags & MFE_VERTICALFLIP)
+		if (P_PlayerMobjFlipped(player->mo))
 			z += player->mo->height - mobjinfo[weptype].height;
 
 		mo = P_SpawnMobj(player->mo->x, player->mo->y, z, weptype);
@@ -4044,7 +4044,7 @@ void P_PlayerWeaponAmmoBurst(player_t *player)
 			break; // All done!
 
 		z = player->mo->z;
-		if (player->mo->eflags & MFE_VERTICALFLIP)
+		if (P_PlayerMobjFlipped(player->mo))
 			z += player->mo->height - mobjinfo[weptype].height;
 
 		mo = P_SpawnMobj(player->mo->x, player->mo->y, z, weptype);
@@ -4088,7 +4088,7 @@ void P_PlayerWeaponPanelOrAmmoBurst(player_t *player)
 
 	#define SETUP_DROP(thingtype) \
 		z = player->mo->z; \
-		if (player->mo->eflags & MFE_VERTICALFLIP) \
+		if (P_PlayerMobjFlipped(player->mo)) \
 			z += player->mo->height - mobjinfo[thingtype].height; \
 		fa = ((i*FINEANGLES/16) + (player->mo->angle>>ANGLETOFINESHIFT)) & FINEMASK; \
 		ns = FixedMul(3*FRACUNIT, player->mo->scale); \
@@ -4235,7 +4235,7 @@ void P_PlayerEmeraldBurst(player_t *player, boolean toss)
 				fa = player->mo->angle>>ANGLETOFINESHIFT;
 
 				z = player->mo->z + player->mo->height;
-				if (player->mo->eflags & MFE_VERTICALFLIP)
+				if (P_PlayerMobjFlipped(player->mo))
 					z -= mobjinfo[MT_FLINGEMERALD].height + player->mo->height;
 				ns = FixedMul(8*FRACUNIT, player->mo->scale);
 			}
@@ -4244,7 +4244,7 @@ void P_PlayerEmeraldBurst(player_t *player, boolean toss)
 				fa = ((255 / num_stones) * i) * FINEANGLES/256;
 
 				z = player->mo->z + (player->mo->height / 2);
-				if (player->mo->eflags & MFE_VERTICALFLIP)
+				if (P_PlayerMobjFlipped(player->mo))
 					z -= mobjinfo[MT_FLINGEMERALD].height;
 				ns = FixedMul(4*FRACUNIT, player->mo->scale);
 			}
@@ -4270,7 +4270,7 @@ void P_PlayerEmeraldBurst(player_t *player, boolean toss)
 
 			P_SetObjectMomZ(mo, 3*FRACUNIT, false);
 
-			if (player->mo->eflags & MFE_VERTICALFLIP)
+			if (P_PlayerMobjFlipped(player->mo))
 				mo->momz = -mo->momz;
 
 			if (toss)
@@ -4299,7 +4299,7 @@ void P_PlayerFlagBurst(player_t *player, boolean toss)
 
 	flag = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, type);
 
-	if (player->mo->eflags & MFE_VERTICALFLIP)
+	if (P_PlayerMobjFlipped(player->mo))
 		flag->z += player->mo->height - flag->height;
 
 	if (toss)
@@ -4313,7 +4313,7 @@ void P_PlayerFlagBurst(player_t *player, boolean toss)
 	}
 
 	flag->momz = FixedMul(8*FRACUNIT, player->mo->scale);
-	if (player->mo->eflags & MFE_VERTICALFLIP)
+	if (P_PlayerMobjFlipped(player->mo))
 		flag->momz = -flag->momz;
 
 	if (type == MT_REDFLAG)

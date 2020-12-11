@@ -2932,7 +2932,7 @@ static thinker_t* LoadMobjThinker(actionf_p1 thinker)
 
 	if (mobj->player)
 	{
-		if (mobj->eflags & MFE_VERTICALFLIP)
+		if (P_PlayerMobjFlipped(mobj))
 			mobj->player->viewz = mobj->z + mobj->height - mobj->player->viewheight;
 		else
 			mobj->player->viewz = mobj->player->mo->z + mobj->player->viewheight;
