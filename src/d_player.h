@@ -143,21 +143,24 @@ typedef enum
 	PF_GLIDING       = 1<<21,
 	PF_BOUNCING      = 1<<22,
 
+	// On the ceiling (loops)
+	PF_ONCEILING     = 1<<23,
+
 	// Sliding (usually in water) like Labyrinth/Oil Ocean
-	PF_SLIDING       = 1<<23,
+	PF_SLIDING       = 1<<24,
 
 	// NiGHTS stuff
-	PF_TRANSFERTOCLOSEST = 1<<24,
-	PF_DRILLING          = 1<<25,
+	PF_TRANSFERTOCLOSEST = 1<<25,
+	PF_DRILLING          = 1<<26,
 
 	// Gametype-specific stuff
-	PF_GAMETYPEOVER = 1<<26, // Race time over, or H&S out-of-game
-	PF_TAGIT        = 1<<27, // The player is it! For Tag Mode
+	PF_GAMETYPEOVER = 1<<27, // Race time over, or H&S out-of-game
+	PF_TAGIT        = 1<<28, // The player is it! For Tag Mode
 
 	/*** misc ***/
-	PF_FORCESTRAFE = 1<<28, // Turning inputs are translated into strafing inputs
-	PF_CANCARRY    = 1<<29, // Can carry another player?
-	PF_FINISHED    = 1<<30, // The player finished the level. NOT the same as exiting
+	PF_FORCESTRAFE = 1<<29, // Turning inputs are translated into strafing inputs
+	PF_CANCARRY    = 1<<30, // Can carry another player?
+	PF_FINISHED    = 1<<31, // The player finished the level. NOT the same as exiting
 
 	// up to 1<<31 is free
 } pflags_t;

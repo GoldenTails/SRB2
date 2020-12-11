@@ -677,7 +677,12 @@ SINT8 P_MobjFlip(mobj_t *mobj)
 //
 boolean P_PlayerMobjFlipped(mobj_t *p_mo)
 {
-	return P_MobjFlipped(p_mo);
+	boolean flipped = P_MobjFlipped(p_mo);
+
+	if (p_mo->player && p_mo->player->pflags & PF_ONCEILING)
+		flipped = !flipped;
+
+	return flipped;
 }
 
 //
@@ -2947,6 +2952,9 @@ void P_PlayerZMovement(mobj_t *mo)
 		else if (!onground)
 			P_SlopeLaunch(mo);
 	}
+
+	if (!onground && mo->player)
+		mo->player->pflags &= ~PF_ONCEILING;
 
 	// clip movement
 	if (onground && !(mo->flags & MF_NOCLIPHEIGHT))

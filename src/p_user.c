@@ -4531,6 +4531,8 @@ void P_DoJump(player_t *player, boolean soundandstate)
 	if (player->charflags & SF_NOJUMPDAMAGE)
 		player->pflags &= ~PF_SPINNING;
 
+	player->pflags &= ~PF_ONCEILING; // Get off the ceiling ya loop-running doofus
+
 	if (soundandstate)
 	{
 		if (!player->spectator)
@@ -12262,6 +12264,9 @@ void P_PlayerThink(player_t *player)
 		player->mo->flags2 &= ~MF2_DONTDRAW;
 
 	player->pflags &= ~PF_SLIDING;
+
+	if (player->pflags & PF_ONCEILING && player->speed < 8*player->mo->scale)
+		player->pflags &= ~PF_ONCEILING;
 
 #define dashmode player->dashmode
 	// Dash mode - thanks be to VelocitOni
