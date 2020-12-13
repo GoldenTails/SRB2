@@ -767,12 +767,12 @@ void P_SlopeLaunch(mobj_t *mo)
 		vector3_t slopemom;
 		slopemom.x = mo->momx;
 		slopemom.y = mo->momy;
-		slopemom.z = mo->momz*2;
+		slopemom.z = mo->momz;
 		P_QuantizeMomentumToSlope(&slopemom, mo->standingslope);
 
 		mo->momx = slopemom.x;
 		mo->momy = slopemom.y;
-		mo->momz = slopemom.z/2;
+		mo->momz = slopemom.z;
 		
 	    if (mo->player)
 		    mo->player->powers[pw_justlaunched] = 1;
@@ -804,7 +804,7 @@ fixed_t P_GetWallTransferMomZ(mobj_t *mo, pslope_t *slope)
 
 	slopemom.x = mo->momx;
 	slopemom.y = mo->momy;
-	slopemom.z = 3*(mo->momz/2);
+	slopemom.z = 2*(mo->momz/3);
 
 	axis.x = -slope->d.y;
 	axis.y = slope->d.x;
@@ -812,7 +812,7 @@ fixed_t P_GetWallTransferMomZ(mobj_t *mo, pslope_t *slope)
 
 	FV3_Rotate(&slopemom, &axis, ang >> ANGLETOFINESHIFT);
 
-	return 2*(slopemom.z/3);
+	return 3*(slopemom.z/2);
 }
 
 // Function to help handle landing on slopes
@@ -867,14 +867,14 @@ void P_ButteredSlope(mobj_t *mo)
 			return; // Allow the player to stand still on slopes below a certain steepness
 	}
 
-	thrust = FINESINE(mo->standingslope->zangle>>ANGLETOFINESHIFT) * 3 / 2 * (P_PlayerMobjFlipped(mo) ? 1 : -1);
+	thrust = FINESINE(mo->standingslope->zangle>>ANGLETOFINESHIFT) * 3 / 2 * (P_MobjFlipped(mo) ? 1 : -1);
 
 	if (mo->player && (mo->player->pflags & PF_SPINNING)) {
 		fixed_t mult = 0;
 		if (mo->momx || mo->momy) {
 			angle_t angle = R_PointToAngle2(0, 0, mo->momx, mo->momy) - mo->standingslope->xydirection;
 
-			if (P_PlayerMobjFlip(mo) * mo->standingslope->zdelta < 0)
+			if (P_MobjFlip(mo) * mo->standingslope->zdelta < 0)
 				angle ^= ANGLE_180;
 
 			mult = FINECOSINE(angle >> ANGLETOFINESHIFT);
