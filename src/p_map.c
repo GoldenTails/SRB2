@@ -2839,25 +2839,45 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, boolean allowdropoff)
 	if (!(thing->flags & MF_NOCLIPHEIGHT))
 	{
 		// Assign thing's standingslope if needed
-		if (thing->z <= tmfloorz && !(P_PlayerMobjFlipped(thing))) {
+		if (thing->z <= tmfloorz) {
 			if (!startingonground && tmfloorslope)
-				P_HandleSlopeLanding(thing, tmfloorslope);
+			{
+				if (thing->player)
+				{
+					if (P_MobjFlipped(thing))
+						thing->player->pflags |= PF_ONCEILING;
+					else
+						thing->player->pflags &= ~PF_ONCEILING;
+				}
 
-			if (thing->momz <= 0)
+				P_HandleSlopeLanding(thing, tmfloorslope);
+			}
+
+			if (P_MobjFlip(thing)*thing->momz <= 0)
 			{
 				thing->standingslope = tmfloorslope;
-				if (thing->momz == 0 && thing->player && !startingonground)
+				if (thing->momz == 0 && thing->player && !startingonground && tmfloorslope)
 					P_PlayerHitFloor(thing->player, true);
 			}
 		}
-		else if (thing->z+thing->height >= tmceilingz && (P_PlayerMobjFlipped(thing))) {
+		else if (thing->z+thing->height >= tmceilingz) {
 			if (!startingonground && tmceilingslope)
-				P_HandleSlopeLanding(thing, tmceilingslope);
+			{
+				if (thing->player)
+				{
+					if (P_MobjFlipped(thing))
+						thing->player->pflags &= ~PF_ONCEILING;
+					else
+						thing->player->pflags |= PF_ONCEILING;
+				}
 
-			if (thing->momz >= 0)
+				P_HandleSlopeLanding(thing, tmceilingslope);
+			}
+
+			if (P_MobjFlip(thing)*thing->momz <= 0)
 			{
 				thing->standingslope = tmceilingslope;
-				if (thing->momz == 0 && thing->player && !startingonground)
+				if (thing->momz == 0 && thing->player && !startingonground && tmceilingslope)
 					P_PlayerHitFloor(thing->player, true);
 			}
 		}

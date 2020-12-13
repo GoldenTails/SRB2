@@ -863,7 +863,7 @@ void P_ButteredSlope(mobj_t *mo)
 		if (abs(mo->standingslope->zdelta) < FRACUNIT/4 && !(mo->player->pflags & PF_SPINNING))
 			return; // Don't slide on non-steep slopes unless spinning
 
-		if (abs(mo->standingslope->zdelta) < FRACUNIT/2 && !(mo->player->rmomx || mo->player->rmomy))
+		if (abs(mo->standingslope->zdelta) < FRACUNIT/2 && !(mo->player->rmomx || mo->player->rmomy) && !(mo->player->pflags & PF_ONCEILING))
 			return; // Allow the player to stand still on slopes below a certain steepness
 	}
 
