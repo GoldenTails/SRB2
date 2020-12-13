@@ -882,7 +882,7 @@ void P_ButteredSlope(mobj_t *mo)
 		if (mo->momx || mo->momy) {
 			angle_t angle = R_PointToAngle2(0, 0, mo->momx, mo->momy) - mo->standingslope->xydirection;
 
-			if (P_PlayerMobjFlip(mo) * mo->standingslope->zdelta < 0)
+			if (P_MobjFlip(mo) * mo->standingslope->zdelta < 0)
 				angle ^= ANGLE_180;
 
 			mult = FINECOSINE(angle >> ANGLETOFINESHIFT);
