@@ -1408,7 +1408,7 @@ static void P_DoPlayerFlip(mobj_t *mo)
 			if (camera.chase) {
 				camera.aiming = InvAngle(camera.aiming);
 				camera.z = mo->z - camera.z + mo->z;
-				if (P_PlayerMobjFlipped(mo))
+				if (P_MobjFlipped(mo))
 					camera.z += FixedMul(20*FRACUNIT, mo->scale);
 			}
 		}
@@ -1418,7 +1418,7 @@ static void P_DoPlayerFlip(mobj_t *mo)
 			if (camera2.chase) {
 				camera2.aiming = InvAngle(camera2.aiming);
 				camera2.z = mo->z - camera2.z + mo->z;
-				if (P_PlayerMobjFlipped(mo))
+				if (P_MobjFlipped(mo))
 					camera2.z += FixedMul(20*FRACUNIT, mo->scale);
 			}
 		}
@@ -3642,7 +3642,7 @@ void P_CalcChasePostImg(player_t *player, camera_t *thiscam)
 {
 	postimg_t postimg = postimg_none;
 
-	if (player->pflags & PF_FLIPCAM && !(player->powers[pw_carry] == CR_NIGHTSMODE) && P_PlayerMobjFlipped(player->mo))
+	if (player->pflags & PF_FLIPCAM && !(player->powers[pw_carry] == CR_NIGHTSMODE) && P_MobjFlipped(player->mo))
 		postimg = postimg_flip;
 	else if (player->awayviewtics && player->awayviewmobj && !P_MobjWasRemoved(player->awayviewmobj)) // Camera must obviously exist
 	{
