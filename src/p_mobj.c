@@ -2982,11 +2982,15 @@ void P_PlayerZMovement(mobj_t *mo)
 		if (mo->player->panim == PA_PAIN)
 			P_SetPlayerMobjState(mo, S_PLAY_WALK);
 
+		if ((mo->standingslope == tmceilingslope && !P_PlayerMobjFlipped(mo))
+		||  (mo->standingslope == tmfloorslope && P_PlayerMobjFlipped(mo)))
+			mo->standingslope = NULL;
+
 		// Handle landing on slope during Z movement
-		if (!mo->standingslope && tmfloorslope)
+		if (!mo->standingslope && tmfloorslope && mo->z == mo->floorz)
 			P_HandleSlopeLanding(mo, tmfloorslope);
 
-		if (!mo->standingslope && tmceilingslope)
+		if (!mo->standingslope && tmceilingslope && mo->z + mo->height == mo->ceilingz)
 			P_HandleSlopeLanding(mo, tmceilingslope);
 
 		if (P_PlayerMobjFlip(mo)*mo->momz < 0) // falling
@@ -3068,7 +3072,7 @@ nightsdone:
 			}
 		}
 
-		if (P_PlayerMobjFlip(mo)*mo->momz > 0)
+		if (P_MobjFlip(mo)*mo->momz > 0)
 		{
 			if (CheckForMarioBlocks)
 				P_CheckMarioBlocks(mo);
@@ -3077,7 +3081,7 @@ nightsdone:
 			if (mariomode)
 				S_StartSound(mo, sfx_mario1);
 
-			if (!mo->player->climbing && (P_MobjFlipped(mo) ? !tmfloorslope : !tmceilingslope))
+			if (!mo->player->climbing && (P_PlayerMobjFlipped(mo) ? mo->standingslope == tmceilingslope : mo->standingslope == tmfloorslope))
 				mo->momz = 0;
 		}
 	}

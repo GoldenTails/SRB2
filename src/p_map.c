@@ -2842,7 +2842,9 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, boolean allowdropoff)
 		if (thing->z <= tmfloorz) {
 			if (!startingonground && tmfloorslope)
 			{
-				if (thing->player)
+				angle_t angle = (tmfloorslope->zangle < ANGLE_180) ? tmfloorslope->zangle : InvAngle(tmfloorslope->zangle);
+
+				if (thing->player && angle >= ANGLE_45)
 				{
 					if (P_MobjFlipped(thing))
 						thing->player->pflags |= PF_ONCEILING;
@@ -2853,7 +2855,7 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, boolean allowdropoff)
 				P_HandleSlopeLanding(thing, tmfloorslope);
 			}
 
-			if (P_MobjFlip(thing)*thing->momz <= 0)
+			if (P_PlayerMobjFlip(thing)*thing->momz <= 0)
 			{
 				thing->standingslope = tmfloorslope;
 				if (thing->momz == 0 && thing->player && !startingonground && tmfloorslope)
@@ -2863,7 +2865,9 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, boolean allowdropoff)
 		else if (thing->z+thing->height >= tmceilingz) {
 			if (!startingonground && tmceilingslope)
 			{
-				if (thing->player)
+				angle_t angle = (tmceilingslope->zangle < ANGLE_180) ? tmceilingslope->zangle : InvAngle(tmceilingslope->zangle);
+
+				if (thing->player && angle >= ANGLE_45)
 				{
 					if (P_MobjFlipped(thing))
 						thing->player->pflags &= ~PF_ONCEILING;
@@ -2874,7 +2878,7 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, boolean allowdropoff)
 				P_HandleSlopeLanding(thing, tmceilingslope);
 			}
 
-			if (P_MobjFlip(thing)*thing->momz <= 0)
+			if (P_PlayerMobjFlip(thing)*thing->momz <= 0)
 			{
 				thing->standingslope = tmceilingslope;
 				if (thing->momz == 0 && thing->player && !startingonground && tmceilingslope)
