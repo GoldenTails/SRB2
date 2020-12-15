@@ -42,6 +42,7 @@
 
 #include "software/sw_main.h"
 #include "software/sw_viewmorph.h"
+#include "software/sw_plane.h"
 
 //profile stuff ---------------------------------------------------------
 //#define TIMING
@@ -612,7 +613,7 @@ void R_Init(void)
 	R_SetViewSize(); // setsizeneeded is set true
 
 	//I_OutputMsg("\nR_InitPlanes");
-	R_InitPlanes();
+	SWR_InitPlanes();
 
 	// this is now done by SCR_Recalc() at the first mode set
 	//I_OutputMsg("\nR_InitLightTables");

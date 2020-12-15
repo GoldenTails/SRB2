@@ -1045,11 +1045,11 @@ void R_RenderThickSideRange(drawseg_t *ds, INT32 x1, INT32 x2, ffloor_t *pfloor)
 #undef CLAMPMIN
 }
 
-// R_ExpandPlaneY
+// SWR_ExpandPlaneY
 //
 // A simple function to modify a visplane's top and bottom for a particular column
-// Sort of like R_ExpandPlane in r_plane.c, except this is vertical expansion
-static inline void R_ExpandPlaneY(visplane_t *pl, INT32 x, INT16 top, INT16 bottom)
+// Sort of like SWR_ExpandPlane in r_plane.c, except this is vertical expansion
+static inline void SWR_ExpandPlaneY(visplane_t *pl, INT32 x, INT16 top, INT16 bottom)
 {
 	// Expand the plane, don't shrink it!
 	// note: top and bottom default to 0xFFFF and 0x0000 respectively, which is totally compatible with this
@@ -1127,7 +1127,7 @@ static void R_RenderSegLoop (void)
 
 			if (top <= --bottom && ceilingplane)
 #endif
-				R_ExpandPlaneY(ceilingplane, rw_x, top, bottom);
+				SWR_ExpandPlaneY(ceilingplane, rw_x, top, bottom);
 		}
 
 
@@ -1143,7 +1143,7 @@ static void R_RenderSegLoop (void)
 			top = yh < ceilingclip[rw_x] ? ceilingclip[rw_x] : yh;
 
 			if (++top <= bottom && floorplane)
-				R_ExpandPlaneY(floorplane, rw_x, top, bottom);
+				SWR_ExpandPlaneY(floorplane, rw_x, top, bottom);
 		}
 
 		rw_floormarked = false;
@@ -2659,7 +2659,7 @@ void R_StoreWallRange(INT32 start, INT32 stop)
 	if (markceiling)
 	{
 		if (ceilingplane) //SoM: 3/29/2000: Check for null ceiling planes
-			ceilingplane = R_CheckPlane (ceilingplane, rw_x, rw_stopx-1);
+			ceilingplane = SWR_CheckPlane (ceilingplane, rw_x, rw_stopx-1);
 		else
 			markceiling = false;
 
@@ -2673,7 +2673,7 @@ void R_StoreWallRange(INT32 start, INT32 stop)
 	if (markfloor)
 	{
 		if (floorplane) //SoM: 3/29/2000: Check for null planes
-			floorplane = R_CheckPlane (floorplane, rw_x, rw_stopx-1);
+			floorplane = SWR_CheckPlane (floorplane, rw_x, rw_stopx-1);
 		else
 			markfloor = false;
 
@@ -2693,7 +2693,7 @@ void R_StoreWallRange(INT32 start, INT32 stop)
 			for (i = 0; i < numffloors; i++)
 			{
 				ds_p->ffloorplanes[i] = ffloor[i].plane =
-					R_CheckPlane(ffloor[i].plane, rw_x, rw_stopx - 1);
+					SWR_CheckPlane(ffloor[i].plane, rw_x, rw_stopx - 1);
 			}
 
 			firstseg = ds_p;
@@ -2701,7 +2701,7 @@ void R_StoreWallRange(INT32 start, INT32 stop)
 		else
 		{
 			for (i = 0; i < numffloors; i++)
-				R_ExpandPlane(ffloor[i].plane, rw_x, rw_stopx - 1);
+				SWR_ExpandPlane(ffloor[i].plane, rw_x, rw_stopx - 1);
 		}
 		// FIXME hack to fix planes disappearing when a seg goes behind the camera. This NEEDS to be changed to be done properly. -Red
 		if (curline->polyseg)

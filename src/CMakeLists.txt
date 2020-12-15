@@ -129,7 +129,6 @@ set(SRB2_CORE_RENDER_SOURCES
 	r_data.c
 	r_draw.c
 	r_main.c
-	r_plane.c
 	r_segs.c
 	r_skins.c
 	r_sky.c
@@ -147,7 +146,6 @@ set(SRB2_CORE_RENDER_SOURCES
 	r_draw.h
 	r_local.h
 	r_main.h
-	r_plane.h
 	r_segs.h
 	r_skins.h
 	r_sky.h
@@ -497,11 +495,13 @@ endif()
 set(SRB2_SWRENDER_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/software/sw_main.c
 	${CMAKE_CURRENT_SOURCE_DIR}/software/sw_viewmorph.c
+	${CMAKE_CURRENT_SOURCE_DIR}/software/sw_plane.c
 )
 
 set(SRB2_SWRENDER_HEADERS
 	${CMAKE_CURRENT_SOURCE_DIR}/software/sw_main.h
 	${CMAKE_CURRENT_SOURCE_DIR}/software/sw_viewmorph.h
+	${CMAKE_CURRENT_SOURCE_DIR}/software/sw_plane.h
 )
 
 if(${SRB2_CONFIG_HWRENDER})
