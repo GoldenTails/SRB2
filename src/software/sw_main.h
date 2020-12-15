@@ -68,5 +68,6 @@ extern lighttable_t *zlight[LIGHTLEVELS][MAXLIGHTZ];
 boolean SWR_DoCulling(line_t *cullheight, line_t *viewcullheight, fixed_t vz, fixed_t bottomh, fixed_t toph);
 void SWR_InitTextureMapping(void);
 void SWR_InitLightTables(void);
+void SWR_RenderPlayerView(player_t *player);
 
 #endif
