@@ -55,6 +55,8 @@ extern size_t validcount, linecount, loopcount, framecount;
 
 #define LIGHTRESOLUTIONFIX (640*fovtan/vid.width)
 
+#define DISTMAP 2
+
 extern lighttable_t *scalelight[LIGHTLEVELS][MAXLIGHTSCALE];
 extern lighttable_t *scalelightfixed[MAXLIGHTSCALE];
 extern lighttable_t *zlight[LIGHTLEVELS][MAXLIGHTZ];
@@ -64,5 +66,7 @@ extern lighttable_t *zlight[LIGHTLEVELS][MAXLIGHTZ];
 #define NUMCOLORMAPS 32
 
 boolean SWR_DoCulling(line_t *cullheight, line_t *viewcullheight, fixed_t vz, fixed_t bottomh, fixed_t toph);
+void SWR_InitTextureMapping(void);
+void SWR_InitLightTables(void);
 
 #endif
