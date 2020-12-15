@@ -14,7 +14,7 @@
 #ifndef __R_THINGS__
 #define __R_THINGS__
 
-#include "r_plane.h"
+#include "software/sw_plane.h"
 #include "r_patch.h"
 #include "r_picformats.h"
 #include "r_portal.h"

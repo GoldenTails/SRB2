@@ -27,7 +27,7 @@
 #include "r_patch.h"
 #include "r_patchrotation.h"
 #include "r_picformats.h"
-#include "r_plane.h"
+#include "software/sw_plane.h"
 #include "r_portal.h"
 #include "r_splats.h"
 #include "p_tick.h"
@@ -2458,7 +2458,7 @@ static void R_CreateDrawNodes(maskcount_t* mask, drawnode_t* head, boolean temps
 		// Check for a polyobject plane, but only if this is a front line
 		if (ds->curline->polyseg && ds->curline->polyseg->visplane && !ds->curline->side) {
 			plane = ds->curline->polyseg->visplane;
-			R_PlaneBounds(plane);
+			SWR_PlaneBounds(plane);
 
 			if (plane->low < 0 || plane->high > vid.height || plane->high > plane->low)
 				;
@@ -2486,7 +2486,7 @@ static void R_CreateDrawNodes(maskcount_t* mask, drawnode_t* head, boolean temps
 					if (!ds->ffloorplanes[p])
 						continue;
 					plane = ds->ffloorplanes[p];
-					R_PlaneBounds(plane);
+					SWR_PlaneBounds(plane);
 
 					if (plane->low < 0 || plane->high > vid.height || plane->high > plane->low || plane->polyobj)
 					{
@@ -2525,7 +2525,7 @@ static void R_CreateDrawNodes(maskcount_t* mask, drawnode_t* head, boolean temps
 		if (!PolyObjects[i].visplane)
 			continue;
 		plane = PolyObjects[i].visplane;
-		R_PlaneBounds(plane);
+		SWR_PlaneBounds(plane);
 
 		if (plane->low < 0 || plane->high > vid.height || plane->high > plane->low)
 		{
@@ -3095,7 +3095,7 @@ static void R_DrawMaskedList (drawnode_t* head)
 		if (r2->plane)
 		{
 			next = r2->prev;
-			R_DrawSinglePlane(r2->plane);
+			SWR_DrawSinglePlane(r2->plane);
 			R_DoneWithNode(r2);
 			r2 = next;
 		}

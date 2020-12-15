@@ -8,31 +8,31 @@
 // terms of the GNU General Public License, version 2.
 // See the 'LICENSE' file for more details.
 //-----------------------------------------------------------------------------
-/// \file  r_plane.c
+/// \file  sw_plane.c
 /// \brief Here is a core component: drawing the floors and ceilings,
 ///        while maintaining a per column clipping list only.
 ///        Moreover, the sky areas have to be determined.
 
-#include "doomdef.h"
-#include "console.h"
-#include "g_game.h"
-#include "p_setup.h" // levelflats
-#include "p_slopes.h"
-#include "r_data.h"
-#include "r_textures.h"
-#include "r_local.h"
-#include "r_state.h"
-#include "r_splats.h" // faB(21jan):testing
-#include "r_sky.h"
-#include "r_portal.h"
+#include "../doomdef.h"
+#include "../console.h"
+#include "../g_game.h"
+#include "../p_setup.h" // levelflats
+#include "../p_slopes.h"
+#include "../r_data.h"
+#include "../r_textures.h"
+#include "../r_local.h"
+#include "../r_state.h"
+#include "../r_splats.h" // faB(21jan):testing
+#include "../r_sky.h"
+#include "../r_portal.h"
 
-#include "v_video.h"
-#include "w_wad.h"
-#include "z_zone.h"
-#include "p_tick.h"
+#include "../v_video.h"
+#include "../w_wad.h"
+#include "../z_zone.h"
+#include "../p_tick.h"
 
 #ifdef TIMING
-#include "p5prof.h"
+#include "../p5prof.h"
 	INT64 mycount;
 	INT64 mytotal = 0;
 	UINT32 nombre = 100000;
@@ -106,10 +106,10 @@ fixed_t cachedystep[MAXVIDHEIGHT];
 static fixed_t xoffs, yoffs;
 
 //
-// R_InitPlanes
+// SWR_InitPlanes
 // Only at game startup.
 //
-void R_InitPlanes(void)
+void SWR_InitPlanes(void)
 {
 	// FIXME: unused
 }
@@ -127,7 +127,7 @@ struct
 	boolean active;
 } planeripple;
 
-static void R_CalculatePlaneRipple(visplane_t *plane, INT32 y, fixed_t plheight, boolean calcfrac)
+static void SWR_CalculatePlaneRipple(visplane_t *plane, INT32 y, fixed_t plheight, boolean calcfrac)
 {
 	fixed_t distance = FixedMul(plheight, yslope[y]);
 	const INT32 yay = (planeripple.offset + (distance>>9)) & 8191;
@@ -144,14 +144,14 @@ static void R_CalculatePlaneRipple(visplane_t *plane, INT32 y, fixed_t plheight,
 	}
 }
 
-static void R_UpdatePlaneRipple(void)
+static void SWR_UpdatePlaneRipple(void)
 {
 	ds_waterofs = (leveltime & 1)*16384;
 	planeripple.offset = (leveltime * 140);
 }
 
 //
-// R_MapPlane
+// SWR_MapPlane
 //
 // Uses global vars:
 //  planeheight
@@ -159,7 +159,7 @@ static void R_UpdatePlaneRipple(void)
 //  baseyscale
 //  centerx
 
-void R_MapPlane(INT32 y, INT32 x1, INT32 x2)
+void SWR_MapPlane(INT32 y, INT32 x1, INT32 x2)
 {
 	angle_t angle, planecos, planesin;
 	fixed_t distance = 0, span;
@@ -167,7 +167,7 @@ void R_MapPlane(INT32 y, INT32 x1, INT32 x2)
 
 #ifdef RANGECHECK
 	if (x2 < x1 || x1 < 0 || x2 >= viewwidth || y > viewheight)
-		I_Error("R_MapPlane: %d, %d at %d", x1, x2, y);
+		I_Error("SWR_MapPlane: %d, %d at %d", x1, x2, y);
 #endif
 
 	if (x1 >= vid.width)
@@ -214,7 +214,7 @@ void R_MapPlane(INT32 y, INT32 x1, INT32 x2)
 	if (planeripple.active)
 	{
 		// Needed for ds_bgofs
-		R_CalculatePlaneRipple(currentplane, y, planeheight, (!currentplane->slope));
+		SWR_CalculatePlaneRipple(currentplane, y, planeheight, (!currentplane->slope));
 
 		if (currentplane->slope)
 		{
@@ -266,7 +266,7 @@ void R_MapPlane(INT32 y, INT32 x1, INT32 x2)
 #endif
 }
 
-void R_ClearFFloorClips (void)
+void SWR_ClearFFloorClips (void)
 {
 	INT32 i, p;
 
@@ -284,10 +284,10 @@ void R_ClearFFloorClips (void)
 }
 
 //
-// R_ClearPlanes
+// SWR_ClearPlanes
 // At begining of frame.
 //
-void R_ClearPlanes(void)
+void SWR_ClearPlanes(void)
 {
 	INT32 i, p;
 	angle_t angle;
@@ -345,11 +345,11 @@ static visplane_t *new_visplane(unsigned hash)
 }
 
 //
-// R_FindPlane: Seek a visplane having the identical values:
+// SWR_FindPlane: Seek a visplane having the identical values:
 //              Same height, same flattexture, same lightlevel.
 //              If not, allocates another of them.
 //
-visplane_t *R_FindPlane(fixed_t height, INT32 picnum, INT32 lightlevel,
+visplane_t *SWR_FindPlane(fixed_t height, INT32 picnum, INT32 lightlevel,
 	fixed_t xoff, fixed_t yoff, angle_t plangle, extracolormap_t *planecolormap,
 	ffloor_t *pfloor, polyobj_t *polyobj, pslope_t *slope)
 {
@@ -446,7 +446,7 @@ visplane_t *R_FindPlane(fixed_t height, INT32 picnum, INT32 lightlevel,
 //
 // R_CheckPlane: return same visplane or alloc a new one if needed
 //
-visplane_t *R_CheckPlane(visplane_t *pl, INT32 start, INT32 stop)
+visplane_t *SWR_CheckPlane(visplane_t *pl, INT32 start, INT32 stop)
 {
 	INT32 intrl, intrh;
 	INT32 unionl, unionh;
@@ -530,7 +530,7 @@ visplane_t *R_CheckPlane(visplane_t *pl, INT32 start, INT32 stop)
 // need to create new ones with R_CheckPlane, because 3D floor planes
 // are created by subsector and there is no way a subsector can graphically
 // overlap.
-void R_ExpandPlane(visplane_t *pl, INT32 start, INT32 stop)
+void SWR_ExpandPlane(visplane_t *pl, INT32 start, INT32 stop)
 {
 //	INT32 unionl, unionh;
 //	INT32 x;
@@ -574,7 +574,7 @@ void R_ExpandPlane(visplane_t *pl, INT32 start, INT32 stop)
 //
 // R_MakeSpans
 //
-void R_MakeSpans(INT32 x, INT32 t1, INT32 b1, INT32 t2, INT32 b2)
+void SWR_MakeSpans(INT32 x, INT32 t1, INT32 b1, INT32 t2, INT32 b2)
 {
 	//    Alam: from r_splats's R_RasterizeFloorSplat
 	if (t1 >= vid.height) t1 = vid.height-1;
@@ -585,12 +585,12 @@ void R_MakeSpans(INT32 x, INT32 t1, INT32 b1, INT32 t2, INT32 b2)
 
 	while (t1 < t2 && t1 <= b1)
 	{
-		R_MapPlane(t1, spanstart[t1], x - 1);
+		SWR_MapPlane(t1, spanstart[t1], x - 1);
 		t1++;
 	}
 	while (b1 > b2 && b1 >= t1)
 	{
-		R_MapPlane(b1, spanstart[b1], x - 1);
+		SWR_MapPlane(b1, spanstart[b1], x - 1);
 		b1--;
 	}
 
@@ -600,12 +600,12 @@ void R_MakeSpans(INT32 x, INT32 t1, INT32 b1, INT32 t2, INT32 b2)
 		spanstart[b2--] = x;
 }
 
-void R_DrawPlanes(void)
+void SWR_DrawPlanes(void)
 {
 	visplane_t *pl;
 	INT32 i;
 
-	R_UpdatePlaneRipple();
+	SWR_UpdatePlaneRipple();
 
 	for (i = 0; i < MAXVISPLANES; i++, pl++)
 	{
@@ -614,7 +614,7 @@ void R_DrawPlanes(void)
 			if (pl->ffloor != NULL || pl->polyobj != NULL)
 				continue;
 
-			R_DrawSinglePlane(pl);
+			SWR_DrawSinglePlane(pl);
 		}
 	}
 }
@@ -624,7 +624,7 @@ void R_DrawPlanes(void)
 // Draws the sky within the plane's top/bottom bounds
 // Note: this uses column drawers instead of span drawers, since the sky is always a texture
 //
-static void R_DrawSkyPlane(visplane_t *pl)
+static void SWR_DrawSkyPlane(visplane_t *pl)
 {
 	INT32 x;
 	INT32 angle;
@@ -664,7 +664,7 @@ static void R_DrawSkyPlane(visplane_t *pl)
 
 // Potentially override other stuff for now cus we're mean. :< But draw a slope plane!
 // I copied ZDoom's code and adapted it to SRB2... -Red
-void R_CalculateSlopeVectors(pslope_t *slope, fixed_t planeviewx, fixed_t planeviewy, fixed_t planeviewz, fixed_t planexscale, fixed_t planeyscale, fixed_t planexoffset, fixed_t planeyoffset, angle_t planeviewangle, angle_t planeangle, float fudge)
+void SWR_CalculateSlopeVectors(pslope_t *slope, fixed_t planeviewx, fixed_t planeviewy, fixed_t planeviewz, fixed_t planexscale, fixed_t planeyscale, fixed_t planexoffset, fixed_t planeyoffset, angle_t planeviewangle, angle_t planeangle, float fudge)
 {
 	floatv3_t p, m, n;
 	float ang;
@@ -755,7 +755,7 @@ d->z = (v1.x * v2.y) - (v1.y * v2.x)
 #undef SFMULT
 }
 
-void R_SetTiltedSpan(INT32 span)
+void SWR_SetTiltedSpan(INT32 span)
 {
 	if (ds_su == NULL)
 		ds_su = Z_Malloc(sizeof(*ds_su) * vid.height, PU_STATIC, NULL);
@@ -769,13 +769,13 @@ void R_SetTiltedSpan(INT32 span)
 	ds_szp = &ds_sz[span];
 }
 
-static void R_SetSlopePlaneVectors(visplane_t *pl, INT32 y, fixed_t xoff, fixed_t yoff, float fudge)
+static void SWR_SetSlopePlaneVectors(visplane_t *pl, INT32 y, fixed_t xoff, fixed_t yoff, float fudge)
 {
-	R_SetTiltedSpan(y);
-	R_CalculateSlopeVectors(pl->slope, pl->viewx, pl->viewy, pl->viewz, FRACUNIT, FRACUNIT, xoff, yoff, pl->viewangle, pl->plangle, fudge);
+	SWR_SetTiltedSpan(y);
+	SWR_CalculateSlopeVectors(pl->slope, pl->viewx, pl->viewy, pl->viewz, FRACUNIT, FRACUNIT, xoff, yoff, pl->viewangle, pl->plangle, fudge);
 }
 
-void R_DrawSinglePlane(visplane_t *pl)
+void SWR_DrawSinglePlane(visplane_t *pl)
 {
 	levelflat_t *levelflat;
 	INT32 light = 0;
@@ -791,7 +791,7 @@ void R_DrawSinglePlane(visplane_t *pl)
 	// sky flat
 	if (pl->picnum == skyflatnum)
 	{
-		R_DrawSkyPlane(pl);
+		SWR_DrawSkyPlane(pl);
 		return;
 	}
 
@@ -1013,16 +1013,16 @@ void R_DrawSinglePlane(visplane_t *pl)
 		{
 			fixed_t plheight = abs(P_GetSlopeZAt(pl->slope, pl->viewx, pl->viewy) - pl->viewz);
 
-			R_PlaneBounds(pl);
+			SWR_PlaneBounds(pl);
 
 			for (x = pl->high; x < pl->low; x++)
 			{
-				R_CalculatePlaneRipple(pl, x, plheight, true);
-				R_SetSlopePlaneVectors(pl, x, (xoffs + planeripple.xfrac), (yoffs + planeripple.yfrac), fudgecanyon);
+				SWR_CalculatePlaneRipple(pl, x, plheight, true);
+				SWR_SetSlopePlaneVectors(pl, x, (xoffs + planeripple.xfrac), (yoffs + planeripple.yfrac), fudgecanyon);
 			}
 		}
 		else
-			R_SetSlopePlaneVectors(pl, 0, xoffs, yoffs, fudgecanyon);
+			SWR_SetSlopePlaneVectors(pl, 0, xoffs, yoffs, fudgecanyon);
 
 		switch (spanfunctype)
 		{
@@ -1074,7 +1074,7 @@ void R_DrawSinglePlane(visplane_t *pl)
 
 	for (x = pl->minx; x <= stop; x++)
 	{
-		R_MakeSpans(x, pl->top[x-1], pl->bottom[x-1],
+		SWR_MakeSpans(x, pl->top[x-1], pl->bottom[x-1],
 			pl->top[x], pl->bottom[x]);
 	}
 
@@ -1143,14 +1143,14 @@ using the palette colors.
 			stop = pl->maxx + 1;
 
 			for (x = pl->minx; x <= stop; x++)
-				R_MakeSpans(x, pl->top[x-1], pl->bottom[x-1],
+				SWR_MakeSpans(x, pl->top[x-1], pl->bottom[x-1],
 					pl->top[x], pl->bottom[x]);
 		}
 	}
 #endif
 }
 
-void R_PlaneBounds(visplane_t *plane)
+void SWR_PlaneBounds(visplane_t *plane)
 {
 	INT32 i;
 	INT32 hi, low;

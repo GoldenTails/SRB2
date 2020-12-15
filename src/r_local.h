@@ -28,7 +28,7 @@
 #include "r_main.h"
 #include "r_bsp.h"
 #include "r_segs.h"
-#include "r_plane.h"
+#include "software/sw_plane.h"
 #include "r_sky.h"
 #include "r_data.h"
 #include "r_textures.h"
