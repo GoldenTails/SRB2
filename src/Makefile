@@ -291,7 +291,7 @@ else
 		 $(OBJDIR)/hw_md2load.o $(OBJDIR)/hw_md3load.o $(OBJDIR)/hw_model.o $(OBJDIR)/u_list.o $(OBJDIR)/hw_batching.o
 endif
 
-OBJS+=$(OBJDIR)/sw_main.o
+OBJS+=$(OBJDIR)/sw_main.o $(OBJDIR)/sw_viewmorph.o
 
 OPTS += -DCOMPVERSION
 

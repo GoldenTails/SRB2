@@ -496,10 +496,12 @@ endif()
 
 set(SRB2_SWRENDER_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/software/sw_main.c
+	${CMAKE_CURRENT_SOURCE_DIR}/software/sw_viewmorph.c
 )
 
 set(SRB2_SWRENDER_HEADERS
 	${CMAKE_CURRENT_SOURCE_DIR}/software/sw_main.h
+	${CMAKE_CURRENT_SOURCE_DIR}/software/sw_viewmorph.h
 )
 
 if(${SRB2_CONFIG_HWRENDER})
