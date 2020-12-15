@@ -269,7 +269,7 @@ void SWR_RenderPlayerView(player_t *player)
 	validcount++;
 
 	// Clear buffers.
-	R_ClearPlanes();
+	SWR_ClearPlanes();
 	if (viewmorph.use)
 	{
 		portalclipstart = viewmorph.x1;
@@ -333,7 +333,7 @@ void SWR_RenderPlayerView(player_t *player)
 		{
 			portalrender = portal->pass; // Recursiveness depth.
 
-			R_ClearFFloorClips();
+			SWR_ClearFFloorClips();
 
 			// Apply the viewpoint stored for the portal.
 			SWR_PortalFrame(portal);
@@ -367,7 +367,7 @@ void SWR_RenderPlayerView(player_t *player)
 	PS_STOP_TIMING(ps_sw_portaltime);
 
 	PS_START_TIMING(ps_sw_planetime);
-	R_DrawPlanes();
+	SWR_DrawPlanes();
 	PS_STOP_TIMING(ps_sw_planetime);
 
 	// draw mid texture and sprite

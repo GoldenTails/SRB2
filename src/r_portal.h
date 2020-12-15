@@ -16,7 +16,7 @@
 
 #include "r_data.h"
 #include "r_textures.h"
-#include "r_plane.h" // visplanes
+#include "software/sw_plane.h" // visplanes
 
 /** Portal structure for the software renderer.
  */
