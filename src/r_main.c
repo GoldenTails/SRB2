@@ -454,63 +454,7 @@ boolean R_DoCulling(line_t *cullheight, line_t *viewcullheight, fixed_t vz, fixe
 //
 static void R_InitTextureMapping(void)
 {
-	INT32 i;
-	INT32 x;
-	INT32 t;
-	fixed_t focallength;
-
-	// Use tangent table to generate viewangletox:
-	//  viewangletox will give the next greatest x
-	//  after the view angle.
-	//
-	// Calc focallength
-	//  so FIELDOFVIEW angles covers SCREENWIDTH.
-	focallength = FixedDiv(projection,
-		FINETANGENT(FINEANGLES/4+FIELDOFVIEW/2));
-
-	focallengthf = FIXED_TO_FLOAT(focallength);
-
-	for (i = 0; i < FINEANGLES/2; i++)
-	{
-		if (FINETANGENT(i) > fovtan*2)
-			t = -1;
-		else if (FINETANGENT(i) < -fovtan*2)
-			t = viewwidth+1;
-		else
-		{
-			t = FixedMul(FINETANGENT(i), focallength);
-			t = (centerxfrac - t+FRACUNIT-1)>>FRACBITS;
-
-			if (t < -1)
-				t = -1;
-			else if (t > viewwidth+1)
-				t = viewwidth+1;
-		}
-		viewangletox[i] = t;
-	}
-
-	// Scan viewangletox[] to generate xtoviewangle[]:
-	//  xtoviewangle will give the smallest view angle
-	//  that maps to x.
-	for (x = 0; x <= viewwidth;x++)
-	{
-		i = 0;
-		while (viewangletox[i] > x)
-			i++;
-		xtoviewangle[x] = (i<<ANGLETOFINESHIFT) - ANGLE_90;
-	}
-
-	// Take out the fencepost cases from viewangletox.
-	for (i = 0; i < FINEANGLES/2; i++)
-	{
-		if (viewangletox[i] == -1)
-			viewangletox[i] = 0;
-		else if (viewangletox[i] == viewwidth+1)
-			viewangletox[i]  = viewwidth;
-	}
-
-	clipangle = xtoviewangle[0];
-	doubleclipangle = clipangle*2;
+	return SWR_InitTextureMapping();
 }
 
 
@@ -520,38 +464,9 @@ static void R_InitTextureMapping(void)
 // Only inits the zlight table,
 //  because the scalelight table changes with view size.
 //
-#define DISTMAP 2
-
-static inline void R_InitLightTables(void)
+static void R_InitLightTables(void)
 {
-	INT32 i;
-	INT32 j;
-	INT32 level;
-	INT32 startmapl;
-	INT32 scale;
-
-	// Calculate the light levels to use
-	//  for each level / distance combination.
-	for (i = 0; i < LIGHTLEVELS; i++)
-	{
-		startmapl = ((LIGHTLEVELS-1-i)*2)*NUMCOLORMAPS/LIGHTLEVELS;
-		for (j = 0; j < MAXLIGHTZ; j++)
-		{
-			//added : 02-02-98 : use BASEVIDWIDTH, vid.width is not set already,
-			// and it seems it needs to be calculated only once.
-			scale = FixedDiv((BASEVIDWIDTH/2*FRACUNIT), (j+1)<<LIGHTZSHIFT);
-			scale >>= LIGHTSCALESHIFT;
-			level = startmapl - scale/DISTMAP;
-
-			if (level < 0)
-				level = 0;
-
-			if (level >= NUMCOLORMAPS)
-				level = NUMCOLORMAPS-1;
-
-			zlight[i][j] = colormaps + level*256;
-		}
-	}
+	return SWR_InitLightTables();
 }
 
 //#define WOUGHMP_WOUGHMP // I got a fish-eye lens - I'll make a rap video with a couple of friends
