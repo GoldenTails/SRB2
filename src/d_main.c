@@ -418,36 +418,15 @@ static void D_Display(void)
 				{
 					topleft = screens[0] + viewwindowy*vid.width + viewwindowx;
 					objectsdrawn = 0;
-	#ifdef HWRENDER
-					if (rendermode != render_soft)
-						HWR_RenderPlayerView(0, &players[displayplayer]);
-					else
-	#endif
+
 					if (rendermode != render_none)
 						R_RenderPlayerView(&players[displayplayer]);
 				}
 
 				// render the second screen
 				if (splitscreen && players[secondarydisplayplayer].mo)
-				{
-	#ifdef HWRENDER
-					if (rendermode != render_soft)
-						HWR_RenderPlayerView(1, &players[secondarydisplayplayer]);
-					else
-	#endif
 					if (rendermode != render_none)
-					{
-						viewwindowy = vid.height / 2;
-						M_Memcpy(ylookup, ylookup2, viewheight*sizeof (ylookup[0]));
-
-						topleft = screens[0] + viewwindowy*vid.width + viewwindowx;
-
 						R_RenderPlayerView(&players[secondarydisplayplayer]);
-
-						viewwindowy = 0;
-						M_Memcpy(ylookup, ylookup1, viewheight*sizeof (ylookup[0]));
-					}
-				}
 
 				// Image postprocessing effect
 				if (rendermode == render_soft)

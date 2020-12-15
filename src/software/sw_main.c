@@ -36,6 +36,7 @@
 #include "../r_main.h"
 #include "../i_system.h" // I_GetTimeMicros
 #include "sw_main.h"
+#include "sw_viewmorph.h"
 
 //profile stuff ---------------------------------------------------------
 //#define TIMING
@@ -186,5 +187,200 @@ inline void SWR_InitLightTables(void)
 
 			zlight[i][j] = colormaps + level*256;
 		}
+	}
+}
+
+static void SWR_PortalFrame(portal_t *portal)
+{
+	viewx = portal->viewx;
+	viewy = portal->viewy;
+	viewz = portal->viewz;
+
+	viewangle = portal->viewangle;
+	viewsin = FINESINE(viewangle>>ANGLETOFINESHIFT);
+	viewcos = FINECOSINE(viewangle>>ANGLETOFINESHIFT);
+
+	portalclipstart = portal->start;
+	portalclipend = portal->end;
+
+	if (portal->clipline != -1)
+	{
+		portalclipline = &lines[portal->clipline];
+		portalcullsector = portalclipline->frontsector;
+		viewsector = portalclipline->frontsector;
+	}
+	else
+	{
+		portalclipline = NULL;
+		portalcullsector = NULL;
+		viewsector = R_PointInSubsector(viewx, viewy)->sector;
+	}
+}
+
+static void Mask_Pre (maskcount_t* m)
+{
+	m->drawsegs[0] = ds_p - drawsegs;
+	m->vissprites[0] = visspritecount;
+	m->viewx = viewx;
+	m->viewy = viewy;
+	m->viewz = viewz;
+	m->viewsector = viewsector;
+}
+
+static void Mask_Post (maskcount_t* m)
+{
+	m->drawsegs[1] = ds_p - drawsegs;
+	m->vissprites[1] = visspritecount;
+}
+
+// ========================
+// SWR_RenderPlayerView
+// ========================
+
+//                     FAB NOTE FOR WIN32 PORT !! I'm not finished already,
+// but I suspect network may have problems with the video buffer being locked
+// for all duration of rendering, and being released only once at the end..
+// I mean, there is a win16lock() or something that lasts all the rendering,
+// so maybe we should release screen lock before each netupdate below..?
+
+void SWR_RenderPlayerView(player_t *player)
+{
+	UINT8			nummasks	= 1;
+	maskcount_t*	masks		= malloc(sizeof(maskcount_t));
+
+	if (splitscreen && player == &players[secondarydisplayplayer])
+	{
+		viewwindowy = vid.height / 2;
+		M_Memcpy(ylookup, ylookup2, viewheight*sizeof (ylookup[0]));
+
+		topleft = screens[0] + viewwindowy*vid.width + viewwindowx;
+	}
+
+	if (cv_homremoval.value && player == &players[displayplayer]) // if this is display player 1
+	{
+		if (cv_homremoval.value == 1)
+			V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31); // No HOM effect!
+		else //'development' HOM removal -- makes it blindingly obvious if HOM is spotted.
+			V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 32+(timeinmap&15));
+	}
+
+	R_SetupFrame(player);
+	framecount++;
+	validcount++;
+
+	// Clear buffers.
+	R_ClearPlanes();
+	if (viewmorph.use)
+	{
+		portalclipstart = viewmorph.x1;
+		portalclipend = viewwidth-viewmorph.x1-1;
+		R_PortalClearClipSegs(portalclipstart, portalclipend);
+		memcpy(ceilingclip, viewmorph.ceilingclip, sizeof(INT16)*vid.width);
+		memcpy(floorclip, viewmorph.floorclip, sizeof(INT16)*vid.width);
+	}
+	else
+	{
+		portalclipstart = 0;
+		portalclipend = viewwidth;
+		R_ClearClipSegs();
+	}
+	R_ClearDrawSegs();
+	R_ClearSprites();
+	Portal_InitList();
+
+	// check for new console commands.
+	NetUpdate();
+
+	// The head node is the last node output.
+
+	Mask_Pre(&masks[nummasks - 1]);
+	curdrawsegs = ds_p;
+//profile stuff ---------------------------------------------------------
+#ifdef TIMING
+	mytotal = 0;
+	ProfZeroTimer();
+#endif
+	ps_numbspcalls = ps_numpolyobjects = ps_numdrawnodes = 0;
+	ps_bsptime = I_GetPreciseTime();
+	R_RenderBSPNode((INT32)numnodes - 1);
+	ps_bsptime = I_GetPreciseTime() - ps_bsptime;
+	ps_numsprites = visspritecount;
+#ifdef TIMING
+	RDMSR(0x10, &mycount);
+	mytotal += mycount; // 64bit add
+
+	CONS_Debug(DBG_RENDER, "RenderBSPNode: 0x%d %d\n", *((INT32 *)&mytotal + 1), (INT32)mytotal);
+#endif
+//profile stuff ---------------------------------------------------------
+	Mask_Post(&masks[nummasks - 1]);
+
+	ps_sw_spritecliptime = I_GetPreciseTime();
+	R_ClipSprites(drawsegs, NULL);
+	ps_sw_spritecliptime = I_GetPreciseTime() - ps_sw_spritecliptime;
+
+
+	// Add skybox portals caused by sky visplanes.
+	if (cv_skybox.value && skyboxmo[0])
+		Portal_AddSkyboxPortals();
+
+	// Portal rendering. Hijacks the BSP traversal.
+	ps_sw_portaltime = I_GetPreciseTime();
+	if (portal_base)
+	{
+		portal_t *portal;
+
+		for(portal = portal_base; portal; portal = portal_base)
+		{
+			portalrender = portal->pass; // Recursiveness depth.
+
+			R_ClearFFloorClips();
+
+			// Apply the viewpoint stored for the portal.
+			SWR_PortalFrame(portal);
+
+			// Hack in the clipsegs to delimit the starting
+			// clipping for sprites and possibly other similar
+			// future items.
+			R_PortalClearClipSegs(portal->start, portal->end);
+
+			// Hack in the top/bottom clip values for the window
+			// that were previously stored.
+			Portal_ClipApply(portal);
+
+			validcount++;
+
+			masks = realloc(masks, (++nummasks)*sizeof(maskcount_t));
+
+			Mask_Pre(&masks[nummasks - 1]);
+			curdrawsegs = ds_p;
+
+			// Render the BSP from the new viewpoint, and clip
+			// any sprites with the new clipsegs and window.
+			R_RenderBSPNode((INT32)numnodes - 1);
+			Mask_Post(&masks[nummasks - 1]);
+
+			R_ClipSprites(ds_p - (masks[nummasks - 1].drawsegs[1] - masks[nummasks - 1].drawsegs[0]), portal);
+
+			Portal_Remove(portal);
+		}
+	}
+	ps_sw_portaltime = I_GetPreciseTime() - ps_sw_portaltime;
+
+	ps_sw_planetime = I_GetPreciseTime();
+	R_DrawPlanes();
+	ps_sw_planetime = I_GetPreciseTime() - ps_sw_planetime;
+
+	// draw mid texture and sprite
+	// And now 3D floors/sides!
+	ps_sw_maskedtime = I_GetPreciseTime();
+	R_DrawMasked(masks, nummasks);
+	ps_sw_maskedtime = I_GetPreciseTime() - ps_sw_maskedtime;
+
+	free(masks);
+
+	if (splitscreen && player == &players[secondarydisplayplayer])
+	{
+		viewwindowy = 0;
+		M_Memcpy(ylookup, ylookup1, viewheight*sizeof (ylookup[0]));
 	}
 }
