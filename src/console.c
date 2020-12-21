@@ -471,6 +471,10 @@ void CON_Init(void)
 		CV_RegisterVar(&cons_backpic);
 		CV_RegisterVar(&cons_backcolor);
 		COM_AddCommand("bind", CONS_Bind_f);
+
+		// Draw the backpic so we don't open a window showing what's behind it.
+		CON_DrawBackpic();
+		I_FinishUpdate();
 	}
 	else
 	{
@@ -1459,7 +1463,6 @@ void CONS_Printf(const char *fmt, ...)
 {
 	va_list argptr;
 	static char *txt = NULL;
-	boolean refresh;
 
 	if (txt == NULL)
 		txt = malloc(8192);
@@ -1481,16 +1484,8 @@ void CONS_Printf(const char *fmt, ...)
 
 	// make sure new text is visible
 	con_scrollup = 0;
-	refresh = con_refresh;
 
 	Unlock_state();
-
-	// if not in display loop, force screen update
-	if (refresh)
-	{
-		CON_Drawer(); // here we display the console text
-		I_FinishUpdate(); // page flip or blit buffer
-	}
 }
 
 void CONS_Alert(alerttype_t level, const char *fmt, ...)
