@@ -908,7 +908,7 @@ void D_RegisterClientCommands(void)
   * A name is okay if it is no fewer than 1 and no more than ::MAXPLAYERNAME
   * chars long (not including NUL), it does not begin or end with a space,
   * it does not contain non-printing characters (according to isprint(), which
-  * allows space), it does not start with a digit, and no other player is
+  * allows space), it does not have only digits, and no other player is
   * currently using it.
   * \param name      Name to check.
   * \param playernum Player who wants the name, so we can check if they already
@@ -919,13 +919,12 @@ void D_RegisterClientCommands(void)
 boolean EnsurePlayerNameIsGood(char *name, INT32 playernum)
 {
 	INT32 ix;
+	boolean digitsonly = true;
 
 	if (strlen(name) == 0 || strlen(name) > MAXPLAYERNAME)
 		return false; // Empty or too long.
 	if (name[0] == ' ' || name[strlen(name)-1] == ' ')
 		return false; // Starts or ends with a space.
-	if (isdigit(name[0]))
-		return false; // Starts with a digit.
 	if (name[0] == '@' || name[0] == '~')
 		return false; // Starts with an admin symbol.
 
@@ -937,8 +936,15 @@ boolean EnsurePlayerNameIsGood(char *name, INT32 playernum)
 	// Also, anything over 0x80 is disallowed too, since compilers love to
 	// differ on whether they're printable characters or not.
 	for (ix = 0; name[ix] != '\0'; ix++)
+	{
 		if (!isprint(name[ix]) || name[ix] == ';' || (UINT8)(name[ix]) >= 0x80)
 			return false;
+		if (!isdigit(name[ix]))
+			digitsonly = false; // Has a non-digit.
+	}
+
+	if (digitsonly)
+		return false; // Only digits? Don't allow!
 
 	// Check if a player is currently using the name, case-insensitively.
 	for (ix = 0; ix < MAXPLAYERS; ix++)
@@ -1007,6 +1013,8 @@ void CleanupPlayerName(INT32 playernum, const char *newname)
 
 	do
 	{
+		boolean digitsonly = true;
+
 		p = buf;
 
 		while (*p == ' ')
@@ -1014,9 +1022,6 @@ void CleanupPlayerName(INT32 playernum, const char *newname)
 
 		if (strlen(p) == 0)
 			break; // empty names not allowed
-
-		if (isdigit(*p))
-			break; // names starting with digits not allowed
 
 		if (*p == '@' || *p == '~')
 			break; // names that start with @ or ~ (admin symbols) not allowed
@@ -1028,10 +1033,15 @@ void CleanupPlayerName(INT32 playernum, const char *newname)
 			/* from EnsurePlayerNameIsGood */
 			if (!isprint(*p) || *p == ';' || (UINT8)*p >= 0x80)
 				break;
+			if (!isdigit(*p))
+				digitsonly = false;
 		}
 		while (*++p) ;
 
 		if (*p)/* bad char found */
+			break;
+
+		if (digitsonly) /* only digits found */
 			break;
 
 		// Remove trailing spaces.
