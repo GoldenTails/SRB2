@@ -1275,6 +1275,8 @@ void D_SRB2Main(void)
 
 	I_RegisterSysCommands();
 
+	I_FinishUpdate(); // Saturation setting has been registered, update the screen!
+
 	CONS_Printf("W_InitMultipleFiles(): Adding extra PWADs.\n");
 	W_InitMultipleFiles(startuppwads);
 	D_CleanFile(startuppwads);
@@ -1282,7 +1284,7 @@ void D_SRB2Main(void)
 	CONS_Printf("HU_LoadGraphics()...\n");
 	HU_LoadGraphics();
 
-	I_FinishUpdate(); // Palettes and graphics have been loaded, update the screen!
+	I_FinishUpdate(); // Custom palettes and graphics have been loaded, update the screen!
 
 	//--------------------------------------------------------- CONFIG.CFG
 	M_FirstLoadConfig(); // WARNING : this do a "COM_BufExecute()"
