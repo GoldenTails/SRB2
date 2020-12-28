@@ -83,6 +83,12 @@ const char *const hookNames[hook_MAX+1] = {
 char **customHookNames;
 UINT32 customHookCount = 0;
 
+union UINT32_str_u
+{
+	UINT32 num;
+	char *str;
+};
+
 // Hook metadata
 struct hook_s
 {
@@ -90,10 +96,7 @@ struct hook_s
 	boolean customhook;
 	enum hook type;
 	UINT16 id;
-	union {
-		UINT32 num;
-		char *str;
-	} s;
+	union UINT32_str_u s;
 	boolean error;
 };
 typedef struct hook_s* hook_p;
@@ -131,14 +134,29 @@ static void PushHook(lua_State *L, hook_p hookp)
 static int lib_callHook(lua_State *L)
 {
 	hook_p hookp;
-	UINT32 i;
+	UINT32 i, hookIndex = 0;
 	boolean foundHook = false;
+	boolean hooked = false, status = false;
 
 	const char *name = luaL_checkstring(L, 1);
+	union UINT32_str_u arg2;
+	int luatype = lua_type(L, 2);
 
-	lua_remove(L, 1);
+	if (!lua_isnoneornil(L, 2))
+	{
+		if (luatype != LUA_TNUMBER && luatype != LUA_TSTRING)
+			return luaL_typerror(L, 2, "string or number");
 
-	for (i = 0; i < customHookCount; i++)
+		if (luatype == LUA_TNUMBER)
+			arg2.num = (UINT32)luaL_checkinteger(L, 2);
+		else
+			arg2.str = Z_StrDup(lua_tostring(L, 2));
+	}
+
+	lua_remove(L, 2); // pop arg2
+	lua_remove(L, 1); // pop name
+
+	for (i = 0, hookIndex = 0; i < customHookCount; i++, hookIndex++)
 		if (!strcmp(name, customHookNames[i]))
 		{
 			foundHook = true;
@@ -147,7 +165,7 @@ static int lib_callHook(lua_State *L)
 
 	if (!foundHook)
 	{
-		for (i = 0; hookNames[i]; i++)
+		for (i = 0, hookIndex = 0; hookNames[i]; i++, hookIndex++)
 			if (!strcmp(hookNames[i], name))
 			{
 				foundHook = true;
@@ -160,18 +178,62 @@ static int lib_callHook(lua_State *L)
 			return 0;
 	}
 
-	for (hookp = customhooks[i]; hookp; hookp = hookp->next)
-	{
-		PushHook(L, hookp);
-		lua_insert(L, 1);
+	// Lua stack caching; for arguments!
+	lua_createtable(L, lua_gettop(L), 0);
+	lua_insert(L, 1);
 
-		if (lua_pcall(L, lua_gettop(L) - 1, LUA_MULTRET, 1)) {
-			CONS_Alert(CONS_WARNING,"%s\n",lua_tostring(L, -1));
+	for (i = 1; i <= (unsigned)lua_gettop(L); i++)
+		lua_rawseti(L, 1, i);
+
+	lua_setfield(L, LUA_REGISTRYINDEX, "tmpstack"); // Push to registry
+
+	for (hookp = customhooks[hookIndex]; hookp; hookp = hookp->next)
+	{
+		if (luatype == LUA_TNUMBER && arg2.num != hookp->s.num)
+			continue;
+		else if (luatype == LUA_TSTRING && strcmp(arg2.str, hookp->s.str))
+			continue;
+
+		lua_settop(L, 0); // Remove any pesky returned stuff
+
+		// a little cleaner than lua_inserting them to the bottom
+		lua_pushcfunction(L, LUA_GetErrorMessage);
+		PushHook(L, hookp);
+
+		// Lua stack restoring; for arguments!
+		lua_getfield(L, LUA_REGISTRYINDEX, "tmpstack");
+
+		for (i = lua_objlen(L, 3); i > 0; i--)
+			lua_rawgeti(L, 3, i);
+
+		lua_remove(L, 3); // Pop table from stack
+
+		if (lua_pcall(L, lua_gettop(L) - 2, 1, 1)) {
+			if (!hookp->error || cv_debug & DBG_LUA)
+				CONS_Alert(CONS_WARNING,"%s\n",lua_tostring(L, -1));
 			lua_pop(L, 1);
+			hookp->error = true;
+			continue;
+		}
+
+		lua_remove(L, 1); // Remove hooked function
+
+		// Destinguish between `nil` and `false`, keep `true`
+		if (!lua_isnoneornil(L, -1) && !status)
+		{
+			hooked = true;
+			status = lua_toboolean(L, -1);
 		}
 	}
 
-	return lua_gettop(L);
+	// Remove Lua stack cache from registry
+	lua_pushnil(L);
+	lua_setfield(L, LUA_REGISTRYINDEX, "tmpstack");
+
+	if (hooked)
+		lua_pushboolean(L, status);
+
+	return 1;
 }
 
 // Takes hook, function, and additional arguments (mobj type to act on, etc.)
@@ -352,6 +414,9 @@ static int lib_addHook(lua_State *L)
 	memcpy(hookp, &hook, sizeof(struct hook_s));
 	// tack it onto the end of the linked list.
 	*lastp = hookp;
+
+	if (customhook)
+		customhooks[customHookCount] = hookp;
 
 	// set the hook function in the registry.
 	lua_pushfstring(L, FMT_HOOKID, hook.id);
