@@ -7,14 +7,14 @@
 // terms of the GNU General Public License, version 2.
 // See the 'LICENSE' file for more details.
 //-----------------------------------------------------------------------------
-/// \file  r_splats.h
+/// \file  sw_splats.h
 /// \brief Flat sprites & splats effects
 
-#ifndef __R_SPLATS_H__
-#define __R_SPLATS_H__
+#ifndef __SW_SPLATS_H__
+#define __SW_SPLATS_H__
 
-#include "r_defs.h"
-#include "r_things.h"
+#include "../r_defs.h"
+#include "../r_things.h"
 
 // ==========================================================================
 // DEFINITIONS
@@ -42,6 +42,6 @@ typedef struct floorsplat_s
 	mobj_t *mobj; // Mobj it is tied to
 } floorsplat_t;
 
-void R_DrawFloorSplat(vissprite_t *spr);
+void SWR_DrawFloorSplat(vissprite_t *spr);
 
-#endif /*__R_SPLATS_H__*/
+#endif /*__SW_SPLATS_H__*/

@@ -29,7 +29,7 @@
 #include "r_picformats.h"
 #include "software/sw_plane.h"
 #include "r_portal.h"
-#include "r_splats.h"
+#include "software/sw_splats.h"
 #include "p_tick.h"
 #include "p_local.h"
 #include "p_slopes.h"
@@ -2784,7 +2784,7 @@ static void R_DrawSprite(vissprite_t *spr)
 	mceilingclip = spr->cliptop;
 
 	if (spr->cut & SC_SPLAT)
-		R_DrawFloorSplat(spr);
+		SWR_DrawFloorSplat(spr);
 	else
 		R_DrawVisSprite(spr);
 }
