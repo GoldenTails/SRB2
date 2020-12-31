@@ -25,7 +25,7 @@
 #include "s_sound.h"
 #include "w_wad.h"
 
-#include "r_splats.h"
+#include "software/sw_splats.h"
 
 #include "p_slopes.h"
 

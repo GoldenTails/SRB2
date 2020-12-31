@@ -222,6 +222,9 @@
     <ClInclude Include="..\software\sw_plane.h">
       <Filter>Sw_Software</Filter>
     </ClInclude>
+    <ClInclude Include="..\software\sw_splats.h">
+      <Filter>Sw_Software</Filter>
+    </ClInclude>
     <ClInclude Include="..\hardware\hw3dsdrv.h">
       <Filter>Hw_Hardware</Filter>
     </ClInclude>
@@ -667,6 +670,9 @@
       <Filter>Sw_Software</Filter>
     </ClCompile>
     <ClCompile Include="..\software\sw_plane.c">
+      <Filter>Sw_Software</Filter>
+    </ClCompile>
+    <ClCompile Include="..\software\sw_splats.c">
       <Filter>Sw_Software</Filter>
     </ClCompile>
     <ClCompile Include="..\hardware\hw3sound.c">

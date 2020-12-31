@@ -271,7 +271,7 @@ else
 		 $(OBJDIR)/hw_md2load.o $(OBJDIR)/hw_md3load.o $(OBJDIR)/hw_model.o $(OBJDIR)/u_list.o $(OBJDIR)/hw_batching.o
 endif
 
-OBJS+=$(OBJDIR)/sw_main.o $(OBJDIR)/sw_viewmorph.o $(OBJDIR)/sw_plane.o
+OBJS+=$(OBJDIR)/sw_main.o $(OBJDIR)/sw_viewmorph.o $(OBJDIR)/sw_plane.o $(OBJDIR)/sw_splats.o
 
 OPTS += -DCOMPVERSION
 
@@ -518,7 +518,6 @@ OBJS:=$(i_main_o) \
 		$(OBJDIR)/r_segs.o   \
 		$(OBJDIR)/r_skins.o  \
 		$(OBJDIR)/r_sky.o    \
-		$(OBJDIR)/r_splats.o \
 		$(OBJDIR)/r_things.o \
 		$(OBJDIR)/r_textures.o \
 		$(OBJDIR)/r_patch.o \

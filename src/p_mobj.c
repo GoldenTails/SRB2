@@ -21,7 +21,6 @@
 #include "r_main.h"
 #include "r_skins.h"
 #include "r_sky.h"
-#include "r_splats.h"
 #include "s_sound.h"
 #include "z_zone.h"
 #include "m_random.h"

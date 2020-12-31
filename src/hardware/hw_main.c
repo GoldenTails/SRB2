@@ -31,7 +31,6 @@
 #include "../d_clisrv.h"
 #include "../w_wad.h"
 #include "../z_zone.h"
-#include "../r_splats.h"
 #include "../g_game.h"
 #include "../st_stuff.h"
 #include "../i_system.h"

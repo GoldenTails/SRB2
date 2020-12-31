@@ -7,17 +7,17 @@
 // terms of the GNU General Public License, version 2.
 // See the 'LICENSE' file for more details.
 //-----------------------------------------------------------------------------
-/// \file  r_splats.c
+/// \file  sw_splats.c
 /// \brief Floor splats
 
-#include "r_draw.h"
-#include "r_main.h"
-#include "r_splats.h"
-#include "r_bsp.h"
-#include "p_local.h"
-#include "p_slopes.h"
-#include "w_wad.h"
-#include "z_zone.h"
+#include "../r_draw.h"
+#include "../r_main.h"
+#include "sw_splats.h"
+#include "../r_bsp.h"
+#include "../p_local.h"
+#include "../p_slopes.h"
+#include "../w_wad.h"
+#include "../z_zone.h"
 
 struct rastery_s *prastertab; // for ASM code
 
@@ -137,7 +137,7 @@ static void rasterize_segment_tex(INT32 x1, INT32 y1, INT32 x2, INT32 y2, INT32 
 	}
 }
 
-void R_DrawFloorSprite(vissprite_t *spr)
+void SWR_DrawFloorSprite(vissprite_t *spr)
 {
 	floorsplat_t splat;
 	mobj_t *mobj = spr->mobj;
@@ -330,7 +330,7 @@ void R_DrawFloorSprite(vissprite_t *spr)
 		v2d[i].y = (centeryfrac + FixedMul(rot_z, yscale))>>FRACBITS;
 	}
 
-	R_RenderFloorSplat(&splat, v2d, spr);
+	SWR_RenderFloorSplat(&splat, v2d, spr);
 }
 
 // --------------------------------------------------------------------------
@@ -338,7 +338,7 @@ void R_DrawFloorSprite(vissprite_t *spr)
 // fill the polygon with linear interpolation, call span drawer for each
 // scan line
 // --------------------------------------------------------------------------
-void R_RenderFloorSplat(floorsplat_t *pSplat, vector2_t *verts, vissprite_t *vis)
+void SWR_RenderFloorSplat(floorsplat_t *pSplat, vector2_t *verts, vissprite_t *vis)
 {
 	// rasterizing
 	INT32 miny = viewheight + 1, maxy = 0;

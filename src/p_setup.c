@@ -38,7 +38,6 @@
 #include "st_stuff.h"
 #include "w_wad.h"
 #include "z_zone.h"
-#include "r_splats.h"
 
 #include "hu_stuff.h"
 #include "console.h"

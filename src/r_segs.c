@@ -16,7 +16,7 @@
 #include "r_sky.h"
 
 #include "r_portal.h"
-#include "r_splats.h"
+#include "software/sw_splats.h"
 
 #include "w_wad.h"
 #include "z_zone.h"
