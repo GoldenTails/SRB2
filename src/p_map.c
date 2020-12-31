@@ -85,9 +85,9 @@ boolean P_TeleportMove(mobj_t *thing, fixed_t x, fixed_t y, fixed_t z)
 		sector_list = NULL;
 	}
 
-	thing->x = x;
-	thing->y = y;
-	thing->z = z;
+	thing->old_x = thing->x = x;
+	thing->old_y = thing->y = y;
+	thing->old_z = thing->z = z;
 
 	P_SetThingPosition(thing);
 

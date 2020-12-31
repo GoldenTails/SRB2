@@ -450,7 +450,7 @@ static int mobj_set(lua_State *L)
 	{
 		// z doesn't cross sector bounds so it's okay.
 		mobj_t *ptmthing = tmthing;
-		mo->z = luaL_checkfixed(L, 3);
+		mo->old_z = mo->z = luaL_checkfixed(L, 3);
 		P_CheckPosition(mo, mo->x, mo->y);
 		mo->floorz = tmfloorz;
 		mo->ceilingz = tmceilingz;
