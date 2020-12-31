@@ -31,7 +31,6 @@
 #include "i_video.h"
 #include "p_slopes.h"
 #include "p_spec.h"
-#include "r_splats.h"
 #include "z_zone.h"
 #include "w_wad.h"
 #include "hu_stuff.h"

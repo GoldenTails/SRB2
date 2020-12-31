@@ -1,3 +1,4 @@
 sw_main.c
 sw_viewmorph.c
 sw_plane.c
+sw_splats.c

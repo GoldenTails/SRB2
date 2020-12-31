@@ -59,7 +59,6 @@ r_main.c
 r_segs.c
 r_skins.c
 r_sky.c
-r_splats.c
 r_things.c
 r_textures.c
 r_patch.c

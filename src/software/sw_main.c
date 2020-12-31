@@ -17,7 +17,6 @@
 #include "../g_game.h"
 #include "../g_input.h"
 #include "../r_local.h"
-#include "../r_splats.h" // faB(21jan): testing
 #include "../r_sky.h"
 #include "../hu_stuff.h"
 #include "../st_stuff.h"
@@ -37,6 +36,7 @@
 #include "../i_system.h" // I_GetTimeMicros
 #include "sw_main.h"
 #include "sw_viewmorph.h"
+#include "sw_splats.h" // faB(21jan): testing
 
 //profile stuff ---------------------------------------------------------
 //#define TIMING
