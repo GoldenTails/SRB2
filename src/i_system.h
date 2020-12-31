@@ -52,6 +52,10 @@ int I_GetTimeMicros(void);// provides microsecond counter for render stats
 */
 fixed_t I_GetTimeFrac(void);
 
+/** \brief  Setup interpolation difference based on duration between each call.
+*/
+void I_SetInterpolationDiff(void);
+
 /**	\brief	The I_Sleep function
 
 	\return	void

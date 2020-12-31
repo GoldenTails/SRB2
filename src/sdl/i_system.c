@@ -2133,16 +2133,17 @@ int TimeFunction(int requested_frequency)
 }
 #endif
 
+static Uint64 prevticks;
+
+void I_SetInterpolationDiff(void)
+{
+	prevticks = I_GetTimeMicros();
+}
+
 fixed_t I_GetTimeFrac(void) {
-	Uint64 ticks;
-	Uint64 prevticks;
-	fixed_t frac;
+	double ticks = (I_GetTimeMicros() - prevticks) * TICRATE;
+	fixed_t frac = ticks * FRACUNIT / 1000000;
 
-	ticks = I_GetTimeMicros() / 1000;
-
-	prevticks = prev_tics * 1000 / TICRATE;
-
-	frac = FixedDiv((ticks - prevticks) * FRACUNIT, (int)lroundf((1.f/TICRATE)*1000 * FRACUNIT));
 	return frac > FRACUNIT ? FRACUNIT : frac;
 }
 
