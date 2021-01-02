@@ -198,6 +198,8 @@ void SCR_SetMode(void)
 
 	// set the apprpriate drawers
 	SCR_SetDrawFuncs();
+
+	setmodeneeded = 0;
 }
 
 void SCR_SetResolution(void)
