@@ -37,6 +37,7 @@
 #include "sw_main.h"
 #include "sw_viewmorph.h"
 #include "sw_splats.h" // faB(21jan): testing
+#include "sw_things.h"
 
 //profile stuff ---------------------------------------------------------
 //#define TIMING
@@ -285,7 +286,7 @@ void SWR_RenderPlayerView(player_t *player)
 		R_ClearClipSegs();
 	}
 	R_ClearDrawSegs();
-	R_ClearSprites();
+	SWR_ClearSprites();
 	Portal_InitList();
 
 	// check for new console commands.
@@ -315,9 +316,8 @@ void SWR_RenderPlayerView(player_t *player)
 	Mask_Post(&masks[nummasks - 1]);
 
 	PS_START_TIMING(ps_sw_spritecliptime);
-	R_ClipSprites(drawsegs, NULL);
+	SWR_ClipSprites(drawsegs, NULL);
 	PS_STOP_TIMING(ps_sw_spritecliptime);
-
 
 	// Add skybox portals caused by sky visplanes.
 	if (cv_skybox.value && skyboxmo[0])
@@ -359,7 +359,7 @@ void SWR_RenderPlayerView(player_t *player)
 			R_RenderBSPNode((INT32)numnodes - 1);
 			Mask_Post(&masks[nummasks - 1]);
 
-			R_ClipSprites(ds_p - (masks[nummasks - 1].drawsegs[1] - masks[nummasks - 1].drawsegs[0]), portal);
+			SWR_ClipSprites(ds_p - (masks[nummasks - 1].drawsegs[1] - masks[nummasks - 1].drawsegs[0]), portal);
 
 			Portal_Remove(portal);
 		}
@@ -373,7 +373,7 @@ void SWR_RenderPlayerView(player_t *player)
 	// draw mid texture and sprite
 	// And now 3D floors/sides!
 	PS_START_TIMING(ps_sw_maskedtime);
-	R_DrawMasked(masks, nummasks);
+	SWR_DrawMasked(masks, nummasks);
 	PS_STOP_TIMING(ps_sw_maskedtime);
 
 	free(masks);
