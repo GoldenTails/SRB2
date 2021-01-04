@@ -444,7 +444,7 @@ static void SWR_RasterizeFloorSplat(floorsplat_t *pSplat, vector2_t *verts, viss
 	}
 
 	ds_colormap = vis->colormap;
-	ds_translation = R_GetSpriteTranslation(vis);
+	ds_translation = SWR_GetSpriteTranslation(vis);
 	if (ds_translation == NULL)
 		ds_translation = colormaps;
 
