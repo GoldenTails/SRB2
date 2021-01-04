@@ -14,6 +14,7 @@
 #include "doomdef.h"
 #include "r_local.h"
 #include "r_sky.h"
+#include "software/sw_things.h"
 
 #include "r_portal.h"
 #include "software/sw_splats.h"
@@ -78,7 +79,7 @@ static fixed_t *maskedtextureheight = NULL;
 // ==========================================================================
 
 // If we have a multi-patch texture on a 2sided wall (rare) then we draw
-//  it using R_DrawColumn, else we draw it using R_DrawMaskedColumn, this
+//  it using SWR_DrawColumn, else we draw it using SWR_DrawMaskedColumn, this
 //  way we don't have to store extra post_t info with each column for
 //  multi-patch textures. They are not normally needed as multi-patch
 //  textures don't have holes in it. At least not for now.
@@ -192,11 +193,11 @@ void R_RenderMaskedSegRange(drawseg_t *ds, INT32 x1, INT32 x2)
 	{
 		if (textures[texnum]->flip & 2) // vertically flipped?
 		{
-			colfunc_2s = R_DrawFlippedMaskedColumn;
+			colfunc_2s = SWR_DrawFlippedMaskedColumn;
 			lengthcol = textures[texnum]->height;
 		}
 		else
-			colfunc_2s = R_DrawMaskedColumn; // render the usual 2sided single-patch packed texture
+			colfunc_2s = SWR_DrawMaskedColumn; // render the usual 2sided single-patch packed texture
 	}
 	else
 	{
@@ -512,11 +513,11 @@ void R_RenderMaskedSegRange(drawseg_t *ds, INT32 x1, INT32 x2)
 	colfunc = colfuncs[BASEDRAWFUNC];
 }
 
-// Loop through R_DrawMaskedColumn calls
+// Loop through SWR_DrawMaskedColumn calls
 static void R_DrawRepeatMaskedColumn(column_t *col)
 {
 	while (sprtopscreen < sprbotscreen) {
-		R_DrawMaskedColumn(col);
+		SWR_DrawMaskedColumn(col);
 		if ((INT64)sprtopscreen + dc_texheight*spryscale > (INT64)INT32_MAX) // prevent overflow
 			sprtopscreen = INT32_MAX;
 		else
@@ -527,7 +528,7 @@ static void R_DrawRepeatMaskedColumn(column_t *col)
 static void R_DrawRepeatFlippedMaskedColumn(column_t *col)
 {
 	do {
-		R_DrawFlippedMaskedColumn(col);
+		SWR_DrawFlippedMaskedColumn(col);
 		sprtopscreen += dc_texheight*spryscale;
 	} while (sprtopscreen < sprbotscreen);
 }
@@ -903,7 +904,7 @@ void R_RenderThickSideRange(drawseg_t *ds, INT32 x1, INT32 x2, ffloor_t *pfloor)
 			// Get data for the column
 			col = (column_t *)((UINT8 *)R_GetColumn(texnum,maskedtexturecol[dc_x]) - 3);
 
-			// SoM: New code does not rely on R_DrawColumnShadowed_8 which
+			// SoM: New code does not rely on SWR_DrawColumnShadowed_8 which
 			// will (hopefully) put less strain on the stack.
 			if (dc_numlights)
 			{
@@ -1353,7 +1354,7 @@ static void R_RenderSegLoop (void)
 				mytotal += mycount;      //64bit add
 
 				if (nombre--==0)
-					I_Error("R_DrawColumn CPU Spy reports: 0x%d %d\n", *((INT32 *)&mytotal+1),
+					I_Error("SWR_DrawColumn CPU Spy reports: 0x%d %d\n", *((INT32 *)&mytotal+1),
 						(INT32)mytotal);
 #endif
 				//profile stuff ---------------------------------------------------------

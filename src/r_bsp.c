@@ -18,6 +18,7 @@
 #include "r_portal.h" // Add seg portals
 
 #include "p_local.h" // camera
+#include "software/sw_things.h"
 #include "p_slopes.h"
 #include "z_zone.h" // Check R_Prep3DFloors
 #include "taglist.h"
@@ -1064,7 +1065,7 @@ static void R_Subsector(size_t num)
    // Either you must pass the fake sector and handle validcount here, on the
    // real sector, or you must account for the lighting in some other way,
    // like passing it as an argument.
-	R_AddSprites(sub->sector, (floorlightlevel+ceilinglightlevel)/2);
+	SWR_AddSprites(sub->sector, (floorlightlevel+ceilinglightlevel)/2);
 
 	firstseg = NULL;
 

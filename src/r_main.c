@@ -43,6 +43,7 @@
 #include "software/sw_main.h"
 #include "software/sw_viewmorph.h"
 #include "software/sw_plane.h"
+#include "software/sw_things.h"
 
 //profile stuff ---------------------------------------------------------
 //#define TIMING
@@ -622,7 +623,7 @@ void R_Init(void)
 	//I_OutputMsg("\nR_InitTranslucencyTables\n");
 	R_InitTranslucencyTables();
 
-	R_InitDrawNodes();
+	SWR_InitDrawNodes();
 
 	framecount = 0;
 }
