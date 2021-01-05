@@ -314,7 +314,7 @@ static UINT8* D_GetExistingTextcmd(tic_t tic, INT32 playernum)
 	while (textcmdtic && textcmdtic->tic != tic) textcmdtic = textcmdtic->next;
 
 	// Do we have an entry for the tic? If so, look for player.
-	if (textcmdtic)
+	if (textcmdtic && textcmdtic->playercmds)
 	{
 		textcmdplayer_t *textcmdplayer = textcmdtic->playercmds[playernum & (TEXTCMD_HASH_SIZE - 1)];
 		while (textcmdplayer && textcmdplayer->playernum != playernum) textcmdplayer = textcmdplayer->next;
