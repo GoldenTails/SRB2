@@ -989,7 +989,7 @@ void F_IntroDrawer(void)
 	F_IntroDrawScene();
 
 	// Distinguish vanilla intro as "cutscene 0" (-1 because LUAh_CutsceneHUD automatically adds 1.)
-	LUAh_CutsceneHUD(-1, intro_scenenum, intro_curtime);
+	LUAh_CutsceneHUD(-1, intro_scenenum, intro_curtime, introscenetime[intro_scenenum]);
 }
 
 //
@@ -4008,7 +4008,7 @@ void F_CutsceneDrawer(void)
 
 	V_DrawString(textxpos, textypos, V_ALLOWLOWERCASE, cutscene_disptext);
 
-	LUAh_CutsceneHUD(cutnum, scenenum, stoptimer);
+	LUAh_CutsceneHUD(cutnum, scenenum, stoptimer, 0);
 }
 
 void F_CutsceneTicker(void)
