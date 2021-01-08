@@ -498,6 +498,7 @@ set(SRB2_SWRENDER_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/software/sw_plane.c
 	${CMAKE_CURRENT_SOURCE_DIR}/software/sw_splats.c
 	${CMAKE_CURRENT_SOURCE_DIR}/software/sw_things.c
+	${CMAKE_CURRENT_SOURCE_DIR}/software/sw_video.c
 )
 
 set(SRB2_SWRENDER_HEADERS
@@ -506,6 +507,7 @@ set(SRB2_SWRENDER_HEADERS
 	${CMAKE_CURRENT_SOURCE_DIR}/software/sw_plane.h
 	${CMAKE_CURRENT_SOURCE_DIR}/software/sw_splats.h
 	${CMAKE_CURRENT_SOURCE_DIR}/software/sw_things.h
+	${CMAKE_CURRENT_SOURCE_DIR}/software/sw_video.h
 )
 
 if(${SRB2_CONFIG_HWRENDER})
