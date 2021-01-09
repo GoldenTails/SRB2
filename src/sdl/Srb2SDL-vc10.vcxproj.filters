@@ -231,6 +231,9 @@
     <ClInclude Include="..\software\sw_video.h">
       <Filter>Sw_Software</Filter>
     </ClInclude>
+    <ClInclude Include="..\software\sw_bsp.h">
+      <Filter>Sw_Software</Filter>
+    </ClInclude>
     <ClInclude Include="..\hardware\hw3dsdrv.h">
       <Filter>Hw_Hardware</Filter>
     </ClInclude>
@@ -685,6 +688,9 @@
       <Filter>Sw_Software</Filter>
     </ClCompile>
     <ClCompile Include="..\software\sw_video.c">
+      <Filter>Sw_Software</Filter>
+    </ClCompile>
+    <ClCompile Include="..\software\sw_bsp.c">
       <Filter>Sw_Software</Filter>
     </ClCompile>
     <ClCompile Include="..\hardware\hw3sound.c">

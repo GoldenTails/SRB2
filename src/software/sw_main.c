@@ -38,6 +38,7 @@
 #include "sw_viewmorph.h"
 #include "sw_splats.h" // faB(21jan): testing
 #include "sw_things.h"
+#include "sw_bsp.h"
 
 //profile stuff ---------------------------------------------------------
 //#define TIMING
@@ -275,7 +276,7 @@ void SWR_RenderPlayerView(player_t *player)
 	{
 		portalclipstart = viewmorph.x1;
 		portalclipend = viewwidth-viewmorph.x1-1;
-		R_PortalClearClipSegs(portalclipstart, portalclipend);
+		SWR_PortalClearClipSegs(portalclipstart, portalclipend);
 		memcpy(ceilingclip, viewmorph.ceilingclip, sizeof(INT16)*vid.width);
 		memcpy(floorclip, viewmorph.floorclip, sizeof(INT16)*vid.width);
 	}
@@ -283,9 +284,9 @@ void SWR_RenderPlayerView(player_t *player)
 	{
 		portalclipstart = 0;
 		portalclipend = viewwidth;
-		R_ClearClipSegs();
+		SWR_ClearClipSegs();
 	}
-	R_ClearDrawSegs();
+	SWR_ClearDrawSegs();
 	SWR_ClearSprites();
 	Portal_InitList();
 
@@ -303,7 +304,7 @@ void SWR_RenderPlayerView(player_t *player)
 #endif
 	ps_numbspcalls = ps_numpolyobjects = ps_numdrawnodes = 0;
 	ps_bsptime = I_GetPreciseTime();
-	R_RenderBSPNode((INT32)numnodes - 1);
+	SWR_RenderBSPNode((INT32)numnodes - 1);
 	ps_bsptime = I_GetPreciseTime() - ps_bsptime;
 	ps_numsprites = visspritecount;
 #ifdef TIMING
@@ -342,7 +343,7 @@ void SWR_RenderPlayerView(player_t *player)
 			// Hack in the clipsegs to delimit the starting
 			// clipping for sprites and possibly other similar
 			// future items.
-			R_PortalClearClipSegs(portal->start, portal->end);
+			SWR_PortalClearClipSegs(portal->start, portal->end);
 
 			// Hack in the top/bottom clip values for the window
 			// that were previously stored.
@@ -357,7 +358,7 @@ void SWR_RenderPlayerView(player_t *player)
 
 			// Render the BSP from the new viewpoint, and clip
 			// any sprites with the new clipsegs and window.
-			R_RenderBSPNode((INT32)numnodes - 1);
+			SWR_RenderBSPNode((INT32)numnodes - 1);
 			Mask_Post(&masks[nummasks - 1]);
 
 			SWR_ClipSprites(ds_p - (masks[nummasks - 1].drawsegs[1] - masks[nummasks - 1].drawsegs[0]), portal);
