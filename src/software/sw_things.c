@@ -28,6 +28,7 @@
 #include "../r_patchrotation.h"
 #include "../r_picformats.h"
 #include "sw_plane.h"
+#include "sw_bsp.h"
 #include "../r_portal.h"
 #include "sw_splats.h"
 #include "../p_tick.h"

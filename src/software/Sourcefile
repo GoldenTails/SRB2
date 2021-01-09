@@ -4,3 +4,4 @@ sw_plane.c
 sw_splats.c
 sw_things.c
 sw_video.c
+sw_bsp.c

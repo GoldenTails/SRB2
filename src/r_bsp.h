@@ -29,17 +29,6 @@ extern boolean portalline; // is curline a portal seg?
 
 extern INT32 checkcoord[12][4];
 
-extern drawseg_t *curdrawsegs;
-extern drawseg_t *drawsegs;
-extern drawseg_t *ds_p;
-extern INT32 doorclosed;
-
-// BSP?
-void R_ClearClipSegs(void);
-void R_PortalClearClipSegs(INT32 start, INT32 end);
-void R_ClearDrawSegs(void);
-void R_RenderBSPNode(INT32 bspnum);
-
 void R_SortPolyObjects(subsector_t *sub);
 
 extern size_t numpolys;        // number of polyobjects in current subsector

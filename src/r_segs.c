@@ -15,6 +15,7 @@
 #include "r_local.h"
 #include "r_sky.h"
 #include "software/sw_things.h"
+#include "software/sw_bsp.h"
 
 #include "r_portal.h"
 #include "software/sw_splats.h"
