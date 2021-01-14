@@ -7,13 +7,13 @@
 	the licensing is for Sonic Robo Blast 2.
 */
 
-#ifndef _HW_MD3LOAD_H_
-#define _HW_MD3LOAD_H_
+#ifndef _R_MD2LOAD_H_
+#define _R_MD2LOAD_H_
 
-#include "hw_model.h"
-#include "../doomtype.h"
+#include "r_model.h"
+#include "doomtype.h"
 
 // Load the Model
-model_t *MD3_LoadModel(const char *fileName, int ztag, boolean useFloat);
+model_t *MD2_LoadModel(const char *fileName, int ztag, boolean useFloat);
 
 #endif

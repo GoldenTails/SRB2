@@ -2498,7 +2498,7 @@ EXPORT void HWRAPI(CreateModelVBOs) (model_t *model)
 		if (mesh->frames)
 		{
 			int j;
-			for (j = 0; j < model->meshes[i].numFrames; j++)
+			for (j = 0; j < mesh->numFrames; j++)
 			{
 				mdlframe_t *frame = &mesh->frames[j];
 				if (frame->vboID)
@@ -2510,13 +2510,47 @@ EXPORT void HWRAPI(CreateModelVBOs) (model_t *model)
 		else if (mesh->tinyframes)
 		{
 			int j;
-			for (j = 0; j < model->meshes[i].numFrames; j++)
+			for (j = 0; j < mesh->numFrames; j++)
 			{
 				tinyframe_t *frame = &mesh->tinyframes[j];
 				if (frame->vboID)
 					pglDeleteBuffers(1, &frame->vboID);
 				frame->vboID = 0;
 				CreateModelVBOTiny(mesh, frame);
+			}
+		}
+	}
+}
+
+EXPORT void HWRAPI(DeleteModelVBOs) (model_t *model)
+{
+	int i;
+	for (i = 0; i < model->numMeshes; i++)
+	{
+		mesh_t *mesh = &model->meshes[i];
+
+		if (mesh->frames)
+		{
+			int j;
+			for (j = 0; j < mesh->numFrames; j++)
+			{
+				mdlframe_t *frame = &mesh->frames[j];
+				if (!frame->vboID)
+					continue;
+				pglDeleteBuffers(1, &frame->vboID);
+				frame->vboID = 0;
+			}
+		}
+		else if (mesh->tinyframes)
+		{
+			int j;
+			for (j = 0; j < mesh->numFrames; j++)
+			{
+				tinyframe_t *frame = &mesh->tinyframes[j];
+				if (!frame->vboID)
+					continue;
+				pglDeleteBuffers(1, &frame->vboID);
+				frame->vboID = 0;
 			}
 		}
 	}

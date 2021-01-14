@@ -17,6 +17,7 @@
 #include "g_game.h"
 #include "g_input.h"
 #include "r_local.h"
+#include "r_model.h"
 #include "r_splats.h" // faB(21jan): testing
 #include "r_sky.h"
 #include "hu_stuff.h"
@@ -35,6 +36,10 @@
 #include "r_portal.h"
 #include "r_main.h"
 #include "i_system.h" // I_GetTimeMicros
+
+#ifdef SWRASTERIZER
+#include "swrasterizer/swrast.h"
+#endif
 
 #ifdef HWRENDER
 #include "hardware/hw_main.h"
@@ -74,6 +79,13 @@ fixed_t viewcos, viewsin;
 sector_t *viewsector;
 player_t *viewplayer;
 mobj_t *r_viewmobj;
+
+#ifdef SWRASTERIZER
+boolean swrasterizer = true;
+boolean noswrasterizer = false;
+boolean modelinview = false;
+boolean frustumclipping = false;
+#endif
 
 //
 // precalculated math tables
@@ -882,6 +894,11 @@ void R_ApplyViewMorph(void)
 			vid.width*vid.bpp, vid.height, vid.width*vid.bpp, vid.width);
 }
 
+fixed_t R_GetViewMorphZoom(void)
+{
+	return viewmorph.zoomneeded;
+}
+
 
 //
 // R_SetViewSize
@@ -987,6 +1004,10 @@ void R_ExecuteSetViewSize(void)
 #endif
 
 	am_recalc = true;
+#ifdef SWRASTERIZER
+	if (swrasterizer)
+		SWRast_SetViewport(viewwidth, viewheight);
+#endif
 }
 
 //
@@ -1014,6 +1035,11 @@ void R_Init(void)
 	R_InitTranslationTables();
 
 	R_InitDrawNodes();
+
+#ifdef SWRASTERIZER
+	if (swrasterizer)
+		SWRast_Init();
+#endif
 
 	framecount = 0;
 }
@@ -1418,6 +1444,8 @@ static void Mask_Pre (maskcount_t* m)
 	m->viewx = viewx;
 	m->viewy = viewy;
 	m->viewz = viewz;
+	m->viewangle = viewangle;
+	m->aimingangle = aimingangle;
 	m->viewsector = viewsector;
 }
 
@@ -1481,9 +1509,17 @@ void R_RenderPlayerView(player_t *player)
 	NetUpdate();
 
 	// The head node is the last node output.
-
 	Mask_Pre(&masks[nummasks - 1]);
 	curdrawsegs = ds_p;
+
+#ifdef SWRASTERIZER
+	swrasterizer = (!noswrasterizer);
+	modelinview = false;
+	frustumclipping = false;
+	if (swrasterizer)
+		SWRast_OnPlayerFrame();
+#endif
+
 //profile stuff ---------------------------------------------------------
 #ifdef TIMING
 	mytotal = 0;
@@ -1505,6 +1541,10 @@ void R_RenderPlayerView(player_t *player)
 
 	R_ClipSprites(drawsegs, NULL);
 
+#ifdef SWRASTERIZER
+	if (modelinview)
+		SWRast_ViewpointStore();
+#endif
 
 	// Add skybox portals caused by sky visplanes.
 	if (cv_skybox.value && skyboxmo[0])
@@ -1516,7 +1556,7 @@ void R_RenderPlayerView(player_t *player)
 	{
 		portal_t *portal;
 
-		for(portal = portal_base; portal; portal = portal_base)
+		for (portal = portal_base; portal; portal = portal_base)
 		{
 			portalrender = portal->pass; // Recursiveness depth.
 
@@ -1524,6 +1564,14 @@ void R_RenderPlayerView(player_t *player)
 
 			// Apply the viewpoint stored for the portal.
 			R_PortalFrame(portal);
+
+#ifdef SWRASTERIZER
+			if (modelinview)
+			{
+				SWRast_SetModelView();
+				SWRast_SetMask(SWRAST_MASKDRAWBIT | portalrender);
+			}
+#endif
 
 			// Hack in the clipsegs to delimit the starting
 			// clipping for sprites and possibly other similar
@@ -1552,6 +1600,11 @@ void R_RenderPlayerView(player_t *player)
 		}
 	}
 	rs_sw_portaltime = I_GetTimeMicros() - rs_sw_portaltime;
+
+#ifdef SWRASTERIZER
+	if (modelinview)
+		SWRast_ViewpointRestore();
+#endif
 
 	rs_sw_planetime = I_GetTimeMicros();
 	R_DrawPlanes();

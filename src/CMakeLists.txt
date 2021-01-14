@@ -130,6 +130,11 @@ set(SRB2_CORE_RENDER_SOURCES
 	r_textures.c
 	r_picformats.c
 	r_portal.c
+	r_md2load.c
+	r_md3load.c
+	r_model.c
+	r_modeltextures.c
+	u_list.c
 
 	r_bsp.h
 	r_data.h
@@ -147,6 +152,11 @@ set(SRB2_CORE_RENDER_SOURCES
 	r_textures.h
 	r_picformats.h
 	r_portal.h
+	r_md2load.h
+	r_md3load.h
+	r_model.h
+	r_modeltextures.h
+	u_list.h
 )
 
 set(SRB2_CORE_GAME_SOURCES
@@ -241,6 +251,8 @@ else()
 endif()
 set(SRB2_CONFIG_HWRENDER ON CACHE BOOL
 	"Enable hardware rendering through OpenGL.")
+set(SRB2_CONFIG_SWRASTERIZER ON CACHE BOOL
+	"Enable model rendering in software mode.")
 set(SRB2_CONFIG_USEASM OFF CACHE BOOL
 	"Enable NASM tmap implementation for software mode speedup.")
 set(SRB2_CONFIG_YASM OFF CACHE BOOL
@@ -489,10 +501,6 @@ if(${SRB2_CONFIG_HWRENDER})
 		${CMAKE_CURRENT_SOURCE_DIR}/hardware/hw_light.c
 		${CMAKE_CURRENT_SOURCE_DIR}/hardware/hw_main.c
 		${CMAKE_CURRENT_SOURCE_DIR}/hardware/hw_md2.c
-		${CMAKE_CURRENT_SOURCE_DIR}/hardware/hw_md2load.c
-		${CMAKE_CURRENT_SOURCE_DIR}/hardware/hw_md3load.c
-		${CMAKE_CURRENT_SOURCE_DIR}/hardware/hw_model.c
-		${CMAKE_CURRENT_SOURCE_DIR}/hardware/u_list.c
 	)
 
 	set (SRB2_HWRENDER_HEADERS
@@ -506,10 +514,6 @@ if(${SRB2_CONFIG_HWRENDER})
 		${CMAKE_CURRENT_SOURCE_DIR}/hardware/hw_light.h
 		${CMAKE_CURRENT_SOURCE_DIR}/hardware/hw_main.h
 		${CMAKE_CURRENT_SOURCE_DIR}/hardware/hw_md2.h
-		${CMAKE_CURRENT_SOURCE_DIR}/hardware/hw_md2load.h
-		${CMAKE_CURRENT_SOURCE_DIR}/hardware/hw_md3load.h
-		${CMAKE_CURRENT_SOURCE_DIR}/hardware/hw_model.h
-		${CMAKE_CURRENT_SOURCE_DIR}/hardware/u_list.h
 	)
 
 	set(SRB2_R_OPENGL_SOURCES
@@ -518,6 +522,26 @@ if(${SRB2_CONFIG_HWRENDER})
 
 	set(SRB2_R_OPENGL_HEADERS
 		${CMAKE_CURRENT_SOURCE_DIR}/hardware/r_opengl/r_opengl.h
+	)
+
+endif()
+
+if(${SRB2_CONFIG_SWRASTERIZER})
+	add_definitions(-DSWRASTERIZER)
+	set(SRB2_SWRASTERIZER_SOURCES
+		${CMAKE_CURRENT_SOURCE_DIR}/swrasterizer/swrast_main.c
+		${CMAKE_CURRENT_SOURCE_DIR}/swrasterizer/swrast_triangle.c
+		${CMAKE_CURRENT_SOURCE_DIR}/swrasterizer/swrast_span.c
+		${CMAKE_CURRENT_SOURCE_DIR}/swrasterizer/swrast_pixel.c
+		${CMAKE_CURRENT_SOURCE_DIR}/swrasterizer/swrast_math.c
+		${CMAKE_CURRENT_SOURCE_DIR}/swrasterizer/swrast_model.c
+	)
+
+	set (SRB2_SWRASTERIZER_HEADERS
+		${CMAKE_CURRENT_SOURCE_DIR}/swrasterizer/swrast.h
+		${CMAKE_CURRENT_SOURCE_DIR}/swrasterizer/swrast_defs.h
+		${CMAKE_CURRENT_SOURCE_DIR}/swrasterizer/swrast_types.h
+		${CMAKE_CURRENT_SOURCE_DIR}/swrasterizer/swrast_math.h
 	)
 
 endif()

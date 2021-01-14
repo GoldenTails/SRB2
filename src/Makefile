@@ -262,13 +262,28 @@ ifdef NO_IPV6
 endif
 endif
 
+ifdef NO_SWRASTERIZER
+	OPTS+=-DNO_SWRASTERIZER
+else
+	OPTS+=-DSWRASTERIZER
+	OBJS+=$(OBJDIR)/swrast_main.o \
+		$(OBJDIR)/swrast_triangle.o $(OBJDIR)/swrast_span.o $(OBJDIR)/swrast_pixel.o \
+		$(OBJDIR)/swrast_math.o $(OBJDIR)/swrast_model.o
+endif
+
 ifdef NOHW
 	OPTS+=-DNOHW
 else
 	OPTS+=-DHWRENDER
 	OBJS+=$(OBJDIR)/hw_bsp.o $(OBJDIR)/hw_draw.o $(OBJDIR)/hw_light.o \
-		 $(OBJDIR)/hw_main.o $(OBJDIR)/hw_clip.o $(OBJDIR)/hw_md2.o $(OBJDIR)/hw_cache.o \
-		 $(OBJDIR)/hw_md2load.o $(OBJDIR)/hw_md3load.o $(OBJDIR)/hw_model.o $(OBJDIR)/u_list.o $(OBJDIR)/hw_batching.o
+		 $(OBJDIR)/hw_main.o $(OBJDIR)/hw_clip.o $(OBJDIR)/hw_md2.o $(OBJDIR)/hw_cache.o $(OBJDIR)/hw_batching.o
+endif
+
+ifdef NOHS
+	OPTS+=-DNOHS
+else
+	OPTS+=-DHW3SOUND
+	OBJS+=$(OBJDIR)/hw3sound.o
 endif
 
 OPTS += -DCOMPVERSION
@@ -518,6 +533,11 @@ OBJS:=$(i_main_o) \
 		$(OBJDIR)/r_textures.o \
 		$(OBJDIR)/r_picformats.o \
 		$(OBJDIR)/r_portal.o \
+		$(OBJDIR)/r_md2load.o \
+		$(OBJDIR)/r_md3load.o \
+		$(OBJDIR)/r_model.o \
+		$(OBJDIR)/r_modeltextures.o \
+		$(OBJDIR)/u_list.o \
 		$(OBJDIR)/screen.o   \
 		$(OBJDIR)/v_video.o  \
 		$(OBJDIR)/s_sound.o  \
@@ -644,7 +664,6 @@ $(OBJDIR)/r_opengl.o: hardware/r_opengl/r_opengl.c hardware/r_opengl/r_opengl.h 
  doomdef.h doomtype.h g_state.h m_swap.h hardware/hw_drv.h screen.h \
  command.h hardware/hw_data.h hardware/hw_defs.h \
  hardware/hw_md2.h hardware/hw_glob.h hardware/hw_main.h hardware/hw_clip.h \
- hardware/hw_md2load.h hardware/hw_md3load.h hardware/hw_model.h hardware/u_list.h \
  am_map.h d_event.h d_player.h p_pspr.h m_fixed.h tables.h info.h d_think.h \
  p_mobj.h doomdata.h d_ticcmd.h r_defs.h hardware/hw_dll.h
 	$(echoName)
@@ -654,7 +673,6 @@ $(OBJDIR)/r_opengl.o: hardware/r_opengl/r_opengl.c hardware/r_opengl/r_opengl.h 
  doomdef.h doomtype.h g_state.h m_swap.h hardware/hw_drv.h screen.h \
  command.h hardware/hw_data.h hardware/hw_defs.h \
  hardware/hw_md2.h hardware/hw_glob.h hardware/hw_main.h hardware/hw_clip.h \
- hardware/hw_md2load.h hardware/hw_md3load.h hardware/hw_model.h hardware/u_list.h \
  am_map.h d_event.h d_player.h p_pspr.h m_fixed.h tables.h info.h d_think.h \
  p_mobj.h doomdata.h d_ticcmd.h r_defs.h hardware/hw_dll.h
 	$(echoName)
@@ -674,6 +692,9 @@ $(OBJDIR)/depend.dep:
 	-$(MKDIR) $(OBJDIR)
 	$(CC) $(CFLAGS) -MM *.c > $(OBJDIR)/depend.ped
 	$(CC) $(CFLAGS) -MM $(INTERFACE)/*.c >> $(OBJDIR)/depend.ped
+ifndef NO_SWRASTERIZER
+	$(CC) $(CFLAGS) -MM swrasterizer/*.c >> $(OBJDIR)/depend.ped
+endif
 ifndef NOHW
 	$(CC) $(CFLAGS) -MM hardware/*.c >> $(OBJDIR)/depend.ped
 endif
@@ -710,6 +731,10 @@ $(OBJDIR)/%.o: sdl/macosx/%.c
 	$(echoName)
 	$(CC) $(CFLAGS) $(WFLAGS) -c $< -o $@
 endif
+
+$(OBJDIR)/%.o: swrasterizer/%.c
+	$(echoName)
+	$(CC) $(CFLAGS) $(WFLAGS) -c $< -o $@
 
 $(OBJDIR)/%.o: hardware/%.c
 	$(echoName)

@@ -499,7 +499,6 @@ static void HWR_GenerateTexture(INT32 texnum, GLMapTexture_t *grtex)
 	// Composite the columns together.
 	for (i = 0, patch = texture->patches; i < texture->patchcount; i++, patch++)
 	{
-		boolean dealloc = true;
 		size_t lumplength = W_LumpLengthPwad(patch->wad, patch->lump);
 		pdata = W_CacheLumpNumPwad(patch->wad, patch->lump, PU_CACHE);
 		realpatch = (patch_t *)pdata;
@@ -514,15 +513,9 @@ static void HWR_GenerateTexture(INT32 texnum, GLMapTexture_t *grtex)
 			realpatch = (patch_t *)Picture_Convert(PICFMT_FLAT, pdata, PICFMT_PATCH, 0, NULL, texture->width, texture->height, 0, 0, 0);
 		else
 #endif
-		{
-			(void)lumplength;
-			dealloc = false;
-		}
+		(void)lumplength;
 
 		HWR_DrawTexturePatchInCache(&grtex->mipmap, blockwidth, blockheight, texture, patch, realpatch);
-
-		if (dealloc)
-			Z_Unlock(realpatch);
 	}
 	//Hurdler: not efficient at all but I don't remember exactly how HWR_DrawPatchInCache works :(
 	if (format2bpp(grtex->mipmap.format)==4)
@@ -606,15 +599,8 @@ void HWR_InitTextureCache(void)
 }
 
 // Callback function for HWR_FreeTextureCache.
-static void FreeMipmapColormap(INT32 patchnum, void *patch)
+static void FreeMipmapColormap(GLPatch_t *pat)
 {
-	GLPatch_t* const pat = patch;
-	(void)patchnum; //unused
-
-	// The patch must be valid, obviously
-	if (!pat)
-		return;
-
 	// The mipmap must be valid, obviously
 	while (pat->mipmap)
 	{
@@ -647,7 +633,7 @@ static void FreeMipmapColormap(INT32 patchnum, void *patch)
 
 void HWR_FreeMipmapCache(void)
 {
-	INT32 i;
+	INT32 i, j;
 
 	// free references to the textures
 	HWD.pfnClearMipMapCache();
@@ -660,7 +646,20 @@ void HWR_FreeMipmapCache(void)
 	// Alam: free the Z_Blocks before freeing it's users
 	// free all patch colormaps after each level: must be done after ClearMipMapCache!
 	for (i = 0; i < numwadfiles; i++)
-		M_AATreeIterate(wadfiles[i]->hwrcache, FreeMipmapColormap);
+	{
+		lumpcache_t *lumpcache;
+		if (!wadfiles[i]->patchcache)
+			continue;
+
+		lumpcache = wadfiles[i]->patchcache->hardware;
+
+		for (j = 0; j < wadfiles[i]->numlumps; j++)
+		{
+			GLPatch_t *grpatch = lumpcache[j];
+			if (grpatch)
+				FreeMipmapColormap(grpatch);
+		}
+	}
 }
 
 void HWR_FreeTextureCache(void)
@@ -1143,7 +1142,6 @@ GLPatch_t *HWR_GetPic(lumpnum_t lumpnum)
 			                   pic,
 			                   format2bpp(grpatch->mipmap->format));
 
-		Z_Unlock(pic);
 		Z_ChangeTag(block, PU_HWRCACHE_UNLOCKED);
 
 		grpatch->mipmap->flags = 0;
@@ -1157,16 +1155,15 @@ GLPatch_t *HWR_GetPic(lumpnum_t lumpnum)
 
 GLPatch_t *HWR_GetCachedGLPatchPwad(UINT16 wadnum, UINT16 lumpnum)
 {
-	aatree_t *hwrcache = wadfiles[wadnum]->hwrcache;
+	lumpcache_t *lumpcache = wadfiles[wadnum]->patchcache->hardware;
 	GLPatch_t *grpatch;
 
-	if (!(grpatch = M_AATreeGet(hwrcache, lumpnum)))
+	if (!(grpatch = lumpcache[lumpnum]))
 	{
-		grpatch = Z_Calloc(sizeof(GLPatch_t), PU_HWRPATCHINFO, NULL);
+		grpatch = Z_Calloc(sizeof(GLPatch_t), PU_HWRPATCHINFO, &lumpcache[lumpnum]);
 		grpatch->wadnum = wadnum;
 		grpatch->lumpnum = lumpnum;
 		grpatch->mipmap = Z_Calloc(sizeof(GLMipmap_t), PU_HWRPATCHINFO, NULL);
-		M_AATreeSet(hwrcache, lumpnum, grpatch);
 	}
 
 	return grpatch;

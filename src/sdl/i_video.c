@@ -113,6 +113,7 @@ static SDL_bool disable_fullscreen = SDL_FALSE;
 #define USE_FULLSCREEN (disable_fullscreen||!allow_fullscreen)?0:cv_fullscreen.value
 static SDL_bool disable_mouse = SDL_FALSE;
 #define USE_MOUSEINPUT (!disable_mouse && cv_usemouse.value && havefocus)
+#define IGNORE_MOUSE (!USE_MOUSEINPUT || (!cv_alwaysgrabmouse.value && (menuactive || paused || con_destlines || chat_on || gamestate != GS_LEVEL)))
 #define MOUSE_MENU false //(!disable_mouse && cv_usemouse.value && menuactive && !USE_FULLSCREEN)
 #define MOUSEBUTTONS_MAX MOUSEBUTTONS
 
@@ -1844,6 +1845,7 @@ void VID_StartupOpenGL(void)
 		HWD.pfnGetTextureUsed   = hwSym("GetTextureUsed",NULL);
 		HWD.pfnDrawModel        = hwSym("DrawModel",NULL);
 		HWD.pfnCreateModelVBOs  = hwSym("CreateModelVBOs",NULL);
+		HWD.pfnDeleteModelVBOs  = hwSym("DeleteModelVBOs",NULL);
 		HWD.pfnSetTransform     = hwSym("SetTransform",NULL);
 		HWD.pfnPostImgRedraw    = hwSym("PostImgRedraw",NULL);
 		HWD.pfnFlushScreenTextures=hwSym("FlushScreenTextures",NULL);

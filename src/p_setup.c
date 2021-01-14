@@ -48,6 +48,7 @@
 
 #include "dehacked.h" // for map headers
 #include "r_main.h"
+#include "r_model.h"
 #include "m_cond.h" // for emblems
 
 #include "m_argv.h"
@@ -75,7 +76,6 @@
 #ifdef HWRENDER
 #include "hardware/hw_main.h"
 #include "hardware/hw_light.h"
-#include "hardware/hw_model.h"
 #endif
 
 #include "p_slopes.h"
@@ -4530,10 +4530,7 @@ boolean P_AddWadFile(const char *wadfilename)
 		CONS_Printf(M_GetText("No maps added\n"));
 
 	R_LoadSpriteInfoLumps(wadnum, numlumps);
-
-#ifdef HWRENDER
-	HWR_ReloadModels();
-#endif
+	Model_ReloadSettings();
 
 	// reload status bar (warning should have valid player!)
 	if (gamestate == GS_LEVEL)
