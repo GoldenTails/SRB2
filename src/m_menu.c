@@ -86,7 +86,6 @@
 #define SMALLLINEHEIGHT 8
 #define SLIDER_RANGE 9
 #define SLIDER_WIDTH 78
-#define SERVERS_PER_PAGE 11
 
 typedef enum
 {
@@ -175,6 +174,8 @@ static tic_t ntsatkdrawtimer = 0;
 static tic_t charseltimer = 0;
 static fixed_t char_scroll = 0;
 #define charscrollamt 128*FRACUNIT
+
+static UINT32 servers_per_page;
 
 static tic_t keydown = 0;
 
@@ -407,6 +408,7 @@ static void M_ResetCvars(void);
 // Consvar onchange functions
 static void Newgametype_OnChange(void);
 static void Dummymares_OnChange(void);
+static void Serverlistlook_OnChange(void);
 
 // ==========================================================================
 // CONSOLE VARIABLES AND THEIR POSSIBLE VALUES GO HERE.
@@ -440,6 +442,13 @@ static CV_PossibleValue_t serversort_cons_t[] = {
 	{0,NULL}
 };
 consvar_t cv_serversort = {"serversort", "Ping", CV_HIDEN | CV_CALL, serversort_cons_t, M_SortServerList, 0, NULL, NULL, 0, 0, NULL};
+
+static CV_PossibleValue_t serverlistlook_cons_t[] = {
+	{0,"Normal"},
+	{1,"Compact"},
+	{0,NULL}
+};
+consvar_t cv_serverlistlook = {"serverlistlook", "Normal", CV_SAVE | CV_CALL, serverlistlook_cons_t, Serverlistlook_OnChange, 0, NULL, NULL, 0, 0, NULL};
 
 // first time memory
 consvar_t cv_tutorialprompt = {"tutorialprompt", "On", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -1004,17 +1013,38 @@ static menuitem_t MP_ConnectMenu[] =
 	{IT_STRING | IT_KEYHANDLER, NULL, "Page",     M_HandleServerPage, 20},
 	{IT_STRING | IT_CALL,       NULL, "Refresh",  M_Refresh,          28},
 
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          48-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          60-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          72-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          84-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          96-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         108-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         120-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         132-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         144-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         156-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         168-4},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,             0},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,             0},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,             0},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,             0},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,             0},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,             0},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,             0},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,             0},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,             0},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,             0},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,             0},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,             0},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,             0},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,             0},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,             0},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,             0},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,             0},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,             0},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,             0},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,             0},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,             0},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,             0},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,             0},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,             0},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,             0},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,             0},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,             0},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,             0},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,             0},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,             0},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,             0},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,             0},
 };
 
 enum
@@ -1023,7 +1053,8 @@ enum
 	mp_connect_sort,
 	mp_connect_page,
 	mp_connect_refresh,
-	FIRSTSERVERLINE
+	FIRSTSERVERLINE,
+	MAXSERVERLINE = FIRSTSERVERLINE + 31
 };
 
 menuitem_t MP_RoomMenu[] =
@@ -2447,6 +2478,40 @@ static void Newgametype_OnChange(void)
 
 		if (!M_CanShowLevelOnPlatter(cv_nextmap.value-1, cv_newgametype.value))
 			CV_SetValue(&cv_nextmap, M_GetFirstLevelInList(cv_newgametype.value));
+	}
+}
+
+// Serverlist. Used for updating variables, and also the cursor if we're in the menu right now.
+static void Serverlistlook_OnChange(void)
+{
+	UINT32 old_servers_per_page = servers_per_page;
+
+	if (cv_serverlistlook.value)
+		servers_per_page = 32;
+	else
+		servers_per_page = 11;
+
+	for (UINT32 i = FIRSTSERVERLINE; i < MAXSERVERLINE; i++)
+		MP_ConnectMenu[i].status = IT_STRING | IT_SPACE;
+
+	if (menuactive && currentMenu == &MP_ConnectDef && itemOn >= FIRSTSERVERLINE)
+	{
+		UINT32 numPages = (serverlistcount+(servers_per_page-1))/servers_per_page;
+		UINT32 position = (serverlistpage * old_servers_per_page) + itemOn - FIRSTSERVERLINE;
+
+		while (position >= servers_per_page)
+		{
+			position -= servers_per_page;
+			serverlistpage++;
+		}
+
+		if (position > serverlistcount - 1)
+			position = serverlistcount - 1;
+
+		if (serverlistpage > numPages - 1)
+			serverlistpage = numPages - 1;
+
+		itemOn = position + FIRSTSERVERLINE;
 	}
 }
 
@@ -10824,11 +10889,6 @@ static void M_EndGame(INT32 choice)
 // Connect Menu
 //===========================================================================
 
-#define SERVERHEADERHEIGHT 44
-#define SERVERLINEHEIGHT 12
-
-#define S_LINEY(n) currentMenu->y + SERVERHEADERHEIGHT + (n * SERVERLINEHEIGHT)
-
 #ifndef NONET
 static UINT32 localservercount;
 
@@ -10854,7 +10914,7 @@ static void M_HandleServerPage(INT32 choice)
 		case KEY_ENTER:
 		case KEY_RIGHTARROW:
 			S_StartSound(NULL, sfx_menu1);
-			if ((serverlistpage + 1) * SERVERS_PER_PAGE < serverlistcount)
+			if ((serverlistpage + 1) * servers_per_page < serverlistcount)
 				serverlistpage++;
 			break;
 		case KEY_LEFTARROW:
@@ -10880,7 +10940,7 @@ static void M_Connect(INT32 choice)
 	// do not call menuexitfunc
 	M_ClearMenus(false);
 
-	COM_BufAddText(va("connect node %d\n", serverlist[choice-FIRSTSERVERLINE + serverlistpage * SERVERS_PER_PAGE].node));
+	COM_BufAddText(va("connect node %d\n", serverlist[choice-FIRSTSERVERLINE + serverlistpage * servers_per_page].node));
 }
 
 static void M_Refresh(INT32 choice)
@@ -10969,14 +11029,29 @@ static void M_DrawRoomMenu(void)
 	}
 }
 
+#define SERVERHEADERHEIGHT 44
+
+#define S_LINEY(n) currentMenu->y + SERVERHEADERHEIGHT + (n * serverlineheight) + serverlineoffset
+
 static void M_DrawConnectMenu(void)
 {
 	UINT16 i;
 	char *gt;
-	INT32 numPages = (serverlistcount+(SERVERS_PER_PAGE-1))/SERVERS_PER_PAGE;
+	UINT32 serverlineheight = 12, serverlineoffset = 8, servercursoroffset = 4;
+	INT32 numPages = (serverlistcount+(servers_per_page-1))/servers_per_page;
 
-	for (i = FIRSTSERVERLINE; i < min(localservercount, SERVERS_PER_PAGE)+FIRSTSERVERLINE; i++)
+	if (cv_serverlistlook.value)
+	{
+		serverlineheight = 4;
+		serverlineoffset = 0;
+		servercursoroffset = 6;
+	}
+
+	for (i = FIRSTSERVERLINE; i < min(localservercount, servers_per_page)+FIRSTSERVERLINE; i++)
+	{
 		MP_ConnectMenu[i].status = IT_STRING | IT_SPACE;
+		MP_ConnectMenu[i].alphaKey = (48 - servercursoroffset) + (i - FIRSTSERVERLINE) * serverlineheight;
+	}
 
 	if (!numPages)
 		numPages = 1;
@@ -10999,34 +11074,64 @@ static void M_DrawConnectMenu(void)
 	if (serverlistcount <= 0)
 		V_DrawString(currentMenu->x,currentMenu->y+SERVERHEADERHEIGHT, 0, "No servers found");
 	else
-	for (i = 0; i < min(serverlistcount - serverlistpage * SERVERS_PER_PAGE, SERVERS_PER_PAGE); i++)
+	for (i = 0; i < min(serverlistcount - serverlistpage * servers_per_page, servers_per_page); i++)
 	{
-		INT32 slindex = i + serverlistpage * SERVERS_PER_PAGE;
+		INT32 slindex = i + serverlistpage * servers_per_page;
 		UINT32 globalflags = (serverlist[slindex].info.refusereason ? V_TRANSLUCENT : 0)
 			|((itemOn == FIRSTSERVERLINE+i) ? V_YELLOWMAP : 0)|V_ALLOWLOWERCASE;
 
-		V_DrawString(currentMenu->x, S_LINEY(i), globalflags, serverlist[slindex].info.servername);
+		if (cv_serverlistlook.value)
+			V_DrawSmallString(currentMenu->x, S_LINEY(i), globalflags, serverlist[slindex].info.servername);
+		else
+			V_DrawString(currentMenu->x, S_LINEY(i) - serverlineoffset, globalflags, serverlist[slindex].info.servername);
 
 		// Don't use color flags intentionally, the global yellow color will auto override the text color code
 		if (serverlist[slindex].info.modifiedgame)
-			V_DrawSmallString(currentMenu->x+202, S_LINEY(i)+8, globalflags, "\x85" "Mod");
-		if (serverlist[slindex].info.cheatsenabled)
-			V_DrawSmallString(currentMenu->x+222, S_LINEY(i)+8, globalflags, "\x83" "Cheats");
+		{
+			if (cv_serverlistlook.value)
+				V_DrawSmallString(currentMenu->x + 240, S_LINEY(i), globalflags, "\x85" "M");
+			else
+				V_DrawSmallString(currentMenu->x + 202, S_LINEY(i), globalflags, "\x85" "Mod");
+		}
 
-		V_DrawSmallString(currentMenu->x, S_LINEY(i)+8, globalflags,
-		                     va("Ping: %u", (UINT32)LONG(serverlist[slindex].info.time)));
+		if (serverlist[slindex].info.cheatsenabled)
+		{
+			if (cv_serverlistlook.value)
+				V_DrawSmallString(currentMenu->x + 248, S_LINEY(i), globalflags, "\x83" "C");
+			else
+				V_DrawSmallString(currentMenu->x + 222, S_LINEY(i), globalflags, "\x83" "Cheats");
+		}
+
+		if (cv_serverlistlook.value)
+			V_DrawRightAlignedSmallString(currentMenu->x+152, S_LINEY(i), globalflags,
+				va("%ums", (UINT32)LONG(serverlist[slindex].info.time)));
+		else
+			V_DrawSmallString(currentMenu->x, S_LINEY(i), globalflags,
+				va("Ping: %u", (UINT32)LONG(serverlist[slindex].info.time)));
 
 		gt = serverlist[slindex].info.gametypename;
 
-		V_DrawSmallString(currentMenu->x+46,S_LINEY(i)+8, globalflags,
-		                         va("Players: %02d/%02d", serverlist[slindex].info.numberofplayer, serverlist[slindex].info.maxplayer));
-
-		if (strlen(gt) > 11)
-			gt = va("Gametype: %.11s...", gt);
+		if (cv_serverlistlook.value)
+			V_DrawSmallString(currentMenu->x+156, S_LINEY(i), globalflags,
+				va("%02d/%02d", serverlist[slindex].info.numberofplayer, serverlist[slindex].info.maxplayer));
 		else
-			gt = va("Gametype: %s", gt);
+			V_DrawSmallString(currentMenu->x+46,  S_LINEY(i), globalflags,
+				va("Players: %02d/%02d", serverlist[slindex].info.numberofplayer, serverlist[slindex].info.maxplayer));
 
-		V_DrawSmallString(currentMenu->x+112, S_LINEY(i)+8, globalflags, gt);
+		if (cv_serverlistlook.value)
+		{
+			if (strlen(gt) > 13)
+				gt = va("%.13s...", gt);
+			V_DrawSmallString(currentMenu->x+180, S_LINEY(i), globalflags, gt);
+		}
+		else
+		{
+			if (strlen(gt) > 11)
+				gt = va("Gametype: %.11s...", gt);
+			else
+				gt = va("Gametype: %s", gt);
+			V_DrawSmallString(currentMenu->x+112, S_LINEY(i), globalflags, gt);
+		}
 
 		MP_ConnectMenu[i+FIRSTSERVERLINE].status = IT_STRING | IT_CALL;
 	}
@@ -11043,6 +11148,8 @@ static void M_DrawConnectMenu(void)
 		V_DrawCenteredString(BASEVIDWIDTH/2, (BASEVIDHEIGHT/2)+12, 0, "Please wait.");
 	}
 }
+
+#undef S_LINEY
 
 static boolean M_CancelConnect(void)
 {
