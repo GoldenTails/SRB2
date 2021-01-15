@@ -521,18 +521,18 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="..\tmap.nas">
+    <CustomBuild Include="..\software\tmap.nas">
       <Filter>A_Asm</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\tmap_mmx.nas">
+    <CustomBuild Include="..\software\tmap_mmx.nas">
       <Filter>A_Asm</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\tmap_vc.nas">
+    <CustomBuild Include="..\software\tmap_vc.nas">
       <Filter>A_Asm</Filter>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\asm_defs.inc">
+    <None Include="..\software\asm_defs.inc">
       <Filter>A_Asm</Filter>
     </None>
     <None Include="..\config.h.in">

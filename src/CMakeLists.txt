@@ -208,16 +208,16 @@ source_group("Game" FILES ${SRB2_CORE_GAME_SOURCES})
 
 
 set(SRB2_ASM_SOURCES
-	${CMAKE_CURRENT_SOURCE_DIR}/vid_copy.s
+	${CMAKE_CURRENT_SOURCE_DIR}/software/vid_copy.s
 )
 
 set(SRB2_NASM_SOURCES
-	${CMAKE_CURRENT_SOURCE_DIR}/tmap_mmx.nas
-	${CMAKE_CURRENT_SOURCE_DIR}/tmap.nas
+	${CMAKE_CURRENT_SOURCE_DIR}/software/tmap_mmx.nas
+	${CMAKE_CURRENT_SOURCE_DIR}/software/tmap.nas
 )
 
 if(MSVC)
-	list(APPEND SRB2_NASM_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tmap_vc.nas)
+	list(APPEND SRB2_NASM_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/software/tmap_vc.nas)
 endif()
 
 set(SRB2_NASM_OBJECTS
