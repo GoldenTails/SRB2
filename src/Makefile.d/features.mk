@@ -23,7 +23,7 @@ sources+=$(call List,software/Sourcefile)
 
 ifndef NOASM
 ifndef NONX86
-sources+=tmap.nas tmap_mmx.nas
+sources+=software/tmap.nas software/tmap_mmx.nas
 opts+=-DUSEASM
 endif
 endif

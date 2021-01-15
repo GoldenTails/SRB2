@@ -6,3 +6,4 @@ sw_things.c
 sw_video.c
 sw_bsp.c
 sw_segs.c
+vid_copy.s
