@@ -310,7 +310,8 @@ endif
 
 ifndef NOASM
 ifndef NONX86
-	OBJS+=$(OBJDIR)/tmap.o $(OBJDIR)/tmap_mmx.o
+	@echo "lol"
+	OBJS+=$(OBJDIR)/software/tmap.o $(OBJDIR)/software/tmap_mmx.o
 	OPTS+=-DUSEASM
 endif
 endif
@@ -771,15 +772,15 @@ $(OBJDIR)/%.o: blua/%.c
 	$(echoName)
 	$(CC) $(CFLAGS) $(LUA_CFLAGS) $(WFLAGS) -c $< -o $@
 
-$(OBJDIR)/%.o: %.nas
+$(OBJDIR)/%.o: software/%.nas
 	$(echoName)
 	$(NASM) $(NASMOPTS) -o $@ -f $(NASMFORMAT) $<
 
-$(OBJDIR)/vid_copy.o: vid_copy.s asm_defs.inc
+$(OBJDIR)/vid_copy.o: software/vid_copy.s software/asm_defs.inc
 	$(echoName)
 	$(CC) $(OPTS) $(ASFLAGS) -x assembler-with-cpp -c $< -o $@
 
-$(OBJDIR)/%.o: %.s
+$(OBJDIR)/%.o: software/%.s
 	$(echoName)
 	$(CC) $(OPTS) -x assembler-with-cpp -c $< -o $@
 
