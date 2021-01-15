@@ -15,6 +15,7 @@
 #include "../g_game.h"
 #include "../r_local.h"
 #include "sw_bsp.h"
+#include "sw_segs.h"
 #include "../r_state.h"
 #include "../r_portal.h" // Add seg portals
 
@@ -76,7 +77,7 @@ static void SWR_ClipSolidWallSegment(INT32 first, INT32 last)
 		if (last < start->first - 1)
 		{
 			// Post is entirely visible (above start), so insert a new clippost.
-			R_StoreWallRange(first, last);
+			SWR_StoreWallRange(first, last);
 			next = newend;
 			newend++;
 			// NO MORE CRASHING!
@@ -94,7 +95,7 @@ static void SWR_ClipSolidWallSegment(INT32 first, INT32 last)
 		}
 
 		// There is a fragment above *start.
-		R_StoreWallRange(first, start->first - 1);
+		SWR_StoreWallRange(first, start->first - 1);
 		// Now adjust the clip size.
 		start->first = first;
 	}
@@ -107,7 +108,7 @@ static void SWR_ClipSolidWallSegment(INT32 first, INT32 last)
 	while (last >= (next+1)->first - 1)
 	{
 		// There is a fragment between two posts.
-		R_StoreWallRange(next->last + 1, (next+1)->first - 1);
+		SWR_StoreWallRange(next->last + 1, (next+1)->first - 1);
 		next++;
 
 		if (last <= next->last)
@@ -120,7 +121,7 @@ static void SWR_ClipSolidWallSegment(INT32 first, INT32 last)
 	}
 
 	// There is a fragment after *next.
-	R_StoreWallRange(next->last + 1, last);
+	SWR_StoreWallRange(next->last + 1, last);
 	// Adjust the clip size.
 	start->last = last;
 
@@ -159,12 +160,12 @@ static inline void SWR_ClipPassWallSegment(INT32 first, INT32 last)
 		if (last < start->first - 1)
 		{
 			// Post is entirely visible (above start).
-			R_StoreWallRange(first, last);
+			SWR_StoreWallRange(first, last);
 			return;
 		}
 
 		// There is a fragment above *start.
-		R_StoreWallRange(first, start->first - 1);
+		SWR_StoreWallRange(first, start->first - 1);
 	}
 
 	// Bottom contained in start?
@@ -174,7 +175,7 @@ static inline void SWR_ClipPassWallSegment(INT32 first, INT32 last)
 	while (last >= (start+1)->first - 1)
 	{
 		// There is a fragment between two posts.
-		R_StoreWallRange(start->last + 1, (start+1)->first - 1);
+		SWR_StoreWallRange(start->last + 1, (start+1)->first - 1);
 		start++;
 
 		if (last <= start->last)
@@ -182,7 +183,7 @@ static inline void SWR_ClipPassWallSegment(INT32 first, INT32 last)
 	}
 
 	// There is a fragment after *next.
-	R_StoreWallRange(start->last + 1, last);
+	SWR_StoreWallRange(start->last + 1, last);
 }
 
 //

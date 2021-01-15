@@ -8,13 +8,18 @@
 // terms of the GNU General Public License, version 2.
 // See the 'LICENSE' file for more details.
 //-----------------------------------------------------------------------------
-/// \file  r_segs.c
-/// \brief All the clipping: columns, horizontal spans, sky columns
+/// \file  sw_segs.h
+/// \brief Refresh module, drawing LineSegs from BSP
 
-#include "doomdef.h"
-#include "r_local.h"
+#ifndef __SW_SEGS__
+#define __SW_SEGS__
 
-transnum_t R_GetLinedefTransTable(fixed_t alpha)
-{
-	return (20*(FRACUNIT - alpha - 1) + FRACUNIT) >> (FRACBITS+1);
-}
+#ifdef __GNUG__
+#pragma interface
+#endif
+
+void SWR_RenderMaskedSegRange(drawseg_t *ds, INT32 x1, INT32 x2);
+void SWR_RenderThickSideRange(drawseg_t *ds, INT32 x1, INT32 x2, ffloor_t *pffloor);
+void SWR_StoreWallRange(INT32 start, INT32 stop);
+
+#endif

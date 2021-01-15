@@ -245,6 +245,7 @@
     <ClInclude Include="..\software\sw_things.h" />
     <ClInclude Include="..\software\sw_video.h" />
     <ClInclude Include="..\software\sw_bsp.h" />
+    <ClInclude Include="..\software\sw_segs.h" />
     <ClInclude Include="..\info.h" />
     <ClInclude Include="..\i_addrinfo.h" />
     <ClInclude Include="..\i_joy.h" />
@@ -409,6 +410,7 @@
     <ClCompile Include="..\software\sw_things.c" />
     <ClCompile Include="..\software\sw_video.c" />
     <ClCompile Include="..\software\sw_bsp.c" />
+    <ClCompile Include="..\software\sw_segs.c" />
     <ClCompile Include="..\info.c" />
     <ClCompile Include="..\i_addrinfo.c">
       <ExcludedFromBuild>true</ExcludedFromBuild>

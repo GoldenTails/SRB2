@@ -29,6 +29,7 @@
 #include "../r_picformats.h"
 #include "sw_plane.h"
 #include "sw_bsp.h"
+#include "sw_segs.h"
 #include "../r_portal.h"
 #include "sw_splats.h"
 #include "../p_tick.h"
@@ -2263,7 +2264,7 @@ void SWR_ClipVisSprite(vissprite_t *spr, INT32 x1, INT32 x2, drawseg_t* dsstart,
 			{
 				// masked mid texture?
 				/*if (ds->maskedtexturecol)
-					R_RenderMaskedSegRange (ds, r1, r2);*/
+					SWR_RenderMaskedSegRange (ds, r1, r2);*/
 				// seg is behind sprite
 				continue;
 			}
@@ -2432,7 +2433,7 @@ static void SWR_DrawMaskedList (drawnode_t* head)
 		else if (r2->seg && r2->seg->maskedtexturecol != NULL)
 		{
 			next = r2->prev;
-			R_RenderMaskedSegRange(r2->seg, r2->seg->x1, r2->seg->x2);
+			SWR_RenderMaskedSegRange(r2->seg, r2->seg->x1, r2->seg->x2);
 			r2->seg->maskedtexturecol = NULL;
 			SWR_DoneWithNode(r2);
 			r2 = next;
@@ -2440,7 +2441,7 @@ static void SWR_DrawMaskedList (drawnode_t* head)
 		else if (r2->thickseg)
 		{
 			next = r2->prev;
-			R_RenderThickSideRange(r2->thickseg, r2->thickseg->x1, r2->thickseg->x2, r2->ffloor);
+			SWR_RenderThickSideRange(r2->thickseg, r2->thickseg->x1, r2->thickseg->x2, r2->ffloor);
 			SWR_DoneWithNode(r2);
 			r2 = next;
 		}
