@@ -272,7 +272,7 @@ else
 endif
 
 OBJS+=$(OBJDIR)/sw_main.o $(OBJDIR)/sw_viewmorph.o $(OBJDIR)/sw_plane.o $(OBJDIR)/sw_splats.o \
-	$(OBJDIR)/sw_things.o $(OBJDIR)/sw_video.o $(OBJDIR)/sw_bsp.o
+	$(OBJDIR)/sw_things.o $(OBJDIR)/sw_video.o $(OBJDIR)/sw_bsp.o $(OBJDIR)/sw_segs.o
 
 OPTS += -DCOMPVERSION
 

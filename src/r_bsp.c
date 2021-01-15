@@ -23,19 +23,6 @@
 #include "z_zone.h" // Check R_Prep3DFloors
 #include "taglist.h"
 
-seg_t *curline;
-side_t *sidedef;
-line_t *linedef;
-sector_t *frontsector;
-sector_t *backsector;
-
-// Fix from boom.
-#define MAXSEGS (MAXVIDWIDTH/2+1)
-
-// newend is one past the last valid seg
-static cliprange_t *newend;
-static cliprange_t solidsegs[MAXSEGS];
-
 //
 // If player's view height is underneath fake floor, lower the
 // drawn ceiling to be just under the floor height, and replace
