@@ -87,9 +87,10 @@ static void SetTransform(mobj_t *mobj, modelinfo_t *md2, spriteframe_t *sprframe
 {
 	static SWRast_Transform3D *mTransform = NULL;
 
-	fixed_t x = mobj->x;
-	fixed_t y = mobj->z;
-	fixed_t z = mobj->y + FloatToFixed(md2->offset);
+	// uncapped/interpolation
+	fixed_t x = mobj->old_x + FixedMul(rendertimefrac, mobj->x - mobj->old_x);
+	fixed_t y = mobj->old_z + FixedMul(rendertimefrac, mobj->z - mobj->old_z);
+	fixed_t z = mobj->old_y + FixedMul(rendertimefrac, mobj->y - mobj->old_y + FloatToFixed(md2->offset));
 	angle_t ang;
 
 	if (mTransform == NULL)
