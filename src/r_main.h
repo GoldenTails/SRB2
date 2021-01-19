@@ -104,6 +104,10 @@ extern consvar_t cv_homremoval;
 extern consvar_t cv_chasecam, cv_chasecam2;
 extern consvar_t cv_flipcam, cv_flipcam2;
 
+#ifdef PERSPCORRECT
+extern consvar_t cv_perspcorr;
+#endif
+
 extern consvar_t cv_shadow;
 extern consvar_t cv_ffloorclip;
 extern consvar_t cv_translucency;
@@ -117,6 +121,10 @@ void R_Init(void);
 
 void R_CheckViewMorph(void);
 void R_ApplyViewMorph(void);
+
+#ifdef PERSPCORRECT
+void R_DrawPerspView(int aiming);
+#endif
 
 // just sets setsizeneeded true
 extern boolean setsizeneeded;

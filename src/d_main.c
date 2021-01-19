@@ -453,7 +453,14 @@ static void D_Display(void)
 				if (rendermode == render_soft)
 				{
 					if (!splitscreen)
+					{
+	#ifdef PERSPCORRECT
+						if (cv_perspcorr.value)
+							R_DrawPerspView(players[displayplayer].aiming);
+	#endif
+
 						R_ApplyViewMorph();
+					}
 
 					if (postimgtype)
 						V_DoPostProcessor(0, postimgtype, postimgparam);

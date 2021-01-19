@@ -149,6 +149,10 @@ consvar_t cv_chasecam2 = CVAR_INIT ("chasecam2", "On", CV_CALL, CV_OnOff, ChaseC
 consvar_t cv_flipcam = CVAR_INIT ("flipcam", "No", CV_SAVE|CV_CALL|CV_NOINIT, CV_YesNo, FlipCam_OnChange);
 consvar_t cv_flipcam2 = CVAR_INIT ("flipcam2", "No", CV_SAVE|CV_CALL|CV_NOINIT, CV_YesNo, FlipCam2_OnChange);
 
+#ifdef PERSPCORRECT
+consvar_t cv_perspcorr = CVAR_INIT ("perspectivecrunch", "Off", 0, CV_OnOff, NULL);
+#endif
+
 consvar_t cv_shadow = CVAR_INIT ("shadow", "On", CV_SAVE, CV_OnOff, NULL);
 consvar_t cv_skybox = CVAR_INIT ("skybox", "On", CV_SAVE, CV_OnOff, NULL);
 consvar_t cv_ffloorclip = CVAR_INIT ("ffloorclip", "On", CV_SAVE, CV_OnOff, NULL);
@@ -883,6 +887,77 @@ void R_ApplyViewMorph(void)
 			vid.width*vid.bpp, vid.height, vid.width*vid.bpp, vid.width);
 }
 
+#ifdef PERSPCORRECT
+//
+// Test 'scrunch perspective correction' tm (c) ect.
+//
+//added:05-04-98:
+
+void R_DrawPerspView(int aiming)
+{
+	UINT8*     source;
+	UINT8*     dest;
+	int        y;
+	int        x1,w;
+	int        offs;
+
+	fixed_t    topfrac,bottomfrac,scale,scalestep;
+	fixed_t    xfrac,xfracstep,frac;
+
+	if (rendermode == render_opengl)
+		return;
+
+	I_ReadScreen(screens[4]);
+
+	source = screens[4];
+
+	// +16 to -16 fixed
+	offs = AIMINGTODY(aiming); //((aiming*20)<<16) / 100;
+
+	topfrac    = ((vid.width)<<16) - (offs*2); // left bar
+	bottomfrac = ((vid.width)<<16) + (offs*2); // right bar
+
+	scalestep  = (bottomfrac-topfrac) / vid.height;
+	scale      = topfrac;
+
+	memset(screens[0], 0x1F, vid.width * vid.height);
+
+	for (y=0; y<vid.height; y++)
+	{
+		x1 = ((vid.width<<16) - scale)>>17;
+		dest = ((UINT8*) screens[0]) + (vid.width * y) + x1;
+
+		if (x1 >= vid.width)
+			break;
+
+		xfrac = ((!x1)&0xFFFF) + (0<<FRACBITS); // stretch
+		xfracstep = FixedDiv((vid.width<<FRACBITS)-(xfrac<<1),scale);
+		w = scale>>16;
+
+		while (w--)
+		{
+			while (xfrac < 0 || x1 < 0)
+			{
+				dest++;
+				xfrac += xfracstep;
+				x1++;
+			}
+
+			if (x1 >= vid.width)
+				break;
+
+			frac = (xfrac>>FRACBITS);
+			*dest++ = source[frac];
+
+			xfrac += xfracstep;
+			x1++;
+		}
+
+		scale += scalestep;
+		source += vid.width;
+	}
+}
+#endif
 
 //
 // R_SetViewSize
@@ -1642,4 +1717,9 @@ void R_RegisterEngineStuff(void)
 	CV_RegisterVar(&cv_maxportals);
 
 	CV_RegisterVar(&cv_movebob);
+
+	// unfinished, not for release
+#ifdef PERSPCORRECT
+	CV_RegisterVar(&cv_perspcorr);
+#endif
 }

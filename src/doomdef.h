@@ -630,6 +630,8 @@ extern const char *compdate, *comptime, *comprevision, *compbranch;
 #define ROTANGLES 72 // Needs to be a divisor of 360 (45, 60, 90, 120...)
 #define ROTANGDIFF (360 / ROTANGLES)
 
+#define PERSPCORRECT          // not finished
+
 /// PNG support
 #ifndef HAVE_PNG
 #define NO_PNG_LUMPS
