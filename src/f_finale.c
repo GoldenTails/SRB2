@@ -1851,7 +1851,7 @@ void F_EndingDrawer(void)
 	if (!LUA_HudEnabled(hud_endingcutscene))
 	{
 		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
-		LUAh_CutsceneHUD(-2, 0, finalecount + 10, 0); // +10 to counter the negative..
+		LUAh_CutsceneHUD(-2, 0, finalecount + 10, STOPPINGPOINT + 10); // +10 to counter the negative..
 		return;
 	}
 
@@ -2243,7 +2243,7 @@ void F_EndingDrawer(void)
 		}
 	}
 
-	LUAh_CutsceneHUD(-2, 0, finalecount + 10, 0); // +10 to counter the negative..
+	LUAh_CutsceneHUD(-2, 0, finalecount + 10, STOPPINGPOINT + 10); // +10 to counter the negative..
 }
 
 #undef SPARKLLOOPTIME

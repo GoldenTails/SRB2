@@ -1443,7 +1443,7 @@ void LUAh_CutsceneHUD(INT32 cutnum, INT32 scenenum, INT32 stoptimer, INT32 scene
 	lua_pushinteger(gL, scenenum + 1); // it's more intuitive
 	lua_pushinteger(gL, stoptimer);
 
-	if (cutnum + 1 == 0) // special case for intro cutscene
+	if (cutnum < 0) // special case for special cutscenes
 	{
 		lua_pushinteger(gL, scenetime); // push the amount of time the scene will take
 		argsadd++; // an arg to add!
@@ -1457,7 +1457,7 @@ void LUAh_CutsceneHUD(INT32 cutnum, INT32 scenenum, INT32 stoptimer, INT32 scene
 		lua_pushvalue(gL, -6 - argsadd); // scenenum
 		lua_pushvalue(gL, -6 - argsadd); // stoptimer
 
-		if (cutnum + 1 == 0) // special case for intro cutscene
+		if (cutnum < 0) // special case for intro cutscene
 			lua_pushvalue(gL, -6 - argsadd);
 
 		LUA_Call(gL, 4 + argsadd, 0, 1);
