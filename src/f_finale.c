@@ -1848,6 +1848,13 @@ void F_EndingDrawer(void)
 	INT32 x, y, i, j, parallaxticker;
 	patch_t *rockpat;
 
+	if (!LUA_HudEnabled(hud_endingcutscene))
+	{
+		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
+		LUAh_CutsceneHUD(-2, 0, finalecount + 10, 0); // +10 to counter the negative..
+		return;
+	}
+
 	if (!goodending || finalecount < INFLECTIONPOINT)
 		rockpat = W_CachePatchName("ROID0000", PU_PATCH_LOWPRIORITY);
 	else
@@ -2235,6 +2242,8 @@ void F_EndingDrawer(void)
 				V_DrawCharacter(26, BASEVIDHEIGHT-33, '\x1C'|(trans2<<V_ALPHASHIFT), false);
 		}
 	}
+
+	LUAh_CutsceneHUD(-2, 0, finalecount + 10, 0); // +10 to counter the negative..
 }
 
 #undef SPARKLLOOPTIME
