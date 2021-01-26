@@ -54,12 +54,17 @@ void (*spanfuncs_npo2[SPANDRAWFUNC_MAX])(void);
 viddef_t vid;
 INT32 setmodeneeded; //video mode change needed if > 0 (the mode number to set + 1)
 UINT8 setrenderneeded = 0;
+INT32 setresneeded[3]; // if setresneeded[2] is > 0, set resolution
+
+static void SCR_ChangeFullscreen (void);
+static void SCR_ChangeWidthCVAR (void);
+static void SCR_ChangeHeightCVAR (void);
 
 static CV_PossibleValue_t scr_depth_cons_t[] = {{8, "8 bits"}, {16, "16 bits"}, {24, "24 bits"}, {32, "32 bits"}, {0, NULL}};
 
 //added : 03-02-98: default screen mode, as loaded/saved in config
-consvar_t cv_scr_width = {"scr_width", "1280", CV_SAVE, CV_Unsigned, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_scr_height = {"scr_height", "800", CV_SAVE, CV_Unsigned, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_scr_width = {"scr_width", "1280", CV_SAVE|CV_CALL|CV_NOINIT, CV_Unsigned, SCR_ChangeWidthCVAR, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_scr_height = {"scr_height", "800", CV_SAVE|CV_CALL|CV_NOINIT, CV_Unsigned, SCR_ChangeHeightCVAR, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_scr_depth = {"scr_depth", "16 bits", CV_SAVE, scr_depth_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_renderview = {"renderview", "On", 0, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 
@@ -72,9 +77,6 @@ static CV_PossibleValue_t cv_renderer_t[] = {
 	{0, NULL}
 };
 consvar_t cv_renderer = {"renderer", "Software", CV_SAVE|CV_NOLUA|CV_CALL, cv_renderer_t, SCR_ChangeRenderer, 0, NULL, NULL, 0, 0, NULL};
-
-static void SCR_ChangeFullscreen(void);
-
 consvar_t cv_fullscreen = {"fullscreen", "Yes", CV_SAVE|CV_CALL, CV_YesNo, SCR_ChangeFullscreen, 0, NULL, NULL, 0, 0, NULL};
 
 // =========================================================================
@@ -98,97 +100,76 @@ boolean R_3DNow = false;
 boolean R_MMXExt = false;
 boolean R_SSE2 = false;
 
+//
+// setup the right draw routines for 8bpp
+//
 void SCR_SetDrawFuncs(void)
 {
-	//
-	//  setup the right draw routines for either 8bpp or 16bpp
-	//
-	if (true)//vid.bpp == 1) //Always run in 8bpp. todo: remove all 16bpp code?
-	{
-		colfuncs[BASEDRAWFUNC] = R_DrawColumn_8;
-		spanfuncs[BASEDRAWFUNC] = R_DrawSpan_8;
+	colfuncs[BASEDRAWFUNC] = R_DrawColumn_8;
+	spanfuncs[BASEDRAWFUNC] = R_DrawSpan_8;
 
-		colfunc = colfuncs[BASEDRAWFUNC];
-		spanfunc = spanfuncs[BASEDRAWFUNC];
+	colfunc = colfuncs[BASEDRAWFUNC];
+	spanfunc = spanfuncs[BASEDRAWFUNC];
 
-		colfuncs[COLDRAWFUNC_FUZZY] = R_DrawTranslucentColumn_8;
-		colfuncs[COLDRAWFUNC_TRANS] = R_DrawTranslatedColumn_8;
-		colfuncs[COLDRAWFUNC_SHADE] = R_DrawShadeColumn_8;
-		colfuncs[COLDRAWFUNC_SHADOWED] = R_DrawColumnShadowed_8;
-		colfuncs[COLDRAWFUNC_TRANSTRANS] = R_DrawTranslatedTranslucentColumn_8;
-		colfuncs[COLDRAWFUNC_TWOSMULTIPATCH] = R_Draw2sMultiPatchColumn_8;
-		colfuncs[COLDRAWFUNC_TWOSMULTIPATCHTRANS] = R_Draw2sMultiPatchTranslucentColumn_8;
-		colfuncs[COLDRAWFUNC_FOG] = R_DrawFogColumn_8;
+	colfuncs[COLDRAWFUNC_FUZZY] = R_DrawTranslucentColumn_8;
+	colfuncs[COLDRAWFUNC_TRANS] = R_DrawTranslatedColumn_8;
+	colfuncs[COLDRAWFUNC_SHADE] = R_DrawShadeColumn_8;
+	colfuncs[COLDRAWFUNC_SHADOWED] = R_DrawColumnShadowed_8;
+	colfuncs[COLDRAWFUNC_TRANSTRANS] = R_DrawTranslatedTranslucentColumn_8;
+	colfuncs[COLDRAWFUNC_TWOSMULTIPATCH] = R_Draw2sMultiPatchColumn_8;
+	colfuncs[COLDRAWFUNC_TWOSMULTIPATCHTRANS] = R_Draw2sMultiPatchTranslucentColumn_8;
+	colfuncs[COLDRAWFUNC_FOG] = R_DrawFogColumn_8;
 
-		spanfuncs[SPANDRAWFUNC_TRANS] = R_DrawTranslucentSpan_8;
-		spanfuncs[SPANDRAWFUNC_SPLAT] = R_DrawSplat_8;
-		spanfuncs[SPANDRAWFUNC_TRANSSPLAT] = R_DrawTranslucentSplat_8;
-		spanfuncs[SPANDRAWFUNC_FOG] = R_DrawFogSpan_8;
+	spanfuncs[SPANDRAWFUNC_TRANS] = R_DrawTranslucentSpan_8;
+	spanfuncs[SPANDRAWFUNC_SPLAT] = R_DrawSplat_8;
+	spanfuncs[SPANDRAWFUNC_TRANSSPLAT] = R_DrawTranslucentSplat_8;
+	spanfuncs[SPANDRAWFUNC_FOG] = R_DrawFogSpan_8;
 #ifndef NOWATER
-		spanfuncs[SPANDRAWFUNC_WATER] = R_DrawTranslucentWaterSpan_8;
+	spanfuncs[SPANDRAWFUNC_WATER] = R_DrawTranslucentWaterSpan_8;
 #endif
-		spanfuncs[SPANDRAWFUNC_TILTED] = R_DrawTiltedSpan_8;
-		spanfuncs[SPANDRAWFUNC_TILTEDTRANS] = R_DrawTiltedTranslucentSpan_8;
+	spanfuncs[SPANDRAWFUNC_TILTED] = R_DrawTiltedSpan_8;
+	spanfuncs[SPANDRAWFUNC_TILTEDTRANS] = R_DrawTiltedTranslucentSpan_8;
 #ifndef NOWATER
-		spanfuncs[SPANDRAWFUNC_TILTEDWATER] = R_DrawTiltedTranslucentWaterSpan_8;
+	spanfuncs[SPANDRAWFUNC_TILTEDWATER] = R_DrawTiltedTranslucentWaterSpan_8;
 #endif
-		spanfuncs[SPANDRAWFUNC_TILTEDSPLAT] = R_DrawTiltedSplat_8;
+	spanfuncs[SPANDRAWFUNC_TILTEDSPLAT] = R_DrawTiltedSplat_8;
 
-		// Lactozilla: Non-powers-of-two
-		spanfuncs_npo2[BASEDRAWFUNC] = R_DrawSpan_NPO2_8;
-		spanfuncs_npo2[SPANDRAWFUNC_TRANS] = R_DrawTranslucentSpan_NPO2_8;
-		spanfuncs_npo2[SPANDRAWFUNC_SPLAT] = R_DrawSplat_NPO2_8;
-		spanfuncs_npo2[SPANDRAWFUNC_TRANSSPLAT] = R_DrawTranslucentSplat_NPO2_8;
-		spanfuncs_npo2[SPANDRAWFUNC_FOG] = NULL; // Not needed
+	// Lactozilla: Non-powers-of-two
+	spanfuncs_npo2[BASEDRAWFUNC] = R_DrawSpan_NPO2_8;
+	spanfuncs_npo2[SPANDRAWFUNC_TRANS] = R_DrawTranslucentSpan_NPO2_8;
+	spanfuncs_npo2[SPANDRAWFUNC_SPLAT] = R_DrawSplat_NPO2_8;
+	spanfuncs_npo2[SPANDRAWFUNC_TRANSSPLAT] = R_DrawTranslucentSplat_NPO2_8;
+	spanfuncs_npo2[SPANDRAWFUNC_FOG] = NULL; // Not needed
 #ifndef NOWATER
-		spanfuncs_npo2[SPANDRAWFUNC_WATER] = R_DrawTranslucentWaterSpan_NPO2_8;
+	spanfuncs_npo2[SPANDRAWFUNC_WATER] = R_DrawTranslucentWaterSpan_NPO2_8;
 #endif
-		spanfuncs_npo2[SPANDRAWFUNC_TILTED] = R_DrawTiltedSpan_NPO2_8;
-		spanfuncs_npo2[SPANDRAWFUNC_TILTEDTRANS] = R_DrawTiltedTranslucentSpan_NPO2_8;
+	spanfuncs_npo2[SPANDRAWFUNC_TILTED] = R_DrawTiltedSpan_NPO2_8;
+	spanfuncs_npo2[SPANDRAWFUNC_TILTEDTRANS] = R_DrawTiltedTranslucentSpan_NPO2_8;
 #ifndef NOWATER
-		spanfuncs_npo2[SPANDRAWFUNC_TILTEDWATER] = R_DrawTiltedTranslucentWaterSpan_NPO2_8;
+	spanfuncs_npo2[SPANDRAWFUNC_TILTEDWATER] = R_DrawTiltedTranslucentWaterSpan_NPO2_8;
 #endif
-		spanfuncs_npo2[SPANDRAWFUNC_TILTEDSPLAT] = R_DrawTiltedSplat_NPO2_8;
+	spanfuncs_npo2[SPANDRAWFUNC_TILTEDSPLAT] = R_DrawTiltedSplat_NPO2_8;
 
 #ifdef RUSEASM
-		if (R_ASM)
-		{
-			if (R_MMX)
-			{
-				colfuncs[BASEDRAWFUNC] = R_DrawColumn_8_MMX;
-				//colfuncs[COLDRAWFUNC_SHADE] = R_DrawShadeColumn_8_ASM;
-				//colfuncs[COLDRAWFUNC_FUZZY] = R_DrawTranslucentColumn_8_ASM;
-				colfuncs[COLDRAWFUNC_TWOSMULTIPATCH] = R_Draw2sMultiPatchColumn_8_MMX;
-				spanfuncs[BASEDRAWFUNC] = R_DrawSpan_8_MMX;
-			}
-			else
-			{
-				colfuncs[BASEDRAWFUNC] = R_DrawColumn_8_ASM;
-				//colfuncs[COLDRAWFUNC_SHADE] = R_DrawShadeColumn_8_ASM;
-				//colfuncs[COLDRAWFUNC_FUZZY] = R_DrawTranslucentColumn_8_ASM;
-				colfuncs[COLDRAWFUNC_TWOSMULTIPATCH] = R_Draw2sMultiPatchColumn_8_ASM;
-			}
-		}
-#endif
-	}
-/*	else if (vid.bpp > 1)
+	if (R_ASM)
 	{
-		I_OutputMsg("using highcolor mode\n");
-		spanfunc = basespanfunc = R_DrawSpan_16;
-		transcolfunc = R_DrawTranslatedColumn_16;
-		transtransfunc = R_DrawTranslucentColumn_16; // No 16bit operation for this function
-
-		colfunc = basecolfunc = R_DrawColumn_16;
-		shadecolfunc = NULL; // detect error if used somewhere..
-		fuzzcolfunc = R_DrawTranslucentColumn_16;
-		walldrawerfunc = R_DrawWallColumn_16;
-	}*/
-	else
-		I_Error("unknown bytes per pixel mode %d\n", vid.bpp);
-/*
-	if (SCR_IsAspectCorrect(vid.width, vid.height))
-		CONS_Alert(CONS_WARNING, M_GetText("Resolution is not aspect-correct!\nUse a multiple of %dx%d\n"), BASEVIDWIDTH, BASEVIDHEIGHT);
-*/
+		if (R_MMX)
+		{
+			colfuncs[BASEDRAWFUNC] = R_DrawColumn_8_MMX;
+			//colfuncs[COLDRAWFUNC_SHADE] = R_DrawShadeColumn_8_ASM;
+			//colfuncs[COLDRAWFUNC_FUZZY] = R_DrawTranslucentColumn_8_ASM;
+			colfuncs[COLDRAWFUNC_TWOSMULTIPATCH] = R_Draw2sMultiPatchColumn_8_MMX;
+			spanfuncs[BASEDRAWFUNC] = R_DrawSpan_8_MMX;
+		}
+		else
+		{
+			colfuncs[BASEDRAWFUNC] = R_DrawColumn_8_ASM;
+			//colfuncs[COLDRAWFUNC_SHADE] = R_DrawShadeColumn_8_ASM;
+			//colfuncs[COLDRAWFUNC_FUZZY] = R_DrawTranslucentColumn_8_ASM;
+			colfuncs[COLDRAWFUNC_TWOSMULTIPATCH] = R_Draw2sMultiPatchColumn_8_ASM;
+		}
+	}
+#endif
 }
 
 void SCR_SetMode(void)
@@ -215,11 +196,27 @@ void SCR_SetMode(void)
 
 	V_SetPalette(0);
 
+	// set the apprpriate drawers
 	SCR_SetDrawFuncs();
 
-	// set the apprpriate drawer for the sky (tall or INT16)
 	setmodeneeded = 0;
-	setrenderneeded = 0;
+}
+
+void SCR_SetResolution(void)
+{
+	if (dedicated)
+		return;
+
+	if (!setresneeded[2] || WipeInAction)
+		return; // should never happen and don't change it during a wipe, BAD!
+
+	VID_SetResolution(setresneeded[0], setresneeded[1]);
+
+	V_SetPalette(0);
+
+	// set the apprpriate drawers
+	SCR_SetDrawFuncs();
+	setresneeded[2] = 0;
 }
 
 // do some initial settings for the game loading screen
@@ -400,15 +397,17 @@ void SCR_CheckDefaultMode(void)
 	if (scr_forcex && scr_forcey)
 	{
 		CONS_Printf(M_GetText("Using resolution: %d x %d\n"), scr_forcex, scr_forcey);
-		// returns -1 if not found, thus will be 0 (no mode change) if not found
-		setmodeneeded = VID_GetModeForSize(scr_forcex, scr_forcey) + 1;
+		setresneeded[0] = scr_forcex;
+		setresneeded[1] = scr_forcey;
+		setresneeded[2] = 2;
 	}
 	else
 	{
 		CONS_Printf(M_GetText("Default resolution: %d x %d (%d bits)\n"), cv_scr_width.value,
 			cv_scr_height.value, cv_scr_depth.value);
-		// see note above
-		setmodeneeded = VID_GetModeForSize(cv_scr_width.value, cv_scr_height.value) + 1;
+		setresneeded[0] = cv_scr_width.value;
+		setresneeded[1] = cv_scr_height.value;
+		setresneeded[2] = 2;
 	}
 
 	SCR_ActuallyChangeRenderer();
@@ -435,7 +434,9 @@ void SCR_ChangeFullscreen(void)
 	if (graphics_started)
 	{
 		VID_PrepareModeList();
-		setmodeneeded = VID_GetModeForSize(vid.width, vid.height) + 1;
+		setresneeded[0] = cv_scr_width.value;
+		setresneeded[1] = cv_scr_height.value;
+		setresneeded[2] = 1;
 	}
 	return;
 #endif
@@ -499,6 +500,24 @@ void SCR_ChangeRendererCVars(INT32 mode)
 		CV_StealthSetValue(&cv_renderer, 1);
 	else if (mode == render_opengl)
 		CV_StealthSetValue(&cv_renderer, 2);
+}
+
+// Called after changing the value of scr_width
+// Keeps the height the same
+void SCR_ChangeWidthCVAR(void)
+{
+	setresneeded[0] = cv_scr_width.value;
+	setresneeded[1] = vid.height;
+	setresneeded[2] = 1;
+}
+
+// Called after changing the value of scr_height
+// Keeps the width the same
+void SCR_ChangeHeightCVAR(void)
+{
+	setresneeded[0] = vid.width;
+	setresneeded[1] = cv_scr_height.value;
+	setresneeded[2] = 1;
 }
 
 boolean SCR_IsAspectCorrect(INT32 width, INT32 height)
