@@ -24,7 +24,7 @@
 #define DL_MAX_LIGHT 256 // maximum number of lights (extra lights are ignored)
 
 void HWR_InitLight(void);
-void HWR_DL_AddLight(gl_vissprite_t *spr, GLPatch_t *patch);
+void HWR_DL_AddLight(gl_vissprite_t *spr, patch_t *patch);
 void HWR_PlaneLighting(FOutVector *clVerts, int nrClipVerts);
 void HWR_WallLighting(FOutVector *wlVerts);
 void HWR_ResetLights(void);

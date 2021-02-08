@@ -1173,7 +1173,7 @@ void HWR_SetLights(int viewnumber)
 // Add a light for dynamic lighting
 // The light position is already transformed execpt for mlook
 // --------------------------------------------------------------------------
-void HWR_DL_AddLight(gl_vissprite_t *spr, GLPatch_t *patch)
+void HWR_DL_AddLight(gl_vissprite_t *spr, patch_t *patch)
 {
 	light_t   *p_lspr;
 
@@ -1250,8 +1250,6 @@ static void HWR_SetLight(void)
 		}
 		lightmappatch.mipmap->format = GL_TEXFMT_ALPHA_INTENSITY_88;
 
-		lightmappatch.width = 128;
-		lightmappatch.height = 128;
 		lightmappatch.mipmap->width = 128;
 		lightmappatch.mipmap->height = 128;
 		lightmappatch.mipmap->flags = 0; //TF_WRAPXY; // DEBUG: view the overdraw !
