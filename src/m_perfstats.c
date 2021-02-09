@@ -98,6 +98,7 @@ static boolean M_HighResolution(void)
 enum {
 	PERF_TIME,
 	PERF_COUNT,
+	PERF_MEMUSAGE
 };
 
 static void M_DrawPerfString(perfstatcol_t *col, int type)
@@ -115,25 +116,41 @@ static void M_DrawPerfString(perfstatcol_t *col, int type)
 
 	for (row = col->rows; row->lores_label; ++row)
 	{
+		const char *tmp;
+		char *suffix = NULL;
+
 		if (type == PERF_TIME)
 			value = I_PreciseToMicros(*(precise_t *)row->value);
 		else
 			value = *(int *)row->value;
 
+		if (type == PERF_MEMUSAGE)
+		{
+			tmp = " KiB";
+			value >>= 10; // shift down to KiB precision
+		}
+		else
+			tmp = "";
+
+		suffix = malloc(sizeof(tmp));
+		strcpy(suffix, tmp);
+
 		if (hires)
 		{
 			V_DrawSmallString(col->hires_x, draw_row, draw_flags,
-					va("%s %d", row->hires_label, value));
+					va("%s %d%s", row->hires_label, value, suffix));
 
 			draw_row += 5;
 		}
 		else
 		{
 			V_DrawThinString(col->lores_x, draw_row, draw_flags,
-					va("%s %d", row->lores_label, value));
+					va("%s %d%s", row->lores_label, value, suffix));
 
 			draw_row += 8;
 		}
+
+		free(suffix);
 	}
 }
 
@@ -145,6 +162,11 @@ static void M_DrawPerfTiming(perfstatcol_t *col)
 static void M_DrawPerfCount(perfstatcol_t *col)
 {
 	M_DrawPerfString(col, PERF_COUNT);
+}
+
+static void M_DrawPerfMemory(perfstatcol_t *col)
+{
+	M_DrawPerfString(col, PERF_MEMUSAGE);
 }
 
 static void M_DrawRenderStats(void)
@@ -477,6 +499,119 @@ static void M_DrawTickStats(void)
 	M_DrawPerfCount(&misc_calls_col);
 }
 
+static void M_DrawMemoryStats(void)
+{
+	UINT32 freebytes, totalbytes;
+	uintmax_t purgable = Z_TagsUsage(PU_PURGELEVEL, INT32_MAX);
+
+	const int half_row = M_HighResolution() ? 5 : 4;
+
+#ifdef HWRENDER
+	uintmax_t getTextureUsed = 0;
+#endif
+
+	perfstatrow_t heap_row[] = {
+		{"heap   ", "Total heap used:  ", &memalloc[PU_TOTAL]},
+		{0}
+	};
+
+	perfstatrow_t staticmem_row[] = {
+		{"static ", "Static:           ", &memalloc[PU_STATIC]},
+		{"sound  ", "Static (sound):   ", &memalloc[PU_SOUND]},
+		{"music  ", "Static (music):   ", &memalloc[PU_MUSIC]},
+		{0}
+	};
+
+	perfstatrow_t patchmem_row[] = {
+		{"patch  ", "Patches:                   ", &memalloc[PU_PATCH]},
+		{"lowptch", "Patches (low priority):    ", &memalloc[PU_PATCH_LOWPRIORITY]},
+		{"rotptch", "Patches (rotated):         ", &memalloc[PU_PATCH_ROTATED]},
+		{0}
+	};
+
+	perfstatrow_t spritemem_row[] = {
+		{"sprite ", "Sprites:                   ", &memalloc[PU_SPRITE]},
+		{"hudgfx ", "HUD graphics:              ", &memalloc[PU_HUDGFX]},
+		{0}
+	};
+
+	perfstatrow_t miscmem_row[] = {
+		{"lcache ", "Locked cache:     ", &memalloc[PU_CACHE]},
+		{"level  ", "Level:            ", &memalloc[PU_LEVEL]},
+		{"spthnk ", "Special thinker:  ", &memalloc[PU_LEVSPEC]},
+		{"allpurg", "All purgable:     ", &purgable},
+		{0}
+	};
+
+	perfstatrow_t sysmem_row[] = {
+		{"totmem ", "Total memory:     ", &totalbytes},
+		{"freemem", "Free memory:      ", &freebytes},
+		{0}
+	};
+
+#ifdef HWRENDER
+	perfstatrow_t glmem_row[] = {
+		{"ptchifo", "Patch info headers:        ", &memalloc[PU_HWRPATCHINFO]},
+		{"txcache", "Cached textures:           ", &memalloc[PU_HWRCACHE]},
+		{"txcmap ", "Texture colormaps:         ", &memalloc[PU_HWRPATCHCOLMIPMAP]},
+		{"modeltx", "Model textures:            ", &memalloc[PU_HWRMODELTEXTURE]},
+		{"planply", "Plane polygons:            ", &memalloc[PU_HWRPLANE]},
+		{"alltx ", "All GPU textures:          ", &getTextureUsed},
+		{0}
+	};
+#endif
+
+	perfstatcol_t      heap_col = {30, 15, V_YELLOWMAP,      heap_row};
+	perfstatcol_t staticmem_col = {30, 15, V_ORANGEMAP, staticmem_row};
+	perfstatcol_t   miscmem_col = {30, 15, V_PURPLEMAP,   miscmem_row};
+	perfstatcol_t    sysmem_col = {30, 15,    V_REDMAP,    sysmem_row};
+
+	perfstatcol_t  patchmem_col = {180, 160,  V_GREENMAP,  patchmem_row};
+	perfstatcol_t spritemem_col = {180, 160,   V_BLUEMAP, spritemem_row};
+
+#ifdef HWRENDER
+	perfstatcol_t     glmem_col = {180, 160,  V_AZUREMAP,     glmem_row};
+	
+	if (rendermode == render_opengl)
+		getTextureUsed = HWR_GetTextureUsed();
+#endif
+
+	freebytes = I_GetFreeMem(&totalbytes);
+
+	draw_row = 10;
+	M_DrawPerfMemory(&heap_col);
+
+	draw_row += half_row;
+	M_DrawPerfMemory(&staticmem_col);
+
+	draw_row += half_row;
+	M_DrawPerfMemory(&miscmem_col);
+
+	draw_row += half_row;
+	M_DrawPerfMemory(&sysmem_col);
+
+	draw_row = 10;
+	M_DrawPerfMemory(&patchmem_col);
+
+	draw_row += half_row;
+	M_DrawPerfMemory(&spritemem_col);
+
+#ifdef HWRENDER
+	if (rendermode == render_opengl)
+	{
+		draw_row += half_row;
+		M_DrawPerfMemory(&glmem_col);
+	}
+#endif
+
+	/*for (int i = 0; i < PU_MAX; ++i)
+	{
+		INT32 y = i * 8;
+
+		V_DrawString(0, y, V_MONOSPACE|V_ALLOWLOWERCASE, va("%s %9ld bytes", memorystrings[i], memalloc[i]));
+	}*/
+}
+
 void M_DrawPerfStats(void)
 {
 	char s[100];
@@ -577,5 +712,9 @@ void M_DrawPerfStats(void)
 				}
 			}
 		}
+	}
+	else if (cv_perfstats.value == 4)
+	{
+		M_DrawMemoryStats();
 	}
 }

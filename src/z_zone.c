@@ -95,6 +95,9 @@ static void Command_Memfree_f(void);
 static void Command_Memdump_f(void);
 #endif
 
+// Totals, updated on allocation.
+uintmax_t memalloc[PU_MAX] = {0};
+
 // --------------------------
 // Zone memory initialisation
 // --------------------------
@@ -222,6 +225,11 @@ void Z_Free(void *ptr)
 	if (block->tag != PU_LUA)
 		LUA_InvalidateUserdata(ptr);
 
+	memalloc[block->tag] -= block->size;
+	memalloc[PU_TOTAL] -= block->size;
+
+	//printf("memalloc[PU_TOTAL] == %ld\n", memalloc[PU_TOTAL]);
+
 	// TODO: if zdebugging, make sure no other block has a user
 	// that is about to be freed.
 
@@ -335,6 +343,9 @@ void *Z_MallocAlign(size_t size, INT32 tag, void *user, INT32 alignbits)
 #endif
 	block->size = blocksize;
 	block->realsize = size;
+
+	memalloc[tag] += blocksize;
+	memalloc[PU_TOTAL] += blocksize;
 
 #ifdef VALGRIND_CREATE_MEMPOOL
 	VALGRIND_CREATE_MEMPOOL(block, padsize, Z_calloc);
@@ -770,16 +781,26 @@ void Z_SetUser(void *ptr, void **newuser)
 size_t Z_TagsUsage(INT32 lowtag, INT32 hightag)
 {
 	size_t cnt = 0;
-	memblock_t *rover;
+
+	if (lowtag < PU_STATIC)
+		lowtag = PU_STATIC;
+
+	if (hightag >= PU_TOTAL)
+		hightag = PU_TOTAL - 1;
+
+	for (int i = lowtag; i <= hightag; i++)
+		cnt += memalloc[i];
+
+	/*memblock_t *rover;
 
 	for (rover = head.next; rover != &head; rover = rover->next)
 	{
 		if (rover->tag < lowtag || rover->tag > hightag)
 			continue;
 		cnt += rover->size + sizeof *rover;
-	}
+	}*/
 
-	return cnt;
+	return (size_t)cnt;
 }
 
 // -----------------------
