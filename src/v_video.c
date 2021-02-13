@@ -1136,6 +1136,50 @@ static void V_BlitScaledPic(INT32 rx1, INT32 ry1, INT32 scrn, pic_t * pic)
 	}
 }
 
+#ifdef HAVE_THREADS
+
+#define INCREMENT 4
+
+// I_spawn_thread has forced my hand
+struct drawfillthreadargs {
+	UINT8 *dest;
+	const UINT8 *deststop;
+
+	INT32 c;
+	INT32 w;
+	INT32 h;
+	INT32 modulus;
+
+	I_mutex *mutex;
+	I_cond *cond;
+	UINT8 *threadsActive;
+};
+
+static void V_DrawFillThread(struct drawfillthreadargs *threadArgs)
+{
+	UINT8 *dest;
+
+	dest = threadArgs->dest;
+
+	dest += vid.width * threadArgs->modulus;
+
+	threadArgs->h -= INCREMENT;
+
+	for (;(threadArgs->h >= 0) && dest < threadArgs->deststop; dest += vid.width * INCREMENT)
+	{
+		memset(dest, threadArgs->c, threadArgs->w * vid.bpp);
+		threadArgs->h -= INCREMENT;
+	}
+
+	I_lock_mutex(threadArgs->mutex);
+	{
+		--*threadArgs->threadsActive;
+		I_wake_one_cond(threadArgs->cond);
+	}
+	I_unlock_mutex(*threadArgs->mutex);
+}
+#endif
+
 //
 // Fills a box of pixels with a single color, NOTE: scaled to screen size
 //
@@ -1143,6 +1187,14 @@ void V_DrawFill(INT32 x, INT32 y, INT32 w, INT32 h, INT32 c)
 {
 	UINT8 *dest;
 	const UINT8 *deststop;
+
+#ifdef HAVE_THREADS
+	static I_mutex drawFillMutex;
+	static I_cond drawFillCond;
+	struct drawfillthreadargs threadArgs[INCREMENT];
+	UINT8 threadsActive;
+	UINT8 i;
+#endif
 
 	UINT8 perplayershuffle = 0;
 
@@ -1294,8 +1346,40 @@ void V_DrawFill(INT32 x, INT32 y, INT32 w, INT32 h, INT32 c)
 
 	c &= 255;
 
+#ifdef HAVE_THREADS
+	threadsActive = INCREMENT;
+
+	for (i = 0; i < INCREMENT; ++i)
+	{
+		// thanks to the current implementation of I_spawn_thread,
+		// i'm forced to pack everything in a userdata.
+		// because most variables change too, it's an array; even worse!
+		threadArgs[i].dest = dest;
+		threadArgs[i].deststop = deststop;
+		threadArgs[i].c = c;
+		threadArgs[i].w = w;
+		threadArgs[i].h = h;
+		threadArgs[i].modulus = i;
+		threadArgs[i].mutex = &drawFillMutex;
+		threadArgs[i].cond = &drawFillCond;
+		threadArgs[i].threadsActive = &threadsActive;
+
+		I_spawn_thread("draw-fill-portion", (I_thread_fn)V_DrawFillThread, &threadArgs[i]);
+	}
+
+	I_lock_mutex(&drawFillMutex);
+	{
+		while (threadsActive)
+			I_hold_cond(&drawFillCond, drawFillMutex);
+	}
+	I_unlock_mutex(drawFillMutex);
+
+#undef INCREMENT
+
+#else
 	for (;(--h >= 0) && dest < deststop; dest += vid.width)
 		memset(dest, c, w * vid.bpp);
+#endif
 }
 
 #ifdef HWRENDER
