@@ -9207,6 +9207,7 @@ static boolean P_MobjRegularThink(mobj_t *mobj)
 
 	switch (mobj->type)
 	{
+	case MT_WALLSPIKESPLAT:
 	case MT_WALLSPIKEBASE:
 		if (!mobj->target) {
 			P_RemoveMobj(mobj);
@@ -12950,11 +12951,15 @@ static boolean P_SetupSpawnedMapThing(mapthing_t *mthing, mobj_t *mobj, boolean 
 			P_SetThingPosition(mobj);
 		}
 
-		// spawn base
+		// spawn base and splat
 		{
 			const angle_t mobjangle = FixedAngle(mthing->angle << FRACBITS); // the mobj's own angle hasn't been set quite yet so...
 			const fixed_t baseradius = mobj->radius - mobj->scale;
-			mobj_t* base = P_SpawnMobj(
+
+			mobj_t *base, *splat;
+			fixed_t splat_cos, splat_sin;
+
+			base = P_SpawnMobj(
 				mobj->x - P_ReturnThrustX(mobj, mobjangle, baseradius),
 				mobj->y - P_ReturnThrustY(mobj, mobjangle, baseradius),
 				mobj->z, MT_WALLSPIKEBASE);
@@ -12963,6 +12968,23 @@ static boolean P_SetupSpawnedMapThing(mapthing_t *mthing, mobj_t *mobj, boolean 
 			P_SetScale(base, mobj->scale);
 			P_SetTarget(&base->target, mobj);
 			P_SetTarget(&mobj->tracer, base);
+
+			splat = P_SpawnMobjFromMobj(mobj, 0, 0, 0, MT_WALLSPIKESPLAT);
+			splat_cos = -FixedMul(FINECOSINE(mobjangle>>ANGLETOFINESHIFT), splat->radius);
+			splat_sin = -FixedMul(FINESINE(mobjangle>>ANGLETOFINESHIFT), splat->radius);
+			P_TeleportMove(splat, splat->x + splat_cos, splat->y + splat_sin, splat->z + splat->height);
+			splat->angle = mobjangle;
+			splat->destscale = mobj->destscale;
+
+			splat->flags2 |= MF2_SPLAT;
+			splat->renderflags |= RF_NOSPLATBILLBOARD;
+			// yeah yeah magic numbers i know @~@
+			splat->spritexoffset = splat->info->reactiontime;
+			splat->spriteyoffset = splat->info->speed;
+
+			P_SetScale(splat, mobj->scale);
+			P_SetTarget(&splat->target, base);
+			P_SetTarget(&base->tracer, splat);
 		}
 		break;
 	case MT_RING_BOX:

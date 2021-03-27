@@ -8008,6 +8008,33 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL          // raisestate
 	},
 
+	{           // MT_WALLSPIKESPLAT
+		-1,            // doomednum
+		S_SPIKE1,      // spawnstate
+		1000,           // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		1*FRACUNIT,     // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		0,              // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		-2*FRACUNIT,    // speed
+		14*FRACUNIT,    // radius
+		11*FRACUNIT,    // height
+		0,              // display offset
+		4,              // mass
+		0,              // damage
+		sfx_None,       // activesound
+		MF_NOBLOCKMAP|MF_NOGRAVITY|MF_NOCLIP|MF_NOCLIPTHING,  // flags
+		S_NULL          // raisestate
+	},
+
 	{           // MT_WALLSPIKEBASE
 		-1,            // doomednum
 		S_WALLSPIKEBASE, // spawnstate
