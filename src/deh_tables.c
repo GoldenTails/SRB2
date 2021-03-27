@@ -5487,5 +5487,7 @@ void DEH_TableCheck(void)
 	DEH_CHECKTABLE(MOBJTYPE_LIST, MT_FIRSTFREESLOT); // If your build fails here, you forgot to update MOBJTYPE_LIST!
 	DEH_CHECKTABLE(POWERS_LIST, NUMPOWERS); // If your build fails here, you forgot to update POWERS_LIST!
 	DEH_CHECKTABLE(COLOR_ENUMS, SKINCOLOR_FIRSTFREESLOT); // If your build fails here, you forgot to update COLOR_ENUMS!
+
+	#undef DEH_CHECKTABLE
 #endif
 }
