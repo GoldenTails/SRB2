@@ -3672,6 +3672,7 @@ const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for sanity t
 	"MT_SPINFIRE",
 	"MT_SPIKE",
 	"MT_WALLSPIKE",
+	"MT_WALLSPIKESPLAT",
 	"MT_WALLSPIKEBASE",
 	"MT_STARPOST",
 	"MT_BIGMINE",
