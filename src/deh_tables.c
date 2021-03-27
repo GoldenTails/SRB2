@@ -5479,5 +5479,13 @@ void DEH_TableCheck(void)
 
 	if (dehcolors != SKINCOLOR_FIRSTFREESLOT)
 		I_Error("You forgot to update the Dehacked colors list, you dolt!\n(%d colors defined, versus %s in the Dehacked list)\n", SKINCOLOR_FIRSTFREESLOT, sizeu1(dehcolors));
+#else
+	// Macro from the Linux kernel, mangled to check the size of const char* arrays.
+	#define DEH_CHECKTABLE(table, size) ((void)sizeof(char[1 - 2*!!((sizeof(table)/sizeof(const char*)) != size)]))
+
+	DEH_CHECKTABLE(STATE_LIST, S_FIRSTFREESLOT); // If your build fails here, you forgot to update STATE_LIST!
+	DEH_CHECKTABLE(MOBJTYPE_LIST, MT_FIRSTFREESLOT); // If your build fails here, you forgot to update MOBJTYPE_LIST!
+	DEH_CHECKTABLE(POWERS_LIST, NUMPOWERS); // If your build fails here, you forgot to update POWERS_LIST!
+	DEH_CHECKTABLE(COLOR_ENUMS, SKINCOLOR_FIRSTFREESLOT); // If your build fails here, you forgot to update COLOR_ENUMS!
 #endif
 }
