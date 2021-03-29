@@ -7,9 +7,9 @@
 // terms of the GNU General Public License, version 2.
 // See the 'LICENSE' file for more details.
 //-----------------------------------------------------------------------------
-/// \file  r_draw8_npo2.c
+/// \file  sw_draw8_npo2.c
 /// \brief 8bpp span drawer functions (for non-powers-of-two flat dimensions)
-/// \note  no includes because this is included as part of r_draw.c
+/// \note  no includes because this is included as part of sw_draw.c
 
 // ==========================================================================
 // SPANS
@@ -18,10 +18,10 @@
 #define SPANSIZE 16
 #define INVSPAN 0.0625f
 
-/**	\brief The R_DrawSpan_NPO2_8 function
+/**	\brief The SWR_DrawSpan_NPO2_8 function
 	Draws the actual span.
 */
-void R_DrawSpan_NPO2_8 (void)
+void SWR_DrawSpan_NPO2_8 (void)
 {
 	fixed_t xposition;
 	fixed_t yposition;
@@ -86,10 +86,10 @@ void R_DrawSpan_NPO2_8 (void)
 	}
 }
 
-/**	\brief The R_DrawTiltedSpan_NPO2_8 function
+/**	\brief The SWR_DrawTiltedSpan_NPO2_8 function
 	Draw slopes! Holy sheit!
 */
-void R_DrawTiltedSpan_NPO2_8(void)
+void SWR_DrawTiltedSpan_NPO2_8(void)
 {
 	// x1, x2 = ds_x1, ds_x2
 	int width = ds_x2 - ds_x1;
@@ -116,7 +116,7 @@ void R_DrawTiltedSpan_NPO2_8(void)
 		lightend = (iz + ds_szp->x*width) * planelightfloat;
 		lightstart = iz * planelightfloat;
 
-		R_CalcTiltedLighting(FLOAT_TO_FIXED(lightstart), FLOAT_TO_FIXED(lightend));
+		SWR_CalcTiltedLighting(FLOAT_TO_FIXED(lightstart), FLOAT_TO_FIXED(lightend));
 		//CONS_Printf("tilted lighting %f to %f (foc %f)\n", lightstart, lightend, focallengthf);
 	}
 
@@ -279,10 +279,10 @@ void R_DrawTiltedSpan_NPO2_8(void)
 #endif
 }
 
-/**	\brief The R_DrawTiltedTranslucentSpan_NPO2_8 function
+/**	\brief The SWR_DrawTiltedTranslucentSpan_NPO2_8 function
 	Like DrawTiltedSpan_NPO2, but translucent
 */
-void R_DrawTiltedTranslucentSpan_NPO2_8(void)
+void SWR_DrawTiltedTranslucentSpan_NPO2_8(void)
 {
 	// x1, x2 = ds_x1, ds_x2
 	int width = ds_x2 - ds_x1;
@@ -309,7 +309,7 @@ void R_DrawTiltedTranslucentSpan_NPO2_8(void)
 		lightend = (iz + ds_szp->x*width) * planelightfloat;
 		lightstart = iz * planelightfloat;
 
-		R_CalcTiltedLighting(FLOAT_TO_FIXED(lightstart), FLOAT_TO_FIXED(lightend));
+		SWR_CalcTiltedLighting(FLOAT_TO_FIXED(lightstart), FLOAT_TO_FIXED(lightend));
 		//CONS_Printf("tilted lighting %f to %f (foc %f)\n", lightstart, lightend, focallengthf);
 	}
 
@@ -471,7 +471,7 @@ void R_DrawTiltedTranslucentSpan_NPO2_8(void)
 #endif
 }
 
-void R_DrawTiltedSplat_NPO2_8(void)
+void SWR_DrawTiltedSplat_NPO2_8(void)
 {
 	// x1, x2 = ds_x1, ds_x2
 	int width = ds_x2 - ds_x1;
@@ -500,7 +500,7 @@ void R_DrawTiltedSplat_NPO2_8(void)
 		lightend = (iz + ds_szp->x*width) * planelightfloat;
 		lightstart = iz * planelightfloat;
 
-		R_CalcTiltedLighting(FLOAT_TO_FIXED(lightstart), FLOAT_TO_FIXED(lightend));
+		SWR_CalcTiltedLighting(FLOAT_TO_FIXED(lightstart), FLOAT_TO_FIXED(lightend));
 		//CONS_Printf("tilted lighting %f to %f (foc %f)\n", lightstart, lightend, focallengthf);
 	}
 
@@ -674,10 +674,10 @@ void R_DrawTiltedSplat_NPO2_8(void)
 #endif
 }
 
-/**	\brief The R_DrawSplat_NPO2_8 function
-	Just like R_DrawSpan_NPO2_8, but skips transparent pixels.
+/**	\brief The SWR_DrawSplat_NPO2_8 function
+	Just like SWR_DrawSpan_NPO2_8, but skips transparent pixels.
 */
-void R_DrawSplat_NPO2_8 (void)
+void SWR_DrawSplat_NPO2_8 (void)
 {
 	fixed_t xposition;
 	fixed_t yposition;
@@ -742,10 +742,10 @@ void R_DrawSplat_NPO2_8 (void)
 	}
 }
 
-/**	\brief The R_DrawTranslucentSplat_NPO2_8 function
-	Just like R_DrawSplat_NPO2_8, but is translucent!
+/**	\brief The SWR_DrawTranslucentSplat_NPO2_8 function
+	Just like SWR_DrawSplat_NPO2_8, but is translucent!
 */
-void R_DrawTranslucentSplat_NPO2_8 (void)
+void SWR_DrawTranslucentSplat_NPO2_8 (void)
 {
 	fixed_t xposition;
 	fixed_t yposition;
@@ -810,10 +810,10 @@ void R_DrawTranslucentSplat_NPO2_8 (void)
 	}
 }
 
-/**	\brief The R_DrawFloorSprite_NPO2_8 function
-	Just like R_DrawSplat_NPO2_8, but for floor sprites.
+/**	\brief The SWR_DrawFloorSprite_NPO2_8 function
+	Just like SWR_DrawSplat_NPO2_8, but for floor sprites.
 */
-void R_DrawFloorSprite_NPO2_8 (void)
+void SWR_DrawFloorSprite_NPO2_8 (void)
 {
 	fixed_t xposition;
 	fixed_t yposition;
@@ -880,10 +880,10 @@ void R_DrawFloorSprite_NPO2_8 (void)
 	}
 }
 
-/**	\brief The R_DrawTranslucentFloorSprite_NPO2_8 function
-	Just like R_DrawFloorSprite_NPO2_8, but is translucent!
+/**	\brief The SWR_DrawTranslucentFloorSprite_NPO2_8 function
+	Just like SWR_DrawFloorSprite_NPO2_8, but is translucent!
 */
-void R_DrawTranslucentFloorSprite_NPO2_8 (void)
+void SWR_DrawTranslucentFloorSprite_NPO2_8 (void)
 {
 	fixed_t xposition;
 	fixed_t yposition;
@@ -950,10 +950,10 @@ void R_DrawTranslucentFloorSprite_NPO2_8 (void)
 	}
 }
 
-/**	\brief The R_DrawTiltedFloorSprite_NPO2_8 function
+/**	\brief The SWR_DrawTiltedFloorSprite_NPO2_8 function
 	Draws a tilted floor sprite.
 */
-void R_DrawTiltedFloorSprite_NPO2_8(void)
+void SWR_DrawTiltedFloorSprite_NPO2_8(void)
 {
 	// x1, x2 = ds_x1, ds_x2
 	int width = ds_x2 - ds_x1;
@@ -1100,10 +1100,10 @@ void R_DrawTiltedFloorSprite_NPO2_8(void)
 	}
 }
 
-/**	\brief The R_DrawTiltedTranslucentFloorSprite_NPO2_8 function
+/**	\brief The SWR_DrawTiltedTranslucentFloorSprite_NPO2_8 function
 	Draws a tilted, translucent, floor sprite.
 */
-void R_DrawTiltedTranslucentFloorSprite_NPO2_8(void)
+void SWR_DrawTiltedTranslucentFloorSprite_NPO2_8(void)
 {
 	// x1, x2 = ds_x1, ds_x2
 	int width = ds_x2 - ds_x1;
@@ -1250,10 +1250,10 @@ void R_DrawTiltedTranslucentFloorSprite_NPO2_8(void)
 	}
 }
 
-/**	\brief The R_DrawTranslucentSpan_NPO2_8 function
+/**	\brief The SWR_DrawTranslucentSpan_NPO2_8 function
 	Draws the actual span with translucency.
 */
-void R_DrawTranslucentSpan_NPO2_8 (void)
+void SWR_DrawTranslucentSpan_NPO2_8 (void)
 {
 	fixed_t xposition;
 	fixed_t yposition;
@@ -1317,7 +1317,7 @@ void R_DrawTranslucentSpan_NPO2_8 (void)
 	}
 }
 
-void R_DrawTranslucentWaterSpan_NPO2_8(void)
+void SWR_DrawTranslucentWaterSpan_NPO2_8(void)
 {
 	fixed_t xposition;
 	fixed_t yposition;
@@ -1380,10 +1380,10 @@ void R_DrawTranslucentWaterSpan_NPO2_8(void)
 	}
 }
 
-/**	\brief The R_DrawTiltedTranslucentWaterSpan_NPO2_8 function
+/**	\brief The SWR_DrawTiltedTranslucentWaterSpan_NPO2_8 function
 	Like DrawTiltedTranslucentSpan_NPO2, but for water
 */
-void R_DrawTiltedTranslucentWaterSpan_NPO2_8(void)
+void SWR_DrawTiltedTranslucentWaterSpan_NPO2_8(void)
 {
 	// x1, x2 = ds_x1, ds_x2
 	int width = ds_x2 - ds_x1;
@@ -1411,7 +1411,7 @@ void R_DrawTiltedTranslucentWaterSpan_NPO2_8(void)
 		lightend = (iz + ds_szp->x*width) * planelightfloat;
 		lightstart = iz * planelightfloat;
 
-		R_CalcTiltedLighting(FLOAT_TO_FIXED(lightstart), FLOAT_TO_FIXED(lightend));
+		SWR_CalcTiltedLighting(FLOAT_TO_FIXED(lightstart), FLOAT_TO_FIXED(lightend));
 		//CONS_Printf("tilted lighting %f to %f (foc %f)\n", lightstart, lightend, focallengthf);
 	}
 

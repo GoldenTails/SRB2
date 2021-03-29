@@ -41,6 +41,7 @@
 #endif
 
 #include "software/sw_main.h"
+#include "software/sw_draw.h"
 #include "software/sw_viewmorph.h"
 #include "software/sw_plane.h"
 #include "software/sw_things.h"
@@ -536,7 +537,7 @@ void R_ExecuteSetViewSize(void)
 
 	projection = projectiony = FixedDiv(centerxfrac, fovtan);
 
-	R_InitViewBuffer(scaledviewwidth, viewheight);
+	SWR_InitViewBuffer(scaledviewwidth, viewheight);
 
 	R_InitTextureMapping();
 

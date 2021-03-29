@@ -70,7 +70,7 @@ cextern vid
 cextern topleft
 
 ; DELME
-cextern R_DrawColumn_8
+cextern SWR_DrawColumn_8
 
 ; polygon edge rasterizer
 cextern prastertab
@@ -104,9 +104,9 @@ tystep          dd      0
 ;; ebp = frac
 ;;----------------------------------------------------------------------
 
-cglobal R_DrawColumn_8_ASM
+cglobal SWR_DrawColumn_8_ASM
 ;       align   16
-R_DrawColumn_8_ASM:
+SWR_DrawColumn_8_ASM:
         push    ebp                     ;; preserve caller's stack frame pointer
         push    esi                     ;; preserve register variables
         push    edi
@@ -251,9 +251,9 @@ R_DrawColumn_8_ASM:
 ;; ebp = frac
 ;;----------------------------------------------------------------------
 
-cglobal R_Draw2sMultiPatchColumn_8_ASM
+cglobal SWR_Draw2sMultiPatchColumn_8_ASM
 ;       align   16
-R_Draw2sMultiPatchColumn_8_ASM:
+SWR_Draw2sMultiPatchColumn_8_ASM:
         push    ebp                     ;; preserve caller's stack frame pointer
         push    esi                     ;; preserve register variables
         push    edi
@@ -393,8 +393,8 @@ R_Draw2sMultiPatchColumn_8_ASM:
 ;; Transparency is always impressive in some way, don't know why...
 ;;----------------------------------------------------------------------
 
-cglobal R_DrawTranslucentColumn_8_ASM
-R_DrawTranslucentColumn_8_ASM:
+cglobal SWR_DrawTranslucentColumn_8_ASM
+SWR_DrawTranslucentColumn_8_ASM:
         push    ebp                     ;; preserve caller's stack frame pointer
         push    esi                     ;; preserve register variables
         push    edi
@@ -568,8 +568,8 @@ vtdone:
 ;;
 ;;   for smoke..etc.. test.
 ;;----------------------------------------------------------------------
-cglobal R_DrawShadeColumn_8_ASM
-R_DrawShadeColumn_8_ASM:
+cglobal SWR_DrawShadeColumn_8_ASM
+SWR_DrawShadeColumn_8_ASM:
         push    ebp                     ;; preserve caller's stack frame pointer
         push    esi                     ;; preserve register variables
         push    edi

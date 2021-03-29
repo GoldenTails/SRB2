@@ -38,6 +38,8 @@
 #include "../d_netfil.h" // blargh. for nameonly().
 #include "../m_cheat.h" // objectplace
 
+#include "sw_draw.h"
+
 #define MINZ (FRACUNIT*4)
 #define BASEYCENTER (BASEVIDHEIGHT/2)
 

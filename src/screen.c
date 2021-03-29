@@ -34,6 +34,7 @@
 #include "g_game.h" // ditto
 #include "p_local.h" // P_AutoPause()
 
+#include "software/sw_draw.h"
 
 #if defined (USEASM) && !defined (NORUSEASM)//&& (!defined (_MSC_VER) || (_MSC_VER <= 1200))
 #define RUSEASM //MSC.NET can't patch itself
@@ -106,49 +107,49 @@ void SCR_SetDrawFuncs(void)
 	//
 	if (true)//vid.bpp == 1) //Always run in 8bpp. todo: remove all 16bpp code?
 	{
-		colfuncs[BASEDRAWFUNC] = R_DrawColumn_8;
-		spanfuncs[BASEDRAWFUNC] = R_DrawSpan_8;
+		colfuncs[BASEDRAWFUNC] = SWR_DrawColumn_8;
+		spanfuncs[BASEDRAWFUNC] = SWR_DrawSpan_8;
 
 		colfunc = colfuncs[BASEDRAWFUNC];
 		spanfunc = spanfuncs[BASEDRAWFUNC];
 
-		colfuncs[COLDRAWFUNC_FUZZY] = R_DrawTranslucentColumn_8;
-		colfuncs[COLDRAWFUNC_TRANS] = R_DrawTranslatedColumn_8;
-		colfuncs[COLDRAWFUNC_SHADE] = R_DrawShadeColumn_8;
-		colfuncs[COLDRAWFUNC_SHADOWED] = R_DrawColumnShadowed_8;
-		colfuncs[COLDRAWFUNC_TRANSTRANS] = R_DrawTranslatedTranslucentColumn_8;
-		colfuncs[COLDRAWFUNC_TWOSMULTIPATCH] = R_Draw2sMultiPatchColumn_8;
-		colfuncs[COLDRAWFUNC_TWOSMULTIPATCHTRANS] = R_Draw2sMultiPatchTranslucentColumn_8;
-		colfuncs[COLDRAWFUNC_FOG] = R_DrawFogColumn_8;
+		colfuncs[COLDRAWFUNC_FUZZY] = SWR_DrawTranslucentColumn_8;
+		colfuncs[COLDRAWFUNC_TRANS] = SWR_DrawTranslatedColumn_8;
+		colfuncs[COLDRAWFUNC_SHADE] = SWR_DrawShadeColumn_8;
+		colfuncs[COLDRAWFUNC_SHADOWED] = SWR_DrawColumnShadowed_8;
+		colfuncs[COLDRAWFUNC_TRANSTRANS] = SWR_DrawTranslatedTranslucentColumn_8;
+		colfuncs[COLDRAWFUNC_TWOSMULTIPATCH] = SWR_Draw2sMultiPatchColumn_8;
+		colfuncs[COLDRAWFUNC_TWOSMULTIPATCHTRANS] = SWR_Draw2sMultiPatchTranslucentColumn_8;
+		colfuncs[COLDRAWFUNC_FOG] = SWR_DrawFogColumn_8;
 
-		spanfuncs[SPANDRAWFUNC_TRANS] = R_DrawTranslucentSpan_8;
-		spanfuncs[SPANDRAWFUNC_TILTED] = R_DrawTiltedSpan_8;
-		spanfuncs[SPANDRAWFUNC_TILTEDTRANS] = R_DrawTiltedTranslucentSpan_8;
-		spanfuncs[SPANDRAWFUNC_SPLAT] = R_DrawSplat_8;
-		spanfuncs[SPANDRAWFUNC_TRANSSPLAT] = R_DrawTranslucentSplat_8;
-		spanfuncs[SPANDRAWFUNC_TILTEDSPLAT] = R_DrawTiltedSplat_8;
-		spanfuncs[SPANDRAWFUNC_SPRITE] = R_DrawFloorSprite_8;
-		spanfuncs[SPANDRAWFUNC_TRANSSPRITE] = R_DrawTranslucentFloorSprite_8;
-		spanfuncs[SPANDRAWFUNC_TILTEDSPRITE] = R_DrawTiltedFloorSprite_8;
-		spanfuncs[SPANDRAWFUNC_TILTEDTRANSSPRITE] = R_DrawTiltedTranslucentFloorSprite_8;
-		spanfuncs[SPANDRAWFUNC_WATER] = R_DrawTranslucentWaterSpan_8;
-		spanfuncs[SPANDRAWFUNC_TILTEDWATER] = R_DrawTiltedTranslucentWaterSpan_8;
-		spanfuncs[SPANDRAWFUNC_FOG] = R_DrawFogSpan_8;
+		spanfuncs[SPANDRAWFUNC_TRANS] = SWR_DrawTranslucentSpan_8;
+		spanfuncs[SPANDRAWFUNC_TILTED] = SWR_DrawTiltedSpan_8;
+		spanfuncs[SPANDRAWFUNC_TILTEDTRANS] = SWR_DrawTiltedTranslucentSpan_8;
+		spanfuncs[SPANDRAWFUNC_SPLAT] = SWR_DrawSplat_8;
+		spanfuncs[SPANDRAWFUNC_TRANSSPLAT] = SWR_DrawTranslucentSplat_8;
+		spanfuncs[SPANDRAWFUNC_TILTEDSPLAT] = SWR_DrawTiltedSplat_8;
+		spanfuncs[SPANDRAWFUNC_SPRITE] = SWR_DrawFloorSprite_8;
+		spanfuncs[SPANDRAWFUNC_TRANSSPRITE] = SWR_DrawTranslucentFloorSprite_8;
+		spanfuncs[SPANDRAWFUNC_TILTEDSPRITE] = SWR_DrawTiltedFloorSprite_8;
+		spanfuncs[SPANDRAWFUNC_TILTEDTRANSSPRITE] = SWR_DrawTiltedTranslucentFloorSprite_8;
+		spanfuncs[SPANDRAWFUNC_WATER] = SWR_DrawTranslucentWaterSpan_8;
+		spanfuncs[SPANDRAWFUNC_TILTEDWATER] = SWR_DrawTiltedTranslucentWaterSpan_8;
+		spanfuncs[SPANDRAWFUNC_FOG] = SWR_DrawFogSpan_8;
 
 		// Lactozilla: Non-powers-of-two
-		spanfuncs_npo2[BASEDRAWFUNC] = R_DrawSpan_NPO2_8;
-		spanfuncs_npo2[SPANDRAWFUNC_TRANS] = R_DrawTranslucentSpan_NPO2_8;
-		spanfuncs_npo2[SPANDRAWFUNC_TILTED] = R_DrawTiltedSpan_NPO2_8;
-		spanfuncs_npo2[SPANDRAWFUNC_TILTEDTRANS] = R_DrawTiltedTranslucentSpan_NPO2_8;
-		spanfuncs_npo2[SPANDRAWFUNC_SPLAT] = R_DrawSplat_NPO2_8;
-		spanfuncs_npo2[SPANDRAWFUNC_TRANSSPLAT] = R_DrawTranslucentSplat_NPO2_8;
-		spanfuncs_npo2[SPANDRAWFUNC_TILTEDSPLAT] = R_DrawTiltedSplat_NPO2_8;
-		spanfuncs_npo2[SPANDRAWFUNC_SPRITE] = R_DrawFloorSprite_NPO2_8;
-		spanfuncs_npo2[SPANDRAWFUNC_TRANSSPRITE] = R_DrawTranslucentFloorSprite_NPO2_8;
-		spanfuncs_npo2[SPANDRAWFUNC_TILTEDSPRITE] = R_DrawTiltedFloorSprite_NPO2_8;
-		spanfuncs_npo2[SPANDRAWFUNC_TILTEDTRANSSPRITE] = R_DrawTiltedTranslucentFloorSprite_NPO2_8;
-		spanfuncs_npo2[SPANDRAWFUNC_WATER] = R_DrawTranslucentWaterSpan_NPO2_8;
-		spanfuncs_npo2[SPANDRAWFUNC_TILTEDWATER] = R_DrawTiltedTranslucentWaterSpan_NPO2_8;
+		spanfuncs_npo2[BASEDRAWFUNC] = SWR_DrawSpan_NPO2_8;
+		spanfuncs_npo2[SPANDRAWFUNC_TRANS] = SWR_DrawTranslucentSpan_NPO2_8;
+		spanfuncs_npo2[SPANDRAWFUNC_TILTED] = SWR_DrawTiltedSpan_NPO2_8;
+		spanfuncs_npo2[SPANDRAWFUNC_TILTEDTRANS] = SWR_DrawTiltedTranslucentSpan_NPO2_8;
+		spanfuncs_npo2[SPANDRAWFUNC_SPLAT] = SWR_DrawSplat_NPO2_8;
+		spanfuncs_npo2[SPANDRAWFUNC_TRANSSPLAT] = SWR_DrawTranslucentSplat_NPO2_8;
+		spanfuncs_npo2[SPANDRAWFUNC_TILTEDSPLAT] = SWR_DrawTiltedSplat_NPO2_8;
+		spanfuncs_npo2[SPANDRAWFUNC_SPRITE] = SWR_DrawFloorSprite_NPO2_8;
+		spanfuncs_npo2[SPANDRAWFUNC_TRANSSPRITE] = SWR_DrawTranslucentFloorSprite_NPO2_8;
+		spanfuncs_npo2[SPANDRAWFUNC_TILTEDSPRITE] = SWR_DrawTiltedFloorSprite_NPO2_8;
+		spanfuncs_npo2[SPANDRAWFUNC_TILTEDTRANSSPRITE] = SWR_DrawTiltedTranslucentFloorSprite_NPO2_8;
+		spanfuncs_npo2[SPANDRAWFUNC_WATER] = SWR_DrawTranslucentWaterSpan_NPO2_8;
+		spanfuncs_npo2[SPANDRAWFUNC_TILTEDWATER] = SWR_DrawTiltedTranslucentWaterSpan_NPO2_8;
 		spanfuncs_npo2[SPANDRAWFUNC_FOG] = NULL; // Not needed
 
 #ifdef RUSEASM
@@ -156,18 +157,18 @@ void SCR_SetDrawFuncs(void)
 		{
 			if (R_MMX)
 			{
-				colfuncs[BASEDRAWFUNC] = R_DrawColumn_8_MMX;
-				//colfuncs[COLDRAWFUNC_SHADE] = R_DrawShadeColumn_8_ASM;
-				//colfuncs[COLDRAWFUNC_FUZZY] = R_DrawTranslucentColumn_8_ASM;
-				colfuncs[COLDRAWFUNC_TWOSMULTIPATCH] = R_Draw2sMultiPatchColumn_8_MMX;
-				spanfuncs[BASEDRAWFUNC] = R_DrawSpan_8_MMX;
+				colfuncs[BASEDRAWFUNC] = SWR_DrawColumn_8_MMX;
+				//colfuncs[COLDRAWFUNC_SHADE] = SWR_DrawShadeColumn_8_ASM;
+				//colfuncs[COLDRAWFUNC_FUZZY] = SWR_DrawTranslucentColumn_8_ASM;
+				colfuncs[COLDRAWFUNC_TWOSMULTIPATCH] = SWR_Draw2sMultiPatchColumn_8_MMX;
+				spanfuncs[BASEDRAWFUNC] = SWR_DrawSpan_8_MMX;
 			}
 			else
 			{
-				colfuncs[BASEDRAWFUNC] = R_DrawColumn_8_ASM;
-				//colfuncs[COLDRAWFUNC_SHADE] = R_DrawShadeColumn_8_ASM;
-				//colfuncs[COLDRAWFUNC_FUZZY] = R_DrawTranslucentColumn_8_ASM;
-				colfuncs[COLDRAWFUNC_TWOSMULTIPATCH] = R_Draw2sMultiPatchColumn_8_ASM;
+				colfuncs[BASEDRAWFUNC] = SWR_DrawColumn_8_ASM;
+				//colfuncs[COLDRAWFUNC_SHADE] = SWR_DrawShadeColumn_8_ASM;
+				//colfuncs[COLDRAWFUNC_FUZZY] = SWR_DrawTranslucentColumn_8_ASM;
+				colfuncs[COLDRAWFUNC_TWOSMULTIPATCH] = SWR_Draw2sMultiPatchColumn_8_ASM;
 			}
 		}
 #endif
@@ -175,14 +176,14 @@ void SCR_SetDrawFuncs(void)
 /*	else if (vid.bpp > 1)
 	{
 		I_OutputMsg("using highcolor mode\n");
-		spanfunc = basespanfunc = R_DrawSpan_16;
-		transcolfunc = R_DrawTranslatedColumn_16;
-		transtransfunc = R_DrawTranslucentColumn_16; // No 16bit operation for this function
+		spanfunc = basespanfunc = SWR_DrawSpan_16;
+		transcolfunc = SWR_DrawTranslatedColumn_16;
+		transtransfunc = SWR_DrawTranslucentColumn_16; // No 16bit operation for this function
 
-		colfunc = basecolfunc = R_DrawColumn_16;
+		colfunc = basecolfunc = SWR_DrawColumn_16;
 		shadecolfunc = NULL; // detect error if used somewhere..
-		fuzzcolfunc = R_DrawTranslucentColumn_16;
-		walldrawerfunc = R_DrawWallColumn_16;
+		fuzzcolfunc = SWR_DrawTranslucentColumn_16;
+		walldrawerfunc = SWR_DrawWallColumn_16;
 	}*/
 	else
 		I_Error("unknown bytes per pixel mode %d\n", vid.bpp);

@@ -87,8 +87,8 @@ rdc8ndone:
 // By ES 1998/08/01
 //
 
-.globl _R_DrawColumn_8_Pentium
-_R_DrawColumn_8_Pentium:
+.globl _SWR_DrawColumn_8_Pentium
+_SWR_DrawColumn_8_Pentium:
 	pushl %ebp
         pushl %ebx
 	pushl %esi
@@ -190,8 +190,8 @@ rdc8pdone:
 // By ES 1998/07/05
 //
 
-.globl _R_DrawColumn_8_K6_MMX
-_R_DrawColumn_8_K6_MMX:
+.globl _SWR_DrawColumn_8_K6_MMX
+_SWR_DrawColumn_8_K6_MMX:
 	pushl %ebp
         pushl %ebx
 	pushl %esi
@@ -314,8 +314,8 @@ rdc8mdone:
         ret
 
 // Need some extra space to align run-time
-.globl R_DrawColumn_8_K6_MMX_end
-R_DrawColumn_8_K6_MMX_end:
+.globl SWR_DrawColumn_8_K6_MMX_end
+SWR_DrawColumn_8_K6_MMX_end:
 nop;nop;nop;nop;nop;nop;nop;nop;
 nop;nop;nop;nop;nop;nop;nop;nop;
 nop;nop;nop;nop;nop;nop;nop;nop;

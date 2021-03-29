@@ -7,9 +7,9 @@
 // terms of the GNU General Public License, version 2.
 // See the 'LICENSE' file for more details.
 //-----------------------------------------------------------------------------
-/// \file  r_draw16.c
+/// \file  sw_draw16.c
 /// \brief 16bpp (HIGHCOLOR) span/column drawer functions
-/// \note  no includes because this is included as part of r_draw.c
+/// \note  no includes because this is included as part of sw_draw.c
 
 // ==========================================================================
 // COLUMNS
@@ -18,10 +18,10 @@
 /// \brief kick out the upper bit of each component (we're in 5 : 5 : 5)
 #define HIMASK1 0x7bde
 
-/**	\brief The R_DrawColumn_16 function
+/**	\brief The SWR_DrawColumn_16 function
 	standard upto 128high posts column drawer
 */
-void R_DrawColumn_16(void)
+void SWR_DrawColumn_16(void)
 {
 	INT32 count;
 	INT16 *dest;
@@ -35,7 +35,7 @@ void R_DrawColumn_16(void)
 
 #ifdef RANGECHECK
 	if (dc_x >= vid.width || dc_yl < 0 || dc_yh >= vid.height)
-		I_Error("R_DrawColumn_16: %d to %d at %d", dc_yl, dc_yh, dc_x);
+		I_Error("SWR_DrawColumn_16: %d to %d at %d", dc_yl, dc_yh, dc_x);
 #endif
 
 	// Framebuffer destination address.
@@ -60,11 +60,11 @@ void R_DrawColumn_16(void)
 	} while (--count);
 }
 
-/**	\brief The R_DrawWallColumn_16 function
-	LAME cutnpaste: same as R_DrawColumn_16 but wraps around 256
+/**	\brief The SWR_DrawWallColumn_16 function
+	LAME cutnpaste: same as SWR_DrawColumn_16 but wraps around 256
 	instead of 128 for the tall sky textures (256x240)
 */
-void R_DrawWallColumn_16(void)
+void SWR_DrawWallColumn_16(void)
 {
 	INT32 count;
 	INT16 *dest;
@@ -78,7 +78,7 @@ void R_DrawWallColumn_16(void)
 
 #ifdef RANGECHECK
 	if (dc_x >= vid.width || dc_yl < 0 || dc_yh >= vid.height)
-		I_Error("R_DrawWallColumn_16: %d to %d at %d", dc_yl, dc_yh, dc_x);
+		I_Error("SWR_DrawWallColumn_16: %d to %d at %d", dc_yl, dc_yh, dc_x);
 #endif
 
 	dest = (INT16 *)(void *)(ylookup[dc_yl] + columnofs[dc_x]);
@@ -95,11 +95,11 @@ void R_DrawWallColumn_16(void)
 	} while (--count);
 }
 
-/**	\brief The R_DrawTranslucentColumn_16 function
-		LAME cutnpaste: same as R_DrawColumn_16 but does
+/**	\brief The SWR_DrawTranslucentColumn_16 function
+		LAME cutnpaste: same as SWR_DrawColumn_16 but does
 		translucent
 */
-void R_DrawTranslucentColumn_16(void)
+void SWR_DrawTranslucentColumn_16(void)
 {
 	INT32 count;
 	INT16 *dest;
@@ -115,7 +115,7 @@ void R_DrawTranslucentColumn_16(void)
 
 #ifdef RANGECHECK
 	if (dc_x >= vid.width || dc_yl < 0 || dc_yh >= vid.height)
-		I_Error("R_DrawTranslucentColumn_16: %d to %d at %d", dc_yl, dc_yh, dc_x);
+		I_Error("SWR_DrawTranslucentColumn_16: %d to %d at %d", dc_yl, dc_yh, dc_x);
 #endif
 
 	// FIXME. As above.
@@ -136,10 +136,10 @@ void R_DrawTranslucentColumn_16(void)
 	} while (count--);
 }
 
-/**	\brief The R_DrawTranslatedColumn_16 function
+/**	\brief The SWR_DrawTranslatedColumn_16 function
 	?
 */
-void R_DrawTranslatedColumn_16(void)
+void SWR_DrawTranslatedColumn_16(void)
 {
 	INT32 count;
 	INT16 *dest;
@@ -151,7 +151,7 @@ void R_DrawTranslatedColumn_16(void)
 
 #ifdef RANGECHECK
 	if (dc_x >= vid.width || dc_yl < 0 || dc_yh >= vid.height)
-		I_Error("R_DrawTranslatedColumn_16: %d to %d at %d", dc_yl, dc_yh, dc_x);
+		I_Error("SWR_DrawTranslatedColumn_16: %d to %d at %d", dc_yl, dc_yh, dc_x);
 #endif
 
 	dest = (INT16 *)(void *)(ylookup[dc_yl] + columnofs[dc_x]);
@@ -174,10 +174,10 @@ void R_DrawTranslatedColumn_16(void)
 // SPANS
 // ==========================================================================
 
-/**	\brief The R_*_16 function
+/**	\brief The SWR_*_16 function
 	Draws the actual span.
 */
-void R_DrawSpan_16(void)
+void SWR_DrawSpan_16(void)
 {
 	fixed_t xfrac, yfrac;
 	INT16 *dest;

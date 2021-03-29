@@ -239,6 +239,7 @@
     <ClInclude Include="..\hardware\u_list.h" />
     <ClInclude Include="..\hu_stuff.h" />
     <ClInclude Include="..\software\sw_main.h" />
+    <ClInclude Include="..\software\sw_draw.h" />
     <ClInclude Include="..\software\sw_viewmorph.h" />
     <ClInclude Include="..\software\sw_plane.h" />
     <ClInclude Include="..\software\sw_splats.h" />
@@ -404,6 +405,7 @@
     <ClCompile Include="..\hardware\u_list.c" />
     <ClCompile Include="..\hu_stuff.c" />
     <ClCompile Include="..\software\sw_main.c" />
+    <ClCompile Include="..\software\sw_draw.c" />
     <ClCompile Include="..\software\sw_viewmorph.c" />
     <ClCompile Include="..\software\sw_plane.c" />
     <ClCompile Include="..\software\sw_splats.c" />

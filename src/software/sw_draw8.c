@@ -7,9 +7,9 @@
 // terms of the GNU General Public License, version 2.
 // See the 'LICENSE' file for more details.
 //-----------------------------------------------------------------------------
-/// \file  r_draw8.c
+/// \file  sw_draw8.c
 /// \brief 8bpp span/column drawer functions
-/// \note  no includes because this is included as part of r_draw.c
+/// \note  no includes because this is included as part of sw_draw.c
 
 // ==========================================================================
 // COLUMNS
@@ -19,10 +19,10 @@
 // a has a constant z depth from top to bottom.
 //
 
-/**	\brief The R_DrawColumn_8 function
+/**	\brief The SWR_DrawColumn_8 function
 	Experiment to make software go faster. Taken from the Boom source
 */
-void R_DrawColumn_8(void)
+void SWR_DrawColumn_8(void)
 {
 	INT32 count;
 	register UINT8 *dest;
@@ -105,7 +105,7 @@ void R_DrawColumn_8(void)
 	}
 }
 
-void R_Draw2sMultiPatchColumn_8(void)
+void SWR_Draw2sMultiPatchColumn_8(void)
 {
 	INT32 count;
 	register UINT8 *dest;
@@ -201,7 +201,7 @@ void R_Draw2sMultiPatchColumn_8(void)
 	}
 }
 
-void R_Draw2sMultiPatchTranslucentColumn_8(void)
+void SWR_Draw2sMultiPatchTranslucentColumn_8(void)
 {
 	INT32 count;
 	register UINT8 *dest;
@@ -298,10 +298,10 @@ void R_Draw2sMultiPatchTranslucentColumn_8(void)
 	}
 }
 
-/**	\brief The R_DrawShadeColumn_8 function
+/**	\brief The SWR_DrawShadeColumn_8 function
 	Experiment to make software go faster. Taken from the Boom source
 */
-void R_DrawShadeColumn_8(void)
+void SWR_DrawShadeColumn_8(void)
 {
 	register INT32 count;
 	register UINT8 *dest;
@@ -317,7 +317,7 @@ void R_DrawShadeColumn_8(void)
 
 #ifdef RANGECHECK
 	if ((unsigned)dc_x >= (unsigned)vid.width || dc_yl < 0 || dc_yh >= vid.height)
-		I_Error("R_DrawShadeColumn_8: %d to %d at %d", dc_yl, dc_yh, dc_x);
+		I_Error("SWR_DrawShadeColumn_8: %d to %d at %d", dc_yl, dc_yh, dc_x);
 #endif
 
 	// FIXME. As above.
@@ -338,12 +338,12 @@ void R_DrawShadeColumn_8(void)
 	} while (count--);
 }
 
-/**	\brief The R_DrawTranslucentColumn_8 function
+/**	\brief The SWR_DrawTranslucentColumn_8 function
 	I've made an asm routine for the transparency, because it slows down
 	a lot in 640x480 with big sprites (bfg on all screen, or transparent
 	walls on fullscreen)
 */
-void R_DrawTranslucentColumn_8(void)
+void SWR_DrawTranslucentColumn_8(void)
 {
 	register INT32 count;
 	register UINT8 *dest;
@@ -356,7 +356,7 @@ void R_DrawTranslucentColumn_8(void)
 
 #ifdef RANGECHECK
 	if ((unsigned)dc_x >= (unsigned)vid.width || dc_yl < 0 || dc_yh >= vid.height)
-		I_Error("R_DrawTranslucentColumn_8: %d to %d at %d", dc_yl, dc_yh, dc_x);
+		I_Error("SWR_DrawTranslucentColumn_8: %d to %d at %d", dc_yl, dc_yh, dc_x);
 #endif
 
 	// FIXME. As above.
@@ -416,11 +416,11 @@ void R_DrawTranslucentColumn_8(void)
 	}
 }
 
-/**	\brief The R_DrawTranslatedTranslucentColumn_8 function
+/**	\brief The SWR_DrawTranslatedTranslucentColumn_8 function
 	Spiffy function. Not only does it colormap a sprite, but does translucency as well.
 	Uber-kudos to Cyan Helkaraxe
 */
-void R_DrawTranslatedTranslucentColumn_8(void)
+void SWR_DrawTranslatedTranslucentColumn_8(void)
 {
 	register INT32 count;
 	register UINT8 *dest;
@@ -487,12 +487,12 @@ void R_DrawTranslatedTranslucentColumn_8(void)
 	}
 }
 
-/**	\brief The R_DrawTranslatedColumn_8 function
+/**	\brief The SWR_DrawTranslatedColumn_8 function
 	Draw columns up to 128 high but remap the green ramp to other colors
 
   \warning STILL NOT IN ASM, TO DO..
 */
-void R_DrawTranslatedColumn_8(void)
+void SWR_DrawTranslatedColumn_8(void)
 {
 	register INT32 count;
 	register UINT8 *dest;
@@ -504,7 +504,7 @@ void R_DrawTranslatedColumn_8(void)
 
 #ifdef RANGECHECK
 	if ((unsigned)dc_x >= (unsigned)vid.width || dc_yl < 0 || dc_yh >= vid.height)
-		I_Error("R_DrawTranslatedColumn_8: %d to %d at %d", dc_yl, dc_yh, dc_x);
+		I_Error("SWR_DrawTranslatedColumn_8: %d to %d at %d", dc_yl, dc_yh, dc_x);
 #endif
 
 	// FIXME. As above.
@@ -539,10 +539,10 @@ void R_DrawTranslatedColumn_8(void)
 #define SPANSIZE 16
 #define INVSPAN 0.0625f
 
-/**	\brief The R_DrawSpan_8 function
+/**	\brief The SWR_DrawSpan_8 function
 	Draws the actual span.
 */
-void R_DrawSpan_8 (void)
+void SWR_DrawSpan_8 (void)
 {
 	fixed_t xposition;
 	fixed_t yposition;
@@ -623,10 +623,10 @@ void R_DrawSpan_8 (void)
 	}
 }
 
-// R_CalcTiltedLighting
+// SWR_CalcTiltedLighting
 // Exactly what it says on the tin. I wish I wasn't too lazy to explain things properly.
 INT32 tiltlighting[MAXVIDWIDTH];
-void R_CalcTiltedLighting(fixed_t start, fixed_t end)
+void SWR_CalcTiltedLighting(fixed_t start, fixed_t end)
 {
 	// ZDoom uses a different lighting setup to us, and I couldn't figure out how to adapt their version
 	// of this function. Here's my own.
@@ -646,10 +646,10 @@ void R_CalcTiltedLighting(fixed_t start, fixed_t end)
 	}
 }
 
-/**	\brief The R_DrawTiltedSpan_8 function
+/**	\brief The SWR_DrawTiltedSpan_8 function
 	Draw slopes! Holy sheit!
 */
-void R_DrawTiltedSpan_8(void)
+void SWR_DrawTiltedSpan_8(void)
 {
 	// x1, x2 = ds_x1, ds_x2
 	int width = ds_x2 - ds_x1;
@@ -676,7 +676,7 @@ void R_DrawTiltedSpan_8(void)
 		lightend = (iz + ds_szp->x*width) * planelightfloat;
 		lightstart = iz * planelightfloat;
 
-		R_CalcTiltedLighting(FLOAT_TO_FIXED(lightstart), FLOAT_TO_FIXED(lightend));
+		SWR_CalcTiltedLighting(FLOAT_TO_FIXED(lightstart), FLOAT_TO_FIXED(lightend));
 		//CONS_Printf("tilted lighting %f to %f (foc %f)\n", lightstart, lightend, focallengthf);
 	}
 
@@ -779,10 +779,10 @@ void R_DrawTiltedSpan_8(void)
 #endif
 }
 
-/**	\brief The R_DrawTiltedTranslucentSpan_8 function
+/**	\brief The SWR_DrawTiltedTranslucentSpan_8 function
 	Like DrawTiltedSpan, but translucent
 */
-void R_DrawTiltedTranslucentSpan_8(void)
+void SWR_DrawTiltedTranslucentSpan_8(void)
 {
 	// x1, x2 = ds_x1, ds_x2
 	int width = ds_x2 - ds_x1;
@@ -809,7 +809,7 @@ void R_DrawTiltedTranslucentSpan_8(void)
 		lightend = (iz + ds_szp->x*width) * planelightfloat;
 		lightstart = iz * planelightfloat;
 
-		R_CalcTiltedLighting(FLOAT_TO_FIXED(lightstart), FLOAT_TO_FIXED(lightend));
+		SWR_CalcTiltedLighting(FLOAT_TO_FIXED(lightstart), FLOAT_TO_FIXED(lightend));
 		//CONS_Printf("tilted lighting %f to %f (foc %f)\n", lightstart, lightend, focallengthf);
 	}
 
@@ -911,10 +911,10 @@ void R_DrawTiltedTranslucentSpan_8(void)
 #endif
 }
 
-/**	\brief The R_DrawTiltedTranslucentWaterSpan_8 function
+/**	\brief The SWR_DrawTiltedTranslucentWaterSpan_8 function
 	Like DrawTiltedTranslucentSpan, but for water
 */
-void R_DrawTiltedTranslucentWaterSpan_8(void)
+void SWR_DrawTiltedTranslucentWaterSpan_8(void)
 {
 	// x1, x2 = ds_x1, ds_x2
 	int width = ds_x2 - ds_x1;
@@ -942,7 +942,7 @@ void R_DrawTiltedTranslucentWaterSpan_8(void)
 		lightend = (iz + ds_szp->x*width) * planelightfloat;
 		lightstart = iz * planelightfloat;
 
-		R_CalcTiltedLighting(FLOAT_TO_FIXED(lightstart), FLOAT_TO_FIXED(lightend));
+		SWR_CalcTiltedLighting(FLOAT_TO_FIXED(lightstart), FLOAT_TO_FIXED(lightend));
 		//CONS_Printf("tilted lighting %f to %f (foc %f)\n", lightstart, lightend, focallengthf);
 	}
 
@@ -1045,7 +1045,7 @@ void R_DrawTiltedTranslucentWaterSpan_8(void)
 #endif
 }
 
-void R_DrawTiltedSplat_8(void)
+void SWR_DrawTiltedSplat_8(void)
 {
 	// x1, x2 = ds_x1, ds_x2
 	int width = ds_x2 - ds_x1;
@@ -1074,7 +1074,7 @@ void R_DrawTiltedSplat_8(void)
 		lightend = (iz + ds_szp->x*width) * planelightfloat;
 		lightstart = iz * planelightfloat;
 
-		R_CalcTiltedLighting(FLOAT_TO_FIXED(lightstart), FLOAT_TO_FIXED(lightend));
+		SWR_CalcTiltedLighting(FLOAT_TO_FIXED(lightstart), FLOAT_TO_FIXED(lightend));
 		//CONS_Printf("tilted lighting %f to %f (foc %f)\n", lightstart, lightend, focallengthf);
 	}
 
@@ -1186,10 +1186,10 @@ void R_DrawTiltedSplat_8(void)
 #endif
 }
 
-/**	\brief The R_DrawSplat_8 function
-	Just like R_DrawSpan_8, but skips transparent pixels.
+/**	\brief The SWR_DrawSplat_8 function
+	Just like SWR_DrawSpan_8, but skips transparent pixels.
 */
-void R_DrawSplat_8 (void)
+void SWR_DrawSplat_8 (void)
 {
 	fixed_t xposition;
 	fixed_t yposition;
@@ -1305,10 +1305,10 @@ void R_DrawSplat_8 (void)
 	}
 }
 
-/**	\brief The R_DrawTranslucentSplat_8 function
-	Just like R_DrawSplat_8, but is translucent!
+/**	\brief The SWR_DrawTranslucentSplat_8 function
+	Just like SWR_DrawSplat_8, but is translucent!
 */
-void R_DrawTranslucentSplat_8 (void)
+void SWR_DrawTranslucentSplat_8 (void)
 {
 	fixed_t xposition;
 	fixed_t yposition;
@@ -1406,10 +1406,10 @@ void R_DrawTranslucentSplat_8 (void)
 	}
 }
 
-/**	\brief The R_DrawFloorSprite_8 function
-	Just like R_DrawSplat_8, but for floor sprites.
+/**	\brief The SWR_DrawFloorSprite_8 function
+	Just like SWR_DrawSplat_8, but for floor sprites.
 */
-void R_DrawFloorSprite_8 (void)
+void SWR_DrawFloorSprite_8 (void)
 {
 	fixed_t xposition;
 	fixed_t yposition;
@@ -1527,10 +1527,10 @@ void R_DrawFloorSprite_8 (void)
 	}
 }
 
-/**	\brief The R_DrawTranslucentFloorSplat_8 function
-	Just like R_DrawFloorSprite_8, but is translucent!
+/**	\brief The SWR_DrawTranslucentFloorSplat_8 function
+	Just like SWR_DrawFloorSprite_8, but is translucent!
 */
-void R_DrawTranslucentFloorSprite_8 (void)
+void SWR_DrawTranslucentFloorSprite_8 (void)
 {
 	fixed_t xposition;
 	fixed_t yposition;
@@ -1630,10 +1630,10 @@ void R_DrawTranslucentFloorSprite_8 (void)
 	}
 }
 
-/**	\brief The R_DrawTiltedFloorSprite_8 function
+/**	\brief The SWR_DrawTiltedFloorSprite_8 function
 	Draws a tilted floor sprite.
 */
-void R_DrawTiltedFloorSprite_8(void)
+void SWR_DrawTiltedFloorSprite_8(void)
 {
 	// x1, x2 = ds_x1, ds_x2
 	int width = ds_x2 - ds_x1;
@@ -1739,10 +1739,10 @@ void R_DrawTiltedFloorSprite_8(void)
 	}
 }
 
-/**	\brief The R_DrawTiltedTranslucentFloorSprite_8 function
+/**	\brief The SWR_DrawTiltedTranslucentFloorSprite_8 function
 	Draws a tilted, translucent, floor sprite.
 */
-void R_DrawTiltedTranslucentFloorSprite_8(void)
+void SWR_DrawTiltedTranslucentFloorSprite_8(void)
 {
 	// x1, x2 = ds_x1, ds_x2
 	int width = ds_x2 - ds_x1;
@@ -1848,10 +1848,10 @@ void R_DrawTiltedTranslucentFloorSprite_8(void)
 	}
 }
 
-/**	\brief The R_DrawTranslucentSpan_8 function
+/**	\brief The SWR_DrawTranslucentSpan_8 function
 	Draws the actual span with translucency.
 */
-void R_DrawTranslucentSpan_8 (void)
+void SWR_DrawTranslucentSpan_8 (void)
 {
 	fixed_t xposition;
 	fixed_t yposition;
@@ -1932,7 +1932,7 @@ void R_DrawTranslucentSpan_8 (void)
 	}
 }
 
-void R_DrawTranslucentWaterSpan_8(void)
+void SWR_DrawTranslucentWaterSpan_8(void)
 {
 	UINT32 xposition;
 	UINT32 yposition;
@@ -2009,10 +2009,10 @@ void R_DrawTranslucentWaterSpan_8(void)
 	}
 }
 
-/**	\brief The R_DrawFogSpan_8 function
+/**	\brief The SWR_DrawFogSpan_8 function
 	Draws the actual span with fogging.
 */
-void R_DrawFogSpan_8(void)
+void SWR_DrawFogSpan_8(void)
 {
 	UINT8 *colormap;
 	UINT8 *dest;
@@ -2043,10 +2043,10 @@ void R_DrawFogSpan_8(void)
 	}
 }
 
-/**	\brief The R_DrawFogColumn_8 function
+/**	\brief The SWR_DrawFogColumn_8 function
 	Fog wall.
 */
-void R_DrawFogColumn_8(void)
+void SWR_DrawFogColumn_8(void)
 {
 	INT32 count;
 	UINT8 *dest;
@@ -2059,7 +2059,7 @@ void R_DrawFogColumn_8(void)
 
 #ifdef RANGECHECK
 	if ((unsigned)dc_x >= (unsigned)vid.width || dc_yl < 0 || dc_yh >= vid.height)
-		I_Error("R_DrawFogColumn_8: %d to %d at %d", dc_yl, dc_yh, dc_x);
+		I_Error("SWR_DrawFogColumn_8: %d to %d at %d", dc_yl, dc_yh, dc_x);
 #endif
 
 	// Framebuffer destination address.
@@ -2077,12 +2077,12 @@ void R_DrawFogColumn_8(void)
 	} while (count--);
 }
 
-/**	\brief The R_DrawShadeColumn_8 function
+/**	\brief The SWR_DrawShadeColumn_8 function
 	This is for 3D floors that cast shadows on walls.
 
-	This function just cuts the column up into sections and calls R_DrawColumn_8
+	This function just cuts the column up into sections and calls SWR_DrawColumn_8
 */
-void R_DrawColumnShadowed_8(void)
+void SWR_DrawColumnShadowed_8(void)
 {
 	INT32 count, realyh, i, height, bheight = 0, solid = 0;
 
@@ -2096,7 +2096,7 @@ void R_DrawColumnShadowed_8(void)
 
 #ifdef RANGECHECK
 	if ((unsigned)dc_x >= (unsigned)vid.width || dc_yl < 0 || dc_yh >= vid.height)
-		I_Error("R_DrawColumnShadowed_8: %d to %d at %d", dc_yl, dc_yh, dc_x);
+		I_Error("SWR_DrawColumnShadowed_8: %d to %d at %d", dc_yl, dc_yh, dc_x);
 #endif
 
 	// This runs through the lightlist from top to bottom and cuts up the column accordingly.
@@ -2133,7 +2133,7 @@ void R_DrawColumnShadowed_8(void)
 
 		if (dc_yh > realyh)
 			dc_yh = realyh;
-		(colfuncs[BASEDRAWFUNC])();		// R_DrawColumn_8 for the appropriate architecture
+		(colfuncs[BASEDRAWFUNC])();		// SWR_DrawColumn_8 for the appropriate architecture
 		if (solid)
 			dc_yl = bheight;
 		else

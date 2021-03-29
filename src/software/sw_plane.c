@@ -31,6 +31,8 @@
 #include "../z_zone.h"
 #include "../p_tick.h"
 
+#include "sw_draw.h"
+
 #ifdef TIMING
 #include "../p5prof.h"
 	INT64 mycount;

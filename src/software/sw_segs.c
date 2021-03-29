@@ -30,6 +30,8 @@
 #include "../console.h" // con_clipviewtop
 #include "../taglist.h"
 
+#include "sw_draw.h"
+
 // OPTIMIZE: closed two sided lines as single sided
 
 // True if any of the segs textures might be visible.
@@ -901,7 +903,7 @@ void SWR_RenderThickSideRange(drawseg_t *ds, INT32 x1, INT32 x2, ffloor_t *pfloo
 			// Get data for the column
 			col = (column_t *)((UINT8 *)R_GetColumn(texnum,maskedtexturecol[dc_x]) - 3);
 
-			// SoM: New code does not rely on SWR_DrawColumnShadowed_8 which
+			// SoM: New code does not rely on SWSWR_DrawColumnShadowed_8 which
 			// will (hopefully) put less strain on the stack.
 			if (dc_numlights)
 			{
