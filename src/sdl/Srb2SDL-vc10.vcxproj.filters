@@ -216,6 +216,9 @@
     <ClInclude Include="..\software\sw_main.h">
       <Filter>Sw_Software</Filter>
     </ClInclude>
+    <ClInclude Include="..\software\sw_draw.h">
+      <Filter>Sw_Software</Filter>
+    </ClInclude>
     <ClInclude Include="..\software\sw_viewmorph.h">
       <Filter>Sw_Software</Filter>
     </ClInclude>
@@ -676,6 +679,9 @@
       <Filter>H_Hud</Filter>
     </ClCompile>
     <ClCompile Include="..\software\sw_main.c">
+      <Filter>Sw_Software</Filter>
+    </ClCompile>
+    <ClCompile Include="..\software\sw_draw.c">
       <Filter>Sw_Software</Filter>
     </ClCompile>
     <ClCompile Include="..\software\sw_viewmorph.c">

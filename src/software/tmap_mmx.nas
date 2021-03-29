@@ -66,8 +66,8 @@ cextern centery
 cextern centeryfrac
 cextern dc_transmap
 
-cextern R_DrawColumn_8_ASM
-cextern R_Draw2sMultiPatchColumn_8_ASM
+cextern SWR_DrawColumn_8_ASM
+cextern SWR_Draw2sMultiPatchColumn_8_ASM
 
 ;; spans
 cextern nflatshiftup
@@ -116,8 +116,8 @@ nflatmask64		dq		0
 ;;----------------------------------------------------------------------
 
 
-cglobal R_DrawColumn_8_MMX
-R_DrawColumn_8_MMX:
+cglobal SWR_DrawColumn_8_MMX
+SWR_DrawColumn_8_MMX:
 		push		ebp						;; preserve caller's stack frame pointer
 		push		esi						;; preserve register variables
 		push		edi
@@ -259,7 +259,7 @@ R_DrawColumn_8_MMX:
 		ret
 
 .usenonMMX:
-		call		R_DrawColumn_8_ASM
+		call		SWR_DrawColumn_8_ASM
 		jmp			.done
 
 
@@ -285,8 +285,8 @@ R_DrawColumn_8_MMX:
 ;;----------------------------------------------------------------------
 
 
-cglobal R_Draw2sMultiPatchColumn_8_MMX
-R_Draw2sMultiPatchColumn_8_MMX:
+cglobal SWR_Draw2sMultiPatchColumn_8_MMX
+SWR_Draw2sMultiPatchColumn_8_MMX:
 		push		ebp						;; preserve caller's stack frame pointer
 		push		esi						;; preserve register variables
 		push		edi
@@ -435,7 +435,7 @@ R_Draw2sMultiPatchColumn_8_MMX:
 		ret
 
 .usenonMMX:
-		call		R_Draw2sMultiPatchColumn_8_ASM
+		call		SWR_Draw2sMultiPatchColumn_8_ASM
 		jmp			.done
 
 
@@ -463,8 +463,8 @@ R_Draw2sMultiPatchColumn_8_MMX:
 ;; mm7 = accumulator
 ;;----------------------------------------------------------------------
 
-cglobal R_DrawSpan_8_MMX
-R_DrawSpan_8_MMX:
+cglobal SWR_DrawSpan_8_MMX
+SWR_DrawSpan_8_MMX:
 		push		ebp						;; preserve caller's stack frame pointer
 		push		esi						;; preserve register variables
 		push		edi

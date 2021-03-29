@@ -494,6 +494,7 @@ endif()
 
 set(SRB2_SWRENDER_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/software/sw_main.c
+	${CMAKE_CURRENT_SOURCE_DIR}/software/sw_draw.c
 	${CMAKE_CURRENT_SOURCE_DIR}/software/sw_viewmorph.c
 	${CMAKE_CURRENT_SOURCE_DIR}/software/sw_plane.c
 	${CMAKE_CURRENT_SOURCE_DIR}/software/sw_splats.c
@@ -505,6 +506,7 @@ set(SRB2_SWRENDER_SOURCES
 
 set(SRB2_SWRENDER_HEADERS
 	${CMAKE_CURRENT_SOURCE_DIR}/software/sw_main.h
+	${CMAKE_CURRENT_SOURCE_DIR}/software/sw_draw.h
 	${CMAKE_CURRENT_SOURCE_DIR}/software/sw_viewmorph.h
 	${CMAKE_CURRENT_SOURCE_DIR}/software/sw_plane.h
 	${CMAKE_CURRENT_SOURCE_DIR}/software/sw_splats.h

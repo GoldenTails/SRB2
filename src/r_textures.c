@@ -32,6 +32,8 @@
 #include "hardware/hw_glob.h" // HWR_LoadMapTextures
 #endif
 
+#include "software/sw_draw.h"
+
 #include <errno.h>
 
 //
