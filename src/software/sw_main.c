@@ -35,6 +35,7 @@
 #include "../r_main.h"
 #include "../i_system.h" // I_GetTimeMicros
 #include "sw_main.h"
+#include "sw_draw.h"
 #include "sw_viewmorph.h"
 #include "sw_splats.h" // faB(21jan): testing
 #include "sw_things.h"
@@ -254,9 +255,11 @@ void SWR_RenderPlayerView(player_t *player)
 	{
 		viewwindowy = vid.height / 2;
 		M_Memcpy(ylookup, ylookup2, viewheight*sizeof (ylookup[0]));
-
-		topleft = screens[0] + viewwindowy*vid.width + viewwindowx;
 	}
+	else
+		objectsdrawn = 0;
+
+	topleft = screens[0] + viewwindowy*vid.width + viewwindowx;
 
 	if (cv_homremoval.value && player == &players[displayplayer]) // if this is display player 1
 	{

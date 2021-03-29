@@ -38,6 +38,8 @@
 #include "../d_netfil.h" // blargh. for nameonly().
 #include "../m_cheat.h" // objectplace
 
+#include "sw_draw.h"
+
 #define MINZ (FRACUNIT*4)
 #define BASEYCENTER (BASEVIDHEIGHT/2)
 
@@ -370,7 +372,7 @@ static void SWR_DrawVisSprite(vissprite_t *vis)
 	// invalid memory access crashes caused by R_ProjectDropShadow putting wrong values
 	// in dc_texturemid and dc_iscale when the shadow is sloped.
 	if (vis->cut & SC_SHADOW)
-		colfunc = R_DrawDropShadowColumn_8;
+		colfunc = SWR_DrawDropShadowColumn_8;
 
 	if (vis->extra_colormap && !(vis->renderflags & RF_NOCOLORMAPS))
 	{

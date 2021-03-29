@@ -118,8 +118,8 @@ C(ASM_PatchRowBytes):
 #else
     .align 5
 #endif
-.globl C(R_DrawColumn_8)
-C(R_DrawColumn_8):
+.globl C(SWR_DrawColumn_8)
+C(SWR_DrawColumn_8):
     pushl   %ebp                // preserve caller's stack frame pointer
     pushl   %esi                // preserve register variables
     pushl   %edi
@@ -624,8 +624,8 @@ C(texwidth):    .long   64      // texture width
 #else
     .align 4
 #endif
-.globl C(R_DrawSpan_8)
-C(R_DrawSpan_8):
+.globl C(SWR_DrawSpan_8)
+C(SWR_DrawSpan_8):
     pushl   %ebp                // preserve caller's stack frame pointer
     pushl   %esi                // preserve register variables
     pushl   %edi
@@ -765,7 +765,7 @@ hdone:
 
 
 //----------------------------------------------------------------------
-// R_DrawTransColumn
+// SWR_DrawTransColumn
 //
 // Vertical column texture drawer, with transparency. Replaces Doom2's
 // 'fuzz' effect, which was not so beautiful.
@@ -778,8 +778,8 @@ hdone:
     .align 5
 #endif
 
-.globl C(R_DrawTranslucentColumn_8)
-C(R_DrawTranslucentColumn_8):
+.globl C(SWR_DrawTranslucentColumn_8)
+C(SWR_DrawTranslucentColumn_8):
     pushl   %ebp                // preserve caller's stack frame pointer
     pushl   %esi                // preserve register variables
     pushl   %edi
@@ -974,8 +974,8 @@ vtdone:
 #else
     .align 5
 #endif
-.globl C(R_DrawShadeColumn_8)
-C(R_DrawShadeColumn_8):
+.globl C(SWR_DrawShadeColumn_8)
+C(SWR_DrawShadeColumn_8):
     pushl   %ebp                // preserve caller's stack frame pointer
     pushl   %esi                // preserve register variables
     pushl   %edi

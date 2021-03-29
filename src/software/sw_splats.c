@@ -19,6 +19,8 @@
 #include "../w_wad.h"
 #include "../z_zone.h"
 
+#include "sw_draw.h"
+
 struct rastery_s *prastertab; // for ASM code
 
 static struct rastery_s rastertab[MAXVIDHEIGHT];

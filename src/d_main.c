@@ -478,13 +478,8 @@ static void D_Display(void)
 			{
 				PS_START_TIMING(ps_rendercalltime);
 				if (players[displayplayer].mo || players[displayplayer].playerstate == PST_DEAD)
-				{
-					topleft = screens[0] + viewwindowy*vid.width + viewwindowx;
-					objectsdrawn = 0;
-
 					if (rendermode != render_none)
 						R_RenderPlayerView(&players[displayplayer]);
-				}
 
 				// render the second screen
 				if (splitscreen && players[secondarydisplayplayer].mo)
