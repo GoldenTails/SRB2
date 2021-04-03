@@ -190,7 +190,6 @@ static void InitLogging(void)
 }
 #endif
 
-
 /**	\brief	The main function
 
 	\param	argc	number of arg
