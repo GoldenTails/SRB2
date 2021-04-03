@@ -83,9 +83,6 @@ extern consvar_t cv_glcoronasize;
 #endif
 
 extern consvar_t cv_glshaders;
-extern consvar_t cv_glmodels;
-extern consvar_t cv_glmodelinterpolation;
-extern consvar_t cv_glmodellighting;
 extern consvar_t cv_glfiltermode;
 extern consvar_t cv_glanisotropicmode;
 extern consvar_t cv_fovchange;

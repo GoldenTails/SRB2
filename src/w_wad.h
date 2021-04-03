@@ -102,9 +102,25 @@ virtlump_t* vres_Find(const virtres_t*, const char*);
 
 #define lumpcache_t void *
 
-#ifdef HWRENDER
-#include "m_aatree.h"
-#endif
+// Lactozilla
+// A file's patch cache is like its lump cache,
+// but for graphics that are converted to a specific format,
+// commonly a PNG to a Doom GFX conversion.
+typedef struct
+{
+	// A Doom graphic or a PNG.
+	// Converted by W_CachePatchNumPwad.
+	lumpcache_t *lumps;
+	// In the software polygon renderer,
+	// those are 16-bit raw graphics, palette-based.
+	// The upper byte is used to store the pixel's alpha value,
+	// and the lower byte is a palette index.
+	lumpcache_t *software;
+	// Graphics converted to the hardware renderer's native format.
+	// In OpenGL, those can be in RGBA, or be palette-based.
+	// They are then uploaded to the GPU.
+	lumpcache_t *hardware;
+} patchcache_t;
 
 // Resource type of the WAD. Yeah, I know this sounds dumb, but I'll leave it like this until I clean up the code further.
 typedef enum restype
@@ -122,10 +138,7 @@ typedef struct wadfile_s
 	restype_t type;
 	lumpinfo_t *lumpinfo;
 	lumpcache_t *lumpcache;
-	lumpcache_t *patchcache;
-#ifdef HWRENDER
-	aatree_t *hwrcache; // patches are cached in renderer's native format
-#endif
+	patchcache_t *patchcache;
 	UINT16 numlumps; // this wad's number of resources
 	FILE *handle;
 	UINT32 filesize; // for network
@@ -148,6 +161,7 @@ void W_Shutdown(void);
 FILE *W_OpenWadFile(const char **filename, boolean useerrors);
 // Load and add a wadfile to the active wad files, returns numbers of lumps, INT16_MAX on error
 UINT16 W_InitFile(const char *filename, boolean mainfile, boolean startup);
+void W_InitFileCache(wadfile_t *wadfile, UINT16 numlumps);
 
 // W_InitMultipleFiles exits if a file was not found, but not if all is okay.
 void W_InitMultipleFiles(char **filenames);

@@ -34,6 +34,13 @@ extern fixed_t fovtan;
 
 extern size_t validcount, linecount, loopcount, framecount;
 
+#ifdef SWRASTERIZER
+extern boolean swrasterizer;
+extern boolean noswrasterizer;
+extern boolean modelinview;
+extern boolean frustumclipping;
+#endif
+
 //
 // Lighting LUT.
 // Used for z-depth cuing per column/row,
@@ -122,6 +129,7 @@ void R_ReloadHUDGraphics(void);
 
 void R_CheckViewMorph(void);
 void R_ApplyViewMorph(void);
+fixed_t R_GetViewMorphZoom(void);
 
 // just sets setsizeneeded true
 extern boolean setsizeneeded;

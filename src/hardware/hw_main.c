@@ -26,6 +26,7 @@
 #include "../p_setup.h"
 #include "../r_local.h"
 #include "../r_picformats.h"
+#include "../r_model.h"
 #include "../r_bsp.h"
 #include "../d_clisrv.h"
 #include "../w_wad.h"
@@ -3725,7 +3726,7 @@ static void HWR_SplitSprite(gl_vissprite_t *spr)
 	if (hires)
 		this_scale = this_scale * FIXED_TO_FLOAT(((skin_t *)spr->mobj->skin)->highresscale);
 
-	gpatch = spr->gpatch; //W_CachePatchNum(spr->patchlumpnum, PU_CACHE);
+	gpatch = spr->gpatch;
 
 	// cache the patch in the graphics card memory
 	//12/12/99: Hurdler: same comment as above (for md2)
@@ -4000,7 +4001,7 @@ static void HWR_DrawSprite(gl_vissprite_t *spr)
 	//          sure to do it the right way. So actually, we keep normal sprite
 	//          in memory and we add the md2 model if it exists for that sprite
 
-	gpatch = spr->gpatch; //W_CachePatchNum(spr->patchlumpnum, PU_CACHE);
+	gpatch = spr->gpatch;
 
 #ifdef ALAM_LIGHTING
 	if (!(spr->mobj->flags2 & MF2_DEBRIS) && (spr->mobj->sprite != SPR_PLAY ||
@@ -4141,7 +4142,7 @@ static inline void HWR_DrawPrecipitationSprite(gl_vissprite_t *spr)
 		return;
 
 	// cache sprite graphics
-	gpatch = spr->gpatch; //W_CachePatchNum(spr->patchlumpnum, PU_CACHE);
+	gpatch = spr->gpatch;
 
 	// create the sprite billboard
 	//
@@ -4616,7 +4617,7 @@ static void HWR_DrawSprites(void)
 {
 	UINT32 i;
 	boolean skipshadow = false; // skip shadow if it was drawn already for a linkdraw sprite encountered earlier in the list
-	HWD.pfnSetSpecialState(HWD_SET_MODEL_LIGHTING, cv_glmodellighting.value);
+	HWD.pfnSetSpecialState(HWD_SET_MODEL_LIGHTING, cv_modellighting.value);
 	for (i = 0; i < gl_visspritecount; i++)
 	{
 		gl_vissprite_t *spr = gl_vsprorder[i];
@@ -4626,6 +4627,9 @@ static void HWR_DrawSprites(void)
 		else
 #endif
 		{
+			modelinfo_t *model = Model_IsAvailable(spr->mobj->sprite, spr->mobj->skin);
+
+			// Draw the shadow first
 			if (spr->mobj && spr->mobj->shadowscale && cv_shadow.value && !skipshadow)
 			{
 				HWR_DrawDropShadow(spr->mobj, spr->mobj->shadowscale);
@@ -4652,26 +4656,11 @@ static void HWR_DrawSprites(void)
 				skipshadow = false;
 			}
 
-			if (spr->mobj && spr->mobj->skin && spr->mobj->sprite == SPR_PLAY)
-			{
-				if (!cv_glmodels.value || md2_playermodels[(skin_t*)spr->mobj->skin-skins].notfound || md2_playermodels[(skin_t*)spr->mobj->skin-skins].scale < 0.0f)
-					HWR_DrawSprite(spr);
-				else
-				{
-					if (!HWR_DrawModel(spr))
-						HWR_DrawSprite(spr);
-				}
-			}
+			// Then the model or sprite
+			if (cv_models.value && model)
+				HWR_DrawModel(model, spr);
 			else
-			{
-				if (!cv_glmodels.value || md2_models[spr->mobj->sprite].notfound || md2_models[spr->mobj->sprite].scale < 0.0f)
-					HWR_DrawSprite(spr);
-				else
-				{
-					if (!HWR_DrawModel(spr))
-						HWR_DrawSprite(spr);
-				}
-			}
+				HWR_DrawSprite(spr);
 		}
 	}
 	HWD.pfnSetSpecialState(HWD_SET_MODEL_LIGHTING, 0);
@@ -4754,7 +4743,7 @@ static void HWR_ProjectSprite(mobj_t *thing)
 	spritedef_t *sprdef;
 	spriteframe_t *sprframe;
 	spriteinfo_t *sprinfo;
-	md2_t *md2;
+	modelinfo_t *md2;
 	size_t lumpoff;
 	unsigned rot;
 	UINT16 flip;
@@ -4793,7 +4782,7 @@ static void HWR_ProjectSprite(mobj_t *thing)
 	// thing is behind view plane?
 	if (tz < ZCLIP_PLANE && !papersprite)
 	{
-		if (cv_glmodels.value) //Yellow: Only MD2's dont disappear
+		if (cv_models.value) //Yellow: Only MD2's dont disappear
 		{
 			if (thing->skin && thing->sprite == SPR_PLAY)
 				md2 = &md2_playermodels[( (skin_t *)thing->skin - skins )];
@@ -5030,7 +5019,7 @@ static void HWR_ProjectSprite(mobj_t *thing)
 		vis->gpatch = (GLPatch_t *)rotsprite;
 	else
 #endif
-		vis->gpatch = (GLPatch_t *)W_CachePatchNum(sprframe->lumppat[rot], PU_CACHE);
+		vis->gpatch = (GLPatch_t *)W_CachePatchNum(sprframe->lumppat[rot], PU_PATCH);
 	vis->flip = flip;
 	vis->mobj = thing;
 	vis->z1 = z1;
@@ -5165,8 +5154,7 @@ static void HWR_ProjectPrecipitationSprite(precipmobj_t *thing)
 	vis->z2 = z2;
 	vis->tz = tz;
 	vis->dispoffset = 0; // Monster Iestyn: 23/11/15: HARDWARE SUPPORT AT LAST
-	//vis->patchlumpnum = sprframe->lumppat[rot];
-	vis->gpatch = (GLPatch_t *)W_CachePatchNum(sprframe->lumppat[rot], PU_CACHE);
+	vis->gpatch = (GLPatch_t *)W_CachePatchNum(sprframe->lumppat[rot], PU_PATCH);
 	vis->flip = flip;
 	vis->mobj = (mobj_t *)thing;
 
@@ -5982,7 +5970,6 @@ void HWR_RenderPlayerView(INT32 viewnumber, player_t *player)
 //                                                         3D ENGINE COMMANDS
 // ==========================================================================
 
-static CV_PossibleValue_t grmodelinterpolation_cons_t[] = {{0, "Off"}, {1, "Sometimes"}, {2, "Always"}, {0, NULL}};
 static CV_PossibleValue_t grfakecontrast_cons_t[] = {{0, "Off"}, {1, "On"}, {2, "Smooth"}, {0, NULL}};
 static CV_PossibleValue_t grshearing_cons_t[] = {{0, "Off"}, {1, "On"}, {2, "Third-person"}, {0, NULL}};
 
@@ -6006,10 +5993,6 @@ consvar_t cv_glstaticlighting  = {"gr_staticlighting", "On", CV_SAVE, CV_OnOff, 
 consvar_t cv_glcoronas = {"gr_coronas", "On", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_glcoronasize = {"gr_coronasize", "1", CV_SAVE|CV_FLOAT, 0, NULL, 0, NULL, NULL, 0, 0, NULL};
 #endif
-
-consvar_t cv_glmodels = {"gr_models", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_glmodelinterpolation = {"gr_modelinterpolation", "Sometimes", CV_SAVE, grmodelinterpolation_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_glmodellighting = {"gr_modellighting", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 consvar_t cv_glshearing = {"gr_shearing", "Off", CV_SAVE, grshearing_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_glspritebillboarding = {"gr_spritebillboarding", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -6049,10 +6032,6 @@ void HWR_AddCommands(void)
 	CV_RegisterVar(&cv_glcoronasize);
 	CV_RegisterVar(&cv_glcoronas);
 #endif
-
-	CV_RegisterVar(&cv_glmodellighting);
-	CV_RegisterVar(&cv_glmodelinterpolation);
-	CV_RegisterVar(&cv_glmodels);
 
 	CV_RegisterVar(&cv_glskydome);
 	CV_RegisterVar(&cv_glspritebillboarding);
@@ -6098,7 +6077,6 @@ void HWR_Startup(void)
 		HWR_InitPolyPool();
 		HWR_AddSessionCommands();
 		HWR_InitTextureCache();
-		HWR_InitModels();
 #ifdef ALAM_LIGHTING
 		HWR_InitLight();
 #endif

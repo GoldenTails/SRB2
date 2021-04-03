@@ -696,10 +696,7 @@ next_token:
 		skin_cons_t[numskins].strvalue = skin->name;
 #endif
 
-#ifdef HWRENDER
-		if (rendermode == render_opengl)
-			HWR_AddPlayerModel(numskins);
-#endif
+		Model_AddSkin(numskins);
 
 		numskins++;
 	}
@@ -824,6 +821,8 @@ next_token:
 
 		if (!skin->availability) // Safe to print...
 			CONS_Printf(M_GetText("Patched skin '%s'\n"), skin->name);
+
+		Model_AddSkin(skinnum);
 	}
 	return;
 }

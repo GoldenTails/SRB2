@@ -10,10 +10,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "../doomdef.h"
-#include "hw_md3load.h"
-#include "hw_model.h"
-#include "../z_zone.h"
+#include "doomdef.h"
+#include "r_md3load.h"
+#include "r_model.h"
+#include "z_zone.h"
 
 typedef struct
 {

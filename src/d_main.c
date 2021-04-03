@@ -49,6 +49,7 @@
 #include "p_saveg.h"
 #include "r_main.h"
 #include "r_local.h"
+#include "r_model.h"
 #include "s_sound.h"
 #include "st_stuff.h"
 #include "v_video.h"
@@ -72,6 +73,10 @@
 #include "config.h"
 #else
 #include "config.h.in"
+#endif
+
+#ifdef SWRASTERIZER
+#include "swrasterizer/swrast.h"
 #endif
 
 #ifdef HWRENDER
@@ -427,24 +432,26 @@ static void D_Display(void)
 	{
 		wipegamestate = gamestate;
 
-		// clean up border stuff
-		// see if the border needs to be initially drawn
 		if (gamestate == GS_LEVEL || (gamestate == GS_TITLESCREEN && titlemapinaction && curbghide && (!hidetitlemap)))
 		{
-			// draw the view directly
-
 			if (!automapactive && !dedicated && cv_renderview.value)
 			{
 				rs_rendercalltime = I_GetTimeMicros();
+
+#ifdef SWRASTERIZER
+				if (swrasterizer)
+					SWRast_OnFrame();
+#endif
+
 				if (players[displayplayer].mo || players[displayplayer].playerstate == PST_DEAD)
 				{
 					topleft = screens[0] + viewwindowy*vid.width + viewwindowx;
 					objectsdrawn = 0;
-	#ifdef HWRENDER
+#ifdef HWRENDER
 					if (rendermode != render_soft)
 						HWR_RenderPlayerView(0, &players[displayplayer]);
 					else
-	#endif
+#endif
 					if (rendermode != render_none)
 						R_RenderPlayerView(&players[displayplayer]);
 				}
@@ -452,11 +459,11 @@ static void D_Display(void)
 				// render the second screen
 				if (splitscreen && players[secondarydisplayplayer].mo)
 				{
-	#ifdef HWRENDER
+#ifdef HWRENDER
 					if (rendermode != render_soft)
 						HWR_RenderPlayerView(1, &players[secondarydisplayplayer]);
 					else
-	#endif
+#endif
 					if (rendermode != render_none)
 					{
 						viewwindowy = vid.height / 2;
@@ -1338,6 +1345,10 @@ void D_SRB2Main(void)
 	// Setup character tables
 	// Have to be done here before files are loaded
 	M_InitCharacterTables();
+
+	// Init 3D models
+	CONS_Printf("Model_Init()...\n");
+	Model_Init();
 
 	mainwads = 3; // doesn't include music.dta
 #ifdef USE_PATCH_DTA

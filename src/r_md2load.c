@@ -10,10 +10,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "../doomdef.h"
-#include "hw_md2load.h"
-#include "hw_model.h"
-#include "../z_zone.h"
+#include "doomdef.h"
+#include "r_md2load.h"
+#include "r_model.h"
+#include "z_zone.h"
 
 #define NUMVERTEXNORMALS 162
 

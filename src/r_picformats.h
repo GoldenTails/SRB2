@@ -79,7 +79,7 @@ boolean Picture_IsPatchFormat(pictureformat_t format);
 boolean Picture_IsFlatFormat(pictureformat_t format);
 boolean Picture_CheckIfPatch(patch_t *patch, size_t size);
 
-// Structs
+// Enums
 typedef enum
 {
 	ROTAXIS_X, // Roll (the default)
@@ -87,6 +87,7 @@ typedef enum
 	ROTAXIS_Z  // Yaw
 } rotaxis_t;
 
+// Structs
 typedef struct
 {
 	INT32 x, y;

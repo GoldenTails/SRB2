@@ -7,22 +7,16 @@
 // terms of the GNU General Public License, version 2.
 // See the 'LICENSE' file for more details.
 //-----------------------------------------------------------------------------
-/// \file hw_md2.h
-/// \brief MD2 Model Handling
-///	Inspired from md2.h by Mete Ciragan (mete@swissquake.ch)
+/// \file  r_modeltextures.h
+/// \brief 3D model texture loading.
 
-#ifndef _HW_MD2_H_
-#define _HW_MD2_H_
+#ifndef _R_MODELTEXTURES_H_
+#define _R_MODELTEXTURES_H_
 
-#include "hw_glob.h"
-#include "../r_model.h"
+#include "doomtype.h"
+#include "r_model.h"
 
-#if defined(_MSC_VER)
-#pragma pack()
+boolean Model_LoadTexture(modelinfo_t *model);
+boolean Model_LoadBlendTexture(modelinfo_t *model);
+
 #endif
-
-boolean HWR_DrawModel(modelinfo_t *md2, gl_vissprite_t *spr);
-
-#define PLAYERMODELPREFIX "PLAYER"
-
-#endif // _HW_MD2_H_

@@ -38,6 +38,10 @@
 // item finder
 #include "m_cond.h"
 
+#ifdef SWRASTERIZER
+#include "swrasterizer/swrast.h"
+#endif
+
 #ifdef HWRENDER
 #include "hardware/hw_main.h"
 #endif
@@ -622,6 +626,17 @@ static void ST_drawDebugInfo(void)
 
 		//height += h/2;
 	}
+
+#ifdef SWRASTERIZER
+	if ((cv_debug & DBG_RENDER) && (rendermode == render_soft))
+	{
+		V_DrawDebugLine(va("Meshes: %d", SWRast_GetNumRenderedMeshes()));
+		V_DrawDebugLine(va("Primitives: %d", SWRast_GetNumRenderedTriangles()));
+		V_DrawDebugLine(va("Memory: %sKB", sizeu1(Z_TagUsage(PU_SWRASTERIZER)>>10)));
+
+		height += h/2;
+	}
+#endif
 
 #undef V_DrawDebugFlag
 #undef V_DrawDebugLine
@@ -1622,7 +1637,7 @@ static void ST_drawFirstPersonHUD(void)
 
 	// Get the front angle patch for the frame
 	sprframe = &sprites[SPR_DRWN].spriteframes[airtime];
-	p = W_CachePatchNum(sprframe->lumppat[0], PU_CACHE);
+	p = W_CachePatchNum(sprframe->lumppat[0], PU_PATCH);
 
 	// Display the countdown drown numbers!
 	if (p && !F_GetPromptHideHud(60 - SHORT(p->topoffset)))

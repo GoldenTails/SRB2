@@ -499,24 +499,22 @@ void Z_FreeTags(INT32 lowtag, INT32 hightag)
 // Utility functions
 // -----------------
 
-// for renderer switching
 boolean needpatchflush = false;
 boolean needpatchrecache = false;
 
-// flush all patches from memory
+// Purge every graphic from memory.
 void Z_FlushCachedPatches(void)
 {
 	CONS_Debug(DBG_RENDER, "Z_FlushCachedPatches()...\n");
 	Z_FreeTag(PU_PATCH);
 	Z_FreeTag(PU_HUDGFX);
-	Z_FreeTag(PU_HWRPATCHINFO);
-	Z_FreeTag(PU_HWRMODELTEXTURE);
 	Z_FreeTag(PU_HWRCACHE);
 	Z_FreeTag(PU_HWRCACHE_UNLOCKED);
 	Z_FreeTag(PU_HWRPATCHINFO_UNLOCKED);
 	Z_FreeTag(PU_HWRMODELTEXTURE_UNLOCKED);
 }
 
+// Happens before a renderer switch.
 void Z_PreparePatchFlush(void)
 {
 	CONS_Debug(DBG_RENDER, "Z_PreparePatchFlush()...\n");
@@ -803,16 +801,21 @@ static void Command_Memfree_f(void)
 	CONS_Printf(M_GetText("All purgable      : %7s KB\n"),
 		sizeu1(Z_TagsUsage(PU_PURGELEVEL, INT32_MAX)>>10));
 
+	CONS_Printf("\x82%s", M_GetText("Renderer Info\n"));
+	CONS_Printf(M_GetText("3D models         : %7s KB\n"), sizeu1(Z_TagUsage(PU_MODEL)>>10));
 #ifdef HWRENDER
 	if (rendermode == render_opengl)
 	{
 		CONS_Printf(M_GetText("Patch info headers: %7s KB\n"), sizeu1(Z_TagUsage(PU_HWRPATCHINFO)>>10));
-		CONS_Printf(M_GetText("Mipmap patches    : %7s KB\n"), sizeu1(Z_TagUsage(PU_HWRPATCHCOLMIPMAP)>>10));
 		CONS_Printf(M_GetText("HW Texture cache  : %7s KB\n"), sizeu1(Z_TagUsage(PU_HWRCACHE)>>10));
 		CONS_Printf(M_GetText("Plane polygons    : %7s KB\n"), sizeu1(Z_TagUsage(PU_HWRPLANE)>>10));
 		CONS_Printf(M_GetText("HW model textures : %7s KB\n"), sizeu1(Z_TagUsage(PU_HWRMODELTEXTURE)>>10));
 		CONS_Printf(M_GetText("HW Texture used   : %7d KB\n"), HWR_GetTextureUsed()>>10);
 	}
+#endif
+#ifdef SWRASTERIZER
+	if (rendermode == render_soft)
+		CONS_Printf(M_GetText("Polygon renderer  : %7s KB\n"), sizeu1(Z_TagUsage(PU_SWRASTERIZER)>>10));
 #endif
 
 	CONS_Printf("\x82%s", M_GetText("System Memory Info\n"));

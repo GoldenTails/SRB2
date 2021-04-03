@@ -23,6 +23,7 @@
 #include "d_netcmd.h"
 #include "console.h"
 #include "r_local.h"
+#include "r_model.h"
 #include "hu_stuff.h"
 #include "g_game.h"
 #include "g_input.h"
@@ -323,6 +324,7 @@ static void M_ChangeControl(INT32 choice);
 // Video & Sound
 static void M_VideoOptions(INT32 choice);
 menu_t OP_VideoOptionsDef, OP_VideoModeDef, OP_ColorOptionsDef;
+menu_t OP_ModelOptionsDef;
 #ifdef HWRENDER
 static void M_OpenGLOptionsMenu(void);
 menu_t OP_OpenGLOptionsDef;
@@ -1383,9 +1385,10 @@ static menuitem_t OP_VideoOptionsMenu[] =
 	{IT_STRING | IT_CVAR, NULL, "Clear Before Redraw",       &cv_homremoval,      195},
 	{IT_STRING | IT_CVAR, NULL, "Show \"FOCUS LOST\"",       &cv_showfocuslost,   200},
 
-#ifdef HWRENDER
 	{IT_HEADER, NULL, "Renderer", NULL, 208},
-	{IT_CALL | IT_STRING, NULL, "OpenGL Options...",         M_OpenGLOptionsMenu, 214},
+	{IT_SUBMENU | IT_STRING, NULL, "3D Model Options...",       &OP_ModelOptionsDef, 214},
+#ifdef HWRENDER
+	{IT_CALL    | IT_STRING, NULL, "OpenGL Options...",         M_OpenGLOptionsMenu, 219},
 #endif
 };
 
@@ -1435,13 +1438,21 @@ static menuitem_t OP_ColorOptionsMenu[] =
 	{IT_STRING | IT_CVAR | IT_CV_SLIDER, NULL, "Brightness",   &cv_mgamma,      150},
 };
 
+static menuitem_t OP_ModelOptionsMenu[] =
+{
+	{IT_HEADER, NULL, "General", NULL, 0},
+	{IT_STRING|IT_CVAR,         NULL, "Models",              &cv_models,             12},
+	{IT_STRING|IT_CVAR,         NULL, "Frame interpolation", &cv_modelinterpolation, 22},
+	{IT_STRING|IT_CVAR,         NULL, "Surface lighting",    &cv_modellighting,      32},
+};
+
 #ifdef HWRENDER
 static menuitem_t OP_OpenGLOptionsMenu[] =
 {
 	{IT_HEADER, NULL, "3D Models", NULL, 0},
-	{IT_STRING|IT_CVAR,         NULL, "Models",              &cv_glmodels,             12},
-	{IT_STRING|IT_CVAR,         NULL, "Frame interpolation", &cv_glmodelinterpolation, 22},
-	{IT_STRING|IT_CVAR,         NULL, "Ambient lighting",    &cv_glmodellighting,      32},
+	{IT_STRING|IT_CVAR,         NULL, "Models",              &cv_models,               12},
+	{IT_STRING|IT_CVAR,         NULL, "Frame interpolation", &cv_modelinterpolation,   22},
+	{IT_STRING|IT_CVAR,         NULL, "Surface lighting",    &cv_modellighting,        32},
 
 	{IT_HEADER, NULL, "General", NULL, 51},
 	{IT_STRING|IT_CVAR,         NULL, "Shaders",             &cv_glshaders,            63},
@@ -2216,6 +2227,10 @@ menu_t OP_MonitorToggleDef =
 	0,
 	NULL
 };
+
+menu_t OP_ModelOptionsDef = DEFAULTMENUSTYLE(
+	MTREE3(MN_OP_MAIN, MN_OP_VIDEO, MN_OP_MODELS),
+	"M_VIDEO", OP_ModelOptionsMenu, &OP_VideoOptionsDef, 30, 30);
 
 #ifdef HWRENDER
 static void M_OpenGLOptionsMenu(void)
