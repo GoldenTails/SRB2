@@ -240,6 +240,9 @@
     <ClInclude Include="..\software\sw_segs.h">
       <Filter>Sw_Software</Filter>
     </ClInclude>
+    <ClInclude Include="..\software\sw_automap.h">
+      <Filter>Sw_Software</Filter>
+    </ClInclude>
     <ClInclude Include="..\hardware\hw3dsdrv.h">
       <Filter>Hw_Hardware</Filter>
     </ClInclude>
@@ -703,6 +706,9 @@
       <Filter>Sw_Software</Filter>
     </ClCompile>
     <ClCompile Include="..\software\sw_segs.c">
+      <Filter>Sw_Software</Filter>
+    </ClCompile>
+    <ClCompile Include="..\software\sw_automap.c">
       <Filter>Sw_Software</Filter>
     </ClCompile>
     <ClCompile Include="..\hardware\hw3sound.c">
