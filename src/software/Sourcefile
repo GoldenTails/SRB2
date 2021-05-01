@@ -7,4 +7,5 @@ sw_video.c
 sw_bsp.c
 sw_segs.c
 sw_draw.c
+sw_automap.c
 vid_copy.s

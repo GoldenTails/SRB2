@@ -21,6 +21,7 @@
 #include "r_state.h"
 #include "r_draw.h"
 
+#include "software/sw_automap.h"
 #ifdef HWRENDER
 #include "hardware/hw_main.h"
 #endif
@@ -205,9 +206,6 @@ static boolean followplayer = true; // specifies whether to follow the player ar
 // function for drawing lines, depends on rendermode
 typedef void (*AMDRAWFLINEFUNC) (const fline_t *fl, INT32 color);
 static AMDRAWFLINEFUNC AM_drawFline;
-
-static void AM_drawPixel(INT32 xx, INT32 yy, INT32 cc);
-static void AM_drawFline_soft(const fline_t *fl, INT32 color);
 
 static void AM_activateNewScale(void)
 {
@@ -780,85 +778,6 @@ static boolean AM_clipMline(const mline_t *ml, fline_t *fl)
 #undef DOOUTCODE
 
 //
-// Draws a pixel.
-//
-static void AM_drawPixel(INT32 xx, INT32 yy, INT32 cc)
-{
-	UINT8 *dest = screens[0];
-	if (xx < 0 || yy < 0 || xx >= vid.width || yy >= vid.height)
-		return; // off the screen
-	dest[(yy*vid.width) + xx] = cc;
-}
-
-//
-// Classic Bresenham w/ whatever optimizations needed for speed
-//
-static void AM_drawFline_soft(const fline_t *fl, INT32 color)
-{
-	INT32 x, y, dx, dy, sx, sy, ax, ay, d;
-
-#ifdef _DEBUG
-	static INT32 num = 0;
-
-	// For debugging only
-	if (fl->a.x < 0 || fl->a.x >= f_w
-	|| fl->a.y < 0 || fl->a.y >= f_h
-	|| fl->b.x < 0 || fl->b.x >= f_w
-	|| fl->b.y < 0 || fl->b.y >= f_h)
-	{
-		CONS_Debug(DBG_RENDER, "line clipping problem %d\n", num++);
-		return;
-	}
-#endif
-
-	dx = fl->b.x - fl->a.x;
-	ax = 2 * (dx < 0 ? -dx : dx);
-	sx = dx < 0 ? -1 : 1;
-
-	dy = fl->b.y - fl->a.y;
-	ay = 2 * (dy < 0 ? -dy : dy);
-	sy = dy < 0 ? -1 : 1;
-
-	x = fl->a.x;
-	y = fl->a.y;
-
-	if (ax > ay)
-	{
-		d = ay - ax/2;
-		for (;;)
-		{
-			AM_drawPixel(x, y, color);
-			if (x == fl->b.x)
-				return;
-			if (d >= 0)
-			{
-				y += sy;
-				d -= ax;
-			}
-			x += sx;
-			d += ay;
-		}
-	}
-	else
-	{
-		d = ax - ay/2;
-		for (;;)
-		{
-			AM_drawPixel(x, y, color);
-			if (y == fl->b.y)
-				return;
-			if (d >= 0)
-			{
-				x += sx;
-				d -= ay;
-			}
-			y += sy;
-			d += ax;
-		}
-	}
-}
-
-//
 // Clip lines, draw visible parts of lines.
 //
 static void AM_drawMline(const mline_t *ml, INT32 color)
@@ -1134,7 +1053,7 @@ void AM_Drawer(void)
 	if (!automapactive)
 		return;
 
-	AM_drawFline = AM_drawFline_soft;
+	AM_drawFline = SWR_drawAMline;
 #ifdef HWRENDER
 	if (rendermode == render_opengl)
 		AM_drawFline = HWR_drawAMline;
