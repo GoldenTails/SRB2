@@ -508,7 +508,7 @@ static inline UINT8 transmappedpdraw(const UINT8 *dest, const UINT8 *source, fix
 }
 
 // Draws a patch scaled to arbitrary size.
-void V_DrawStretchyFixedPatch(fixed_t x, fixed_t y, fixed_t pscale, fixed_t vscale, INT32 scrn, patch_t *patch, const UINT8 *colormap)
+void V_DrawAffinePatch(fixed_t x, fixed_t y, fixed_t pscale, fixed_t vscale, fixed_t skewx, fixed_t skewy, INT32 scrn, patch_t *patch, const UINT8 *colormap)
 {
 	UINT8 (*patchdrawfunc)(const UINT8*, const UINT8*, fixed_t);
 	UINT32 alphalevel = 0;
@@ -520,6 +520,7 @@ void V_DrawStretchyFixedPatch(fixed_t x, fixed_t y, fixed_t pscale, fixed_t vsca
 	const UINT8 *source, *deststop;
 	fixed_t pwidth; // patch width
 	fixed_t offx = 0; // x offset
+	fixed_t skewy_acc = 0;
 
 	UINT8 perplayershuffle = 0;
 
@@ -785,8 +786,13 @@ void V_DrawStretchyFixedPatch(fixed_t x, fixed_t y, fixed_t pscale, fixed_t vsca
 		}
 		column = (const column_t *)((const UINT8 *)(patch->columns) + (patch->columnofs[col>>FRACBITS]));
 
+		skewy_acc += skewy / dupy;
+
 		while (column->topdelta != 0xff)
 		{
+			fixed_t skewx_acc;
+			int sign = (skewx < 0) ? -1 : 1;
+
 			topdelta = column->topdelta;
 			if (topdelta <= prevdelta)
 				topdelta += prevdelta;
@@ -795,13 +801,17 @@ void V_DrawStretchyFixedPatch(fixed_t x, fixed_t y, fixed_t pscale, fixed_t vsca
 			dest = desttop;
 			if (scrn & V_FLIP)
 				dest = deststart + (destend - desttop);
-			dest += FixedInt(FixedMul(topdelta<<FRACBITS,vdup))*vid.width;
+			dest += FixedInt(FixedMul((topdelta<<FRACBITS) + skewy_acc,vdup))*vid.width + FixedInt(FixedMul(topdelta * skewx * dupx, pscale)) + 1;
+			skewx_acc = abs(FixedMul(topdelta * skewx * dupx, pscale)) % FRACBITS;
 
 			for (ofs = 0; dest < deststop && (ofs>>FRACBITS) < column->length; ofs += rowfrac)
 			{
 				if (dest >= screens[scrn&V_PARAMMASK]) // don't draw off the top of the screen (CRASH PREVENTION)
 					*dest = patchdrawfunc(dest, source, ofs);
-				dest += vid.width;
+				dest += vid.width + FixedInt(skewx_acc) * sign;
+
+				skewx_acc %= FRACUNIT;
+				skewx_acc += abs(skewx);
 			}
 			column = (const column_t *)((const UINT8 *)column + column->length + 4);
 		}
