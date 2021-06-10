@@ -663,6 +663,35 @@ static int libd_drawStretched(lua_State *L)
 	return 0;
 }
 
+static int libd_drawAffine(lua_State *L)
+{
+	fixed_t x, y, hscale, vscale, xskew, yskew;
+	INT32 flags;
+	patch_t *patch;
+	const UINT8 *colormap = NULL;
+
+	HUDONLY
+	x = luaL_checkinteger(L, 1);
+	y = luaL_checkinteger(L, 2);
+	hscale = luaL_checkinteger(L, 3);
+	if (hscale < 0)
+		return luaL_error(L, "negative horizontal scale");
+	vscale = luaL_checkinteger(L, 4);
+	if (vscale < 0)
+		return luaL_error(L, "negative vertical scale");
+	xskew = luaL_checkinteger(L, 5);
+	yskew = luaL_checkinteger(L, 6);
+	patch = *((patch_t **)luaL_checkudata(L, 7, META_PATCH));
+	flags = luaL_optinteger(L, 8, 0);
+	if (!lua_isnoneornil(L, 9))
+		colormap = *((UINT8 **)luaL_checkudata(L, 9, META_COLORMAP));
+
+	flags &= ~V_PARAMMASK; // Don't let crashes happen.
+
+	V_DrawAffinePatch(x, y, hscale, vscale, xskew, yskew, flags, patch, colormap);
+	return 0;
+}
+
 static int libd_drawNum(lua_State *L)
 {
 	INT32 x, y, flags, num;
@@ -1121,6 +1150,7 @@ static luaL_Reg lib_draw[] = {
 	{"draw", libd_draw},
 	{"drawScaled", libd_drawScaled},
 	{"drawStretched", libd_drawStretched},
+	{"drawAffine", libd_drawAffine},
 	{"drawNum", libd_drawNum},
 	{"drawPaddedNum", libd_drawPaddedNum},
 	{"drawFill", libd_drawFill},
