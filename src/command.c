@@ -38,7 +38,6 @@
 //========
 // protos.
 //========
-static boolean COM_Exists(const char *com_name);
 static void COM_ExecuteString(char *com_text);
 
 static void COM_Alias_f(void);
@@ -550,7 +549,7 @@ int COM_AddLuaCommand(const char *name)
   * \param com_name Name to test for.
   * \return True if a command by the given name exists.
   */
-static boolean COM_Exists(const char *com_name)
+boolean COM_Exists(const char *com_name)
 {
 	xcommand_t *cmd;
 
@@ -1374,6 +1373,32 @@ const char *CV_CompleteVar(char *partial, INT32 skips)
 		if (!strncmp(partial, cvar->name, len))
 			if (!skips--)
 				return cvar->name;
+
+	return NULL;
+}
+
+/** Completes the name of a console variable's string argument.
+  *
+  * \param partial The partial name of the argument (potentially).
+  * \param skips   Number of arguments to skip.
+  * \return The complete argument name, or NULL.
+  * \sa COM_CompleteVar
+  */
+const char *CV_CompleteVarArg(consvar_t *cvar, char *partial, INT32 skips)
+{
+	const char *strvalue;
+	size_t len;
+
+	if (!cvar->PossibleValue)
+		return NULL;
+
+	len = strlen(partial);
+
+	// check variables
+	for (int i = 0; (strvalue = cvar->PossibleValue[i].strvalue); i++)
+		if (!strncmp(partial, strvalue, len))
+			if (!skips--)
+				return strvalue;
 
 	return NULL;
 }

@@ -898,6 +898,9 @@ boolean CON_Responder(event_t *ev)
 	// sequential completions a la 4dos
 	static char completion[80];
 
+	static boolean arg_completion = false;
+	static boolean arg_empty = false;
+
 	static INT32 skips;
 
 	static INT32   com_skips;
@@ -1006,6 +1009,9 @@ boolean CON_Responder(event_t *ev)
 		}
 		else
 			CON_InputDelChar();
+
+		if (arg_completion)
+
 		return true;
 	}
 	else if (key == KEY_DEL)
@@ -1033,32 +1039,70 @@ boolean CON_Responder(event_t *ev)
 		if (key == KEY_TAB)
 		{
 			size_t i, len;
+			boolean possible_args = false;
 
 			if (!completion[0])
 			{
-				if (!input_len || input_len >= 40 || strchr(inputlines[inputline], ' '))
-					return true;
-				strcpy(completion, inputlines[inputline]);
+				if (!strchr(inputlines[inputline], ' '))
+				{
+					if (!input_len || input_len >= 40)
+						return true;
+					strcpy(completion, inputlines[inputline]);
+				}
+				else
+				{
+					possible_args = true;
+					strcpy(completion, strchr(inputlines[inputline], ' ') + 1);
+				}
 			}
+
+
 			len = strlen(completion);
 
-			//first check commands
-			CONS_Printf("\nCommands:\n");
-			for (i = 0, cmd = COM_CompleteCommand(completion, i); cmd; cmd = COM_CompleteCommand(completion, ++i))
-				CONS_Printf("  \x83" "%s" "\x80" "%s\n", completion, cmd+len);
-			if (i == 0) CONS_Printf("  (none)\n");
+			if (possible_args)
+			{
+				consvar_t *cvar;
+				char *cmd_name;
 
-			//now we move on to CVARs
-			CONS_Printf("Variables:\n");
-			for (i = 0, cmd = CV_CompleteVar(completion, i); cmd; cmd = CV_CompleteVar(completion, ++i))
-				CONS_Printf("  \x83" "%s" "\x80" "%s\n", completion, cmd+len);
-			if (i == 0) CONS_Printf("  (none)\n");
+				strcpy(completion, strchr(inputlines[inputline], ' ') + 1);
+				len = strlen(completion);
 
-			//and finally aliases
-			CONS_Printf("Aliases:\n");
-			for (i = 0, cmd = COM_CompleteAlias(completion, i); cmd; cmd = COM_CompleteAlias(completion, ++i))
-				CONS_Printf("  \x83" "%s" "\x80" "%s\n", completion, cmd+len);
-			if (i == 0) CONS_Printf("  (none)\n");
+				cmd_name = strdup(inputlines[inputline]);
+				cmd_name = strtok(cmd_name, " ");
+
+				if ((cvar = CV_FindVar(cmd_name)))
+				{
+					CONS_Printf("\nMatching values:\n");
+					for (i = 0, cmd = CV_CompleteVarArg(cvar, completion, i); cmd; cmd = CV_CompleteVarArg(cvar, completion, ++i))
+					{
+						if (cvar->flags & CV_FLOAT)
+							CONS_Printf("  \x83" "%s" "\x80" "%s" " (value " "%-f" ")\n", completion, cmd+len, FIXED_TO_FLOAT(cvar->PossibleValue[i].value));
+						else
+							CONS_Printf("  \x83" "%s" "\x80" "%s" " (value " "%-d" ")\n", completion, cmd+len, cvar->PossibleValue[i].value);
+					}
+					if (i == 0) CONS_Printf("  (none)\n");
+				}
+			}
+			else
+			{
+				//first check commands
+				CONS_Printf("\nCommands:\n");
+				for (i = 0, cmd = COM_CompleteCommand(completion, i); cmd; cmd = COM_CompleteCommand(completion, ++i))
+					CONS_Printf("  \x83" "%s" "\x80" "%s\n", completion, cmd+len);
+				if (i == 0) CONS_Printf("  (none)\n");
+
+				//now we move on to CVARs
+				CONS_Printf("Variables:\n");
+				for (i = 0, cmd = CV_CompleteVar(completion, i); cmd; cmd = CV_CompleteVar(completion, ++i))
+					CONS_Printf("  \x83" "%s" "\x80" "%s\n", completion, cmd+len);
+				if (i == 0) CONS_Printf("  (none)\n");
+
+				//and finally aliases
+				CONS_Printf("Aliases:\n");
+				for (i = 0, cmd = COM_CompleteAlias(completion, i); cmd; cmd = COM_CompleteAlias(completion, ++i))
+					CONS_Printf("  \x83" "%s" "\x80" "%s\n", completion, cmd+len);
+				if (i == 0) CONS_Printf("  (none)\n");
+			}
 
 			completion[0] = 0;
 
@@ -1123,20 +1167,27 @@ boolean CON_Responder(event_t *ev)
 	if (key == KEY_TAB)
 	{
 		// sequential command completion forward and backward
+		boolean old_arg_completion = arg_completion;
+		arg_completion = !!strchr(inputlines[inputline], ' ');
 
 		// remember typing for several completions (a-la-4dos)
-		if (!completion[0])
+		if (!completion[0] && !arg_completion)
 		{
-			if (!input_len || input_len >= 40 || strchr(inputlines[inputline], ' '))
+			if (!input_len || input_len >= 40)
 				return true;
 			strcpy(completion, inputlines[inputline]);
 			skips       = 0;
 			com_skips   = 0;
 			var_skips   = 0;
 			alias_skips = 0;
+
+			arg_empty = false;
 		}
 		else
 		{
+			if (!arg_empty && arg_completion)
+				strcpy(completion, strchr(inputlines[inputline], ' ') + 1);
+
 			if (shiftdown)
 			{
 				if (skips > 0)
@@ -1148,46 +1199,76 @@ boolean CON_Responder(event_t *ev)
 			}
 		}
 
-		if (skips <= com_skips)
-		{
-			cmd = COM_CompleteCommand(completion, skips);
+		arg_empty = !completion[0];
 
-			if (cmd && skips == com_skips)
+		if (old_arg_completion != arg_completion)
+			skips = 0; // detect state change and reset
+
+		if (!arg_completion)
+		{
+			if (skips <= com_skips)
 			{
-				com_skips  ++;
-				var_skips  ++;
-				alias_skips++;
+				cmd = COM_CompleteCommand(completion, skips);
+
+				if (cmd && skips == com_skips)
+				{
+					com_skips  ++;
+					var_skips  ++;
+					alias_skips++;
+				}
 			}
-		}
 
-		if (!cmd && skips <= var_skips)
-		{
-			cmd = CV_CompleteVar(completion, skips - com_skips);
-
-			if (cmd && skips == var_skips)
+			if (!cmd && skips <= var_skips)
 			{
-				var_skips  ++;
-				alias_skips++;
+				cmd = CV_CompleteVar(completion, skips - com_skips);
+
+				if (cmd && skips == var_skips)
+				{
+					var_skips  ++;
+					alias_skips++;
+				}
 			}
-		}
 
-		if (!cmd && skips <= alias_skips)
-		{
-			cmd = COM_CompleteAlias(completion, skips - var_skips);
-
-			if (cmd && skips == alias_skips)
+			if (!cmd && skips <= alias_skips)
 			{
-				alias_skips++;
-			}
-		}
+				cmd = COM_CompleteAlias(completion, skips - var_skips);
 
-		if (cmd)
-		{
-			CON_InputSetString(va("%s ", cmd));
+				if (cmd && skips == alias_skips)
+				{
+					alias_skips++;
+				}
+			}
+
+			if (cmd)
+				CON_InputSetString(cmd);
+			else
+				skips--;
 		}
 		else
 		{
-			skips--;
+			char *cmd_name;
+			consvar_t *cvar;
+
+			cmd_name = strdup(inputlines[inputline]);
+			cmd_name = strtok(cmd_name, " ");
+
+			if ((cvar = CV_FindVar(cmd_name)))
+			{
+				cmd = CV_CompleteVarArg(cvar, completion, skips);
+
+				if (cmd)
+					if (strchr(cmd, ' '))
+						CON_InputSetString(va("%s \"%s\"", cmd_name, cmd));
+					else
+						CON_InputSetString(va("%s %s", cmd_name, cmd));
+				else
+					skips--;
+			}
+			// Lua support?
+			//else if (COM_Exists(cmd_name))
+			//	;
+
+			free(cmd_name);
 		}
 
 		return true;
@@ -1230,6 +1311,8 @@ boolean CON_Responder(event_t *ev)
 	{
 		if (!input_len)
 			return true;
+
+		arg_completion = false;
 
 		// push the command
 		COM_BufAddText(inputlines[inputline]);

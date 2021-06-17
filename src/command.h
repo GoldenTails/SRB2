@@ -36,6 +36,8 @@ enum
 
 typedef void (*com_func_t)(void);
 
+boolean COM_Exists(const char *com_name);
+
 void COM_AddCommand(const char *name, com_func_t func);
 int COM_AddLuaCommand(const char *name);
 
@@ -195,6 +197,9 @@ void CV_ClearChangedFlags(void);
 
 // returns the name of the nearest console variable name found
 const char *CV_CompleteVar(char *partial, INT32 skips);
+
+// returns the name of the nearest string argument for a console variable found
+const char *CV_CompleteVarArg(consvar_t *cvar, char *partial, INT32 skips);
 
 // equivalent to "<varname> <value>" typed at the console
 void CV_Set(consvar_t *var, const char *value);
