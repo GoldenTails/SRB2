@@ -1125,7 +1125,7 @@ boolean HU_Responder(event_t *ev)
 	}*/	//We don't actually care about that unless we get splitscreen netgames. :V
 
 #ifndef NONET
-	c = (INT32)ev->key;
+	c = (INT32)ev->realkey;
 
 	if (!chat_on)
 	{
@@ -1157,12 +1157,12 @@ boolean HU_Responder(event_t *ev)
 		// Ignore modifier keys
 		// Note that we do this here so users can still set
 		// their chat keys to one of these, if they so desire.
-		if (ev->key == KEY_LSHIFT || ev->key == KEY_RSHIFT
-		 || ev->key == KEY_LCTRL || ev->key == KEY_RCTRL
-		 || ev->key == KEY_LALT || ev->key == KEY_RALT)
+		if (ev->realkey == KEY_LSHIFT || ev->realkey == KEY_RSHIFT
+		 || ev->realkey == KEY_LCTRL || ev->realkey == KEY_RCTRL
+		 || ev->realkey == KEY_LALT || ev->realkey == KEY_RALT)
 			return true;
 
-		c = (INT32)ev->key;
+		c = (INT32)ev->realkey;
 
 		// I know this looks very messy but this works. If it ain't broke, don't fix it!
 		// shift LETTERS to uppercase if we have capslock or are holding shift
