@@ -3260,9 +3260,12 @@ boolean M_Responder(event_t *ev)
 				case KEY_HAT1 + 3:
 					ch = KEY_RIGHTARROW;
 					break;
+				default: // Not a virtual key? Remap it.
+					ch = ev->realkey;
+					break;
 			}
 		}
-		else if (ev->type == ev_joystick  && ev->key == 0 && joywait < I_GetTime())
+		else if (ev->type == ev_joystick  && ev->realkey == 0 && joywait < I_GetTime())
 		{
 			const INT32 jdeadzone = (JOYAXISRANGE * cv_digitaldeadzone.value) / FRACUNIT;
 			if (ev->y != INT32_MAX)
@@ -3339,7 +3342,7 @@ boolean M_Responder(event_t *ev)
 			keydown = 0;
 	}
 	else if (ev->type == ev_keydown) // Preserve event for other responders
-		ch = ev->key;
+		ch = ev->realkey; // use layouted key here
 
 	if (ch == -1)
 		return false;
@@ -3464,7 +3467,7 @@ boolean M_Responder(event_t *ev)
 	{
 		if ((currentMenu->menuitems[itemOn].status & IT_CVARTYPE) == IT_CV_STRING)
 		{
-			if (M_ChangeStringCvar(ch))
+			if (M_ChangeStringCvar(ev->realkey))
 				return true;
 			else
 				routine = NULL;
