@@ -34,6 +34,7 @@ typedef struct
 {
 	evtype_t type;
 	INT32 key; // keys/mouse/joystick buttons
+	INT32 realkey; // key according to keyboard layout
 	INT32 x; // mouse/joystick x move
 	INT32 y; // mouse/joystick y move
 	boolean repeated; // key repeat

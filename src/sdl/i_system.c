@@ -592,6 +592,9 @@ void I_GetConsoleEvents(void)
 		// print the current line (this is differential)
 		d = write(STDOUT_FILENO, &key, 1);
 	}
+
+	ev.realkey = ev.key;
+
 	if (ev.key) D_PostEvent(&ev);
 	//tty_FlushIn();
 	(void)d;
@@ -1012,7 +1015,7 @@ void I_ShutdownJoystick(void)
 
 void I_GetJoystickEvents(void)
 {
-	static event_t event = {0,0,0,0,false};
+	static event_t event = {0,0,0,0,0,false};
 	INT32 i = 0;
 	UINT64 joyhats = 0;
 #if 0
@@ -1282,7 +1285,7 @@ void I_ShutdownJoystick2(void)
 
 void I_GetJoystick2Events(void)
 {
-	static event_t event = {0,0,0,0,false};
+	static event_t event = {0,0,0,0,0,false};
 	INT32 i = 0;
 	UINT64 joyhats = 0;
 #if 0

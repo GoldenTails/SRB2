@@ -363,6 +363,92 @@ static INT32 Impl_SDL_Scancode_To_Keycode(SDL_Scancode code)
 	return 0;
 }
 
+static INT32 Impl_SDL_Keycode_To_Keycode(SDL_Keycode code)
+{
+	if (code >= SDLK_a && code <= SDLK_z)
+	{
+		// get lowercase ASCII
+		return code - SDLK_a + 'a';
+	}
+	if (code >= SDLK_0 && code <= SDLK_9)
+	{
+		return code - SDLK_0 + '0';
+	}
+	if (code >= SDLK_F1 && code <= SDLK_F10)
+	{
+		return KEY_F1 + (code - SDLK_F1);
+	}
+	switch (code)
+	{
+		// F11 and F12 are separated from the rest of the function keys
+		case SDLK_F11: return KEY_F11;
+		case SDLK_F12: return KEY_F12;
+
+		case SDLK_KP_0: return KEY_KEYPAD0;
+		case SDLK_KP_1: return KEY_KEYPAD1;
+		case SDLK_KP_2: return KEY_KEYPAD2;
+		case SDLK_KP_3: return KEY_KEYPAD3;
+		case SDLK_KP_4: return KEY_KEYPAD4;
+		case SDLK_KP_5: return KEY_KEYPAD5;
+		case SDLK_KP_6: return KEY_KEYPAD6;
+		case SDLK_KP_7: return KEY_KEYPAD7;
+		case SDLK_KP_8: return KEY_KEYPAD8;
+		case SDLK_KP_9: return KEY_KEYPAD9;
+
+		case SDLK_RETURN:         return KEY_ENTER;
+		case SDLK_ESCAPE:         return KEY_ESCAPE;
+		case SDLK_BACKSPACE:      return KEY_BACKSPACE;
+		case SDLK_TAB:            return KEY_TAB;
+		case SDLK_SPACE:          return KEY_SPACE;
+		case SDLK_MINUS:          return KEY_MINUS;
+		case SDLK_EQUALS:         return KEY_EQUALS;
+		case SDLK_LEFTBRACKET:    return '[';
+		case SDLK_RIGHTBRACKET:   return ']';
+		case SDLK_BACKSLASH:      return '\\';
+		case SDLK_HASH:           return '#';
+		case SDLK_SEMICOLON:      return ';';
+		case SDLK_QUOTE:          return '\'';
+		case SDLK_BACKQUOTE:      return '`';
+		case SDLK_COMMA:          return ',';
+		case SDLK_PERIOD:         return '.';
+		case SDLK_SLASH:          return '/';
+		case SDLK_CAPSLOCK:       return KEY_CAPSLOCK;
+		case SDLK_PRINTSCREEN:    return 0; // undefined?
+		case SDLK_SCROLLLOCK:     return KEY_SCROLLLOCK;
+		case SDLK_PAUSE:          return KEY_PAUSE;
+		case SDLK_INSERT:         return KEY_INS;
+		case SDLK_HOME:           return KEY_HOME;
+		case SDLK_PAGEUP:         return KEY_PGUP;
+		case SDLK_DELETE:         return KEY_DEL;
+		case SDLK_END:            return KEY_END;
+		case SDLK_PAGEDOWN:       return KEY_PGDN;
+		case SDLK_RIGHT:          return KEY_RIGHTARROW;
+		case SDLK_LEFT:           return KEY_LEFTARROW;
+		case SDLK_DOWN:           return KEY_DOWNARROW;
+		case SDLK_UP:             return KEY_UPARROW;
+		case SDLK_NUMLOCKCLEAR:   return KEY_NUMLOCK;
+		case SDLK_KP_DIVIDE:      return KEY_KPADSLASH;
+		case SDLK_KP_MULTIPLY:    return '*'; // undefined?
+		case SDLK_KP_MINUS:       return KEY_MINUSPAD;
+		case SDLK_KP_PLUS:        return KEY_PLUSPAD;
+		case SDLK_KP_ENTER:       return KEY_ENTER;
+		case SDLK_KP_PERIOD:      return KEY_KPADDEL;
+		//case SDLK_NONUSBACKSLASH: return '\\';
+
+		case SDLK_LSHIFT: return KEY_LSHIFT;
+		case SDLK_RSHIFT: return KEY_RSHIFT;
+		case SDLK_LCTRL:  return KEY_LCTRL;
+		case SDLK_RCTRL:  return KEY_RCTRL;
+		case SDLK_LALT:   return KEY_LALT;
+		case SDLK_RALT:   return KEY_RALT;
+		case SDLK_LGUI:   return KEY_LEFTWIN;
+		case SDLK_RGUI:   return KEY_RIGHTWIN;
+		default:          break;
+	}
+
+	return 0;
+}
+
 static boolean IgnoreMouse(void)
 {
 	if (cv_alwaysgrabmouse.value)
@@ -668,6 +754,7 @@ static void Impl_HandleKeyboardEvent(SDL_KeyboardEvent evt, Uint32 type)
 		return;
 	}
 	event.key = Impl_SDL_Scancode_To_Keycode(evt.keysym.scancode);
+	event.realkey = Impl_SDL_Keycode_To_Keycode(evt.keysym.sym);
 	event.repeated = (evt.repeat != 0);
 	if (event.key) D_PostEvent(&event);
 }
@@ -756,6 +843,9 @@ static void Impl_HandleMouseButtonEvent(SDL_MouseButtonEvent evt, Uint32 type)
 			event.key = KEY_MOUSE1+3;
 		else if (evt.button == SDL_BUTTON_X2)
 			event.key = KEY_MOUSE1+4;
+
+		event.realkey = event.key;
+
 		if (event.type == ev_keyup || event.type == ev_keydown)
 		{
 			D_PostEvent(&event);
@@ -784,6 +874,9 @@ static void Impl_HandleMouseWheelEvent(SDL_MouseWheelEvent evt)
 		event.key = 0;
 		event.type = ev_keyup;
 	}
+
+	event.realkey = event.key;
+
 	if (event.type == ev_keyup || event.type == ev_keydown)
 	{
 		D_PostEvent(&event);
@@ -826,6 +919,9 @@ static void Impl_HandleJoystickAxisEvent(SDL_JoyAxisEvent evt)
 		event.key = evt.axis / 2;
 		event.y = SDLJoyAxis(evt.value, event.type);
 	}
+
+	event.realkey = event.key;
+
 	D_PostEvent(&event);
 }
 
@@ -888,6 +984,8 @@ static void Impl_HandleJoystickButtonEvent(SDL_JoyButtonEvent evt, Uint32 type)
 		event.key += evt.button;
 	}
 	else return;
+
+	event.realkey = event.key;
 
 	SDLJoyRemap(&event);
 	if (event.type != ev_console) D_PostEvent(&event);
@@ -1089,7 +1187,7 @@ void I_GetEvent(void)
 		SDL_GetWindowSize(window, &wwidth, &wheight);
 		//SDL_memset(&event, 0, sizeof(event_t));
 		event.type = ev_mouse;
-		event.key = 0;
+		event.realkey = event.key = 0;
 		event.x = (INT32)lround(mousemovex * ((float)wwidth / (float)realwidth));
 		event.y = (INT32)lround(mousemovey * ((float)wheight / (float)realheight));
 		D_PostEvent(&event);
