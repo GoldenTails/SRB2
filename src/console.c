@@ -906,6 +906,7 @@ boolean CON_Responder(event_t *ev)
 
 	const char *cmd = NULL;
 	INT32 key;
+	INT32 realkey;
 
 	if (chat_on)
 		return false;
@@ -919,6 +920,7 @@ boolean CON_Responder(event_t *ev)
 	}
 
 	key = ev->key;
+	realkey = ev->realkey;
 
 	// check for console toggle key
 	if (ev->type != ev_console)
@@ -956,12 +958,12 @@ boolean CON_Responder(event_t *ev)
 	}
 
 	// Always eat ctrl/shift/alt if console open, so the menu doesn't get ideas
-	if (key == KEY_LSHIFT || key == KEY_RSHIFT
-	 || key == KEY_LCTRL || key == KEY_RCTRL
-	 || key == KEY_LALT || key == KEY_RALT)
+	if (realkey == KEY_LSHIFT || realkey == KEY_RSHIFT
+	 || realkey == KEY_LCTRL || realkey == KEY_RCTRL
+	 || realkey == KEY_LALT || realkey == KEY_RALT)
 		return true;
 
-	if (key == KEY_LEFTARROW)
+	if (realkey == KEY_LEFTARROW)
 	{
 		if (input_cur != 0)
 		{
@@ -974,7 +976,7 @@ boolean CON_Responder(event_t *ev)
 			input_sel = input_cur;
 		return true;
 	}
-	else if (key == KEY_RIGHTARROW)
+	else if (realkey == KEY_RIGHTARROW)
 	{
 		if (input_cur < input_len)
 		{
@@ -991,13 +993,13 @@ boolean CON_Responder(event_t *ev)
 	// backspace and delete command prompt
 	if (input_sel != input_cur)
 	{
-		if (key == KEY_BACKSPACE || key == KEY_DEL)
+		if (realkey == KEY_BACKSPACE || realkey == KEY_DEL)
 		{
 			CON_InputDelSelection();
 			return true;
 		}
 	}
-	else if (key == KEY_BACKSPACE)
+	else if (realkey == KEY_BACKSPACE)
 	{
 		if (ctrldown)
 		{
@@ -1008,7 +1010,7 @@ boolean CON_Responder(event_t *ev)
 			CON_InputDelChar();
 		return true;
 	}
-	else if (key == KEY_DEL)
+	else if (realkey == KEY_DEL)
 	{
 		if (input_cur == input_len)
 			return true;
@@ -1030,7 +1032,7 @@ boolean CON_Responder(event_t *ev)
 	if (ctrldown)
 	{
 		// show all cvars/commands that match what we have inputted
-		if (key == KEY_TAB)
+		if (realkey == KEY_TAB)
 		{
 			size_t i, len;
 
@@ -1066,18 +1068,18 @@ boolean CON_Responder(event_t *ev)
 		}
 		// ---
 
-		if (key == KEY_HOME) // oldest text in buffer
+		if (realkey == KEY_HOME) // oldest text in buffer
 		{
 			con_scrollup = (con_totallines-((con_curlines-16)>>3));
 			return true;
 		}
-		else if (key == KEY_END) // most recent text in buffer
+		else if (realkey == KEY_END) // most recent text in buffer
 		{
 			con_scrollup = 0;
 			return true;
 		}
 
-		if (key == 'x' || key == 'X')
+		if (realkey == 'x' || realkey == 'X')
 		{
 			if (input_sel > input_cur)
 				I_ClipboardCopy(&inputlines[inputline][input_cur], input_sel-input_cur);
@@ -1087,7 +1089,7 @@ boolean CON_Responder(event_t *ev)
 			completion[0] = 0;
 			return true;
 		}
-		else if (key == 'c' || key == 'C')
+		else if (realkey == 'c' || realkey == 'C')
 		{
 			if (input_sel > input_cur)
 				I_ClipboardCopy(&inputlines[inputline][input_cur], input_sel-input_cur);
@@ -1095,7 +1097,7 @@ boolean CON_Responder(event_t *ev)
 				I_ClipboardCopy(&inputlines[inputline][input_sel], input_cur-input_sel);
 			return true;
 		}
-		else if (key == 'v' || key == 'V')
+		else if (realkey == 'v' || realkey == 'V')
 		{
 			const char *paste = I_ClipboardPaste();
 			if (input_sel != input_cur)
@@ -1107,7 +1109,7 @@ boolean CON_Responder(event_t *ev)
 		}
 
 		// Select all
-		if (key == 'a' || key == 'A')
+		if (realkey == 'a' || realkey == 'A')
 		{
 			input_sel = 0;
 			input_cur = input_len;
@@ -1120,7 +1122,7 @@ boolean CON_Responder(event_t *ev)
 	}
 
 	// command completion forward (tab) and backward (shift-tab)
-	if (key == KEY_TAB)
+	if (realkey == KEY_TAB)
 	{
 		// sequential command completion forward and backward
 
@@ -1194,26 +1196,26 @@ boolean CON_Responder(event_t *ev)
 	}
 
 	// move up (backward) in console textbuffer
-	if (key == KEY_PGUP)
+	if (realkey == KEY_PGUP)
 	{
 		if (con_scrollup < (con_totallines-((con_curlines-16)>>3)))
 			con_scrollup++;
 		return true;
 	}
-	else if (key == KEY_PGDN)
+	else if (realkey == KEY_PGDN)
 	{
 		if (con_scrollup > 0)
 			con_scrollup--;
 		return true;
 	}
-	else if (key == KEY_HOME)
+	else if (realkey == KEY_HOME)
 	{
 		input_cur = 0;
 		if (!shiftdown)
 			input_sel = input_cur;
 		return true;
 	}
-	else if (key == KEY_END)
+	else if (realkey == KEY_END)
 	{
 		input_cur = input_len;
 		if (!shiftdown)
@@ -1226,7 +1228,7 @@ boolean CON_Responder(event_t *ev)
 	completion[0] = 0;
 
 	// command enter
-	if (key == KEY_ENTER)
+	if (realkey == KEY_ENTER)
 	{
 		if (!input_len)
 			return true;
@@ -1245,7 +1247,7 @@ boolean CON_Responder(event_t *ev)
 	}
 
 	// move back in input history
-	if (key == KEY_UPARROW)
+	if (realkey == KEY_UPARROW)
 	{
 		// copy one of the previous inputlines to the current
 		do
@@ -1262,7 +1264,7 @@ boolean CON_Responder(event_t *ev)
 	}
 
 	// move forward in input history
-	if (key == KEY_DOWNARROW)
+	if (realkey == KEY_DOWNARROW)
 	{
 		if (inputhist == inputline)
 			return true;
@@ -1279,33 +1281,33 @@ boolean CON_Responder(event_t *ev)
 	}
 
 	// allow people to use keypad in console (good for typing IP addresses) - Calum
-	if (key >= KEY_KEYPAD7 && key <= KEY_KPADDEL)
+	if (realkey >= KEY_KEYPAD7 && realkey <= KEY_KPADDEL)
 	{
 		char keypad_translation[] = {'7','8','9','-',
 		                             '4','5','6','+',
 		                             '1','2','3',
 		                             '0','.'};
 
-		key = keypad_translation[key - KEY_KEYPAD7];
+		realkey = keypad_translation[realkey - KEY_KEYPAD7];
 	}
-	else if (key == KEY_KPADSLASH)
-		key = '/';
+	else if (realkey == KEY_KPADSLASH)
+		realkey = '/';
 
-	if (key >= 'a' && key <= 'z')
+	if (realkey >= 'a' && realkey <= 'z')
 	{
 		if (capslock ^ shiftdown)
-			key = shiftxform[key];
+			realkey = shiftxform[key];
 	}
 	else if (shiftdown)
-		key = shiftxform[key];
+		realkey = shiftxform[key];
 
 	// enter a char into the command prompt
-	if (key < 32 || key > 127)
+	if (realkey < 32 || realkey > 127)
 		return true;
 
 	if (input_sel != input_cur)
 		CON_InputDelSelection();
-	CON_InputAddChar(key);
+	CON_InputAddChar(realkey);
 
 	return true;
 }
