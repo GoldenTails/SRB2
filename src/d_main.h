@@ -27,6 +27,8 @@ extern boolean usehome; //Alam: which path?
 extern const char *pandf; //Alam: how to path?
 extern char srb2path[256]; //Alam: SRB2's Home
 
+extern consvar_t cv_kb_ignorelayout;
+
 // the infinite loop of D_SRB2Loop() called from win_main for windows version
 void D_SRB2Loop(void) FUNCNORETURN;
 

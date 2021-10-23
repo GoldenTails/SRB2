@@ -136,6 +136,8 @@ boolean usehome = true;
 const char *pandf = "%s" PATHSEP "%s";
 static char addonsdir[MAX_WADPATH];
 
+consvar_t cv_kb_ignorelayout = CVAR_INIT ("kb_ignorelayout", "Off", CV_SAVE, CV_OnOff, NULL);
+
 //
 // EVENT HANDLING
 //
@@ -186,6 +188,10 @@ void D_ProcessEvents(void)
 		boolean hooked = false;
 
 		ev = &events[eventtail];
+
+		// Use scancode key instead of keycode key to ignore layout.
+		if (cv_kb_ignorelayout.value)
+			ev->realkey = ev->key;
 
 		// Set mouse buttons early in case event is eaten later
 		if (ev->type == ev_keydown || ev->type == ev_keyup)
