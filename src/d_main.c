@@ -519,7 +519,7 @@ static void D_Display(void)
 					{
 	#ifdef PERSPCORRECT
 						if (cv_perspcorr.value)
-							R_DrawPerspView(players[displayplayer].aiming);
+							R_DrawPerspView(camera.aiming);
 	#endif
 
 						R_ApplyViewMorph();
