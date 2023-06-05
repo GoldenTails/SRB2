@@ -21,6 +21,21 @@
 //------------------------------------
 //           heads up font
 //------------------------------------
+
+typedef struct
+{
+	INT32 start;
+	INT32 end;
+	INT32 size;
+
+	INT32 spacewidth; // Default space width
+	INT32 monospacewidth; // Space width when V_MONOSPACE is enabled
+	INT32 sixspacewidth; // Space width when V_6WIDTHSPACE is enabled
+	INT32 charwidth; // Character width when V_OLDSPACING is enabled
+
+	patch_t **chars;
+} font_t;
+
 #define HU_FONTSTART '\x16' // the first font character
 #define HU_FONTEND '~'
 
@@ -78,13 +93,32 @@ void HU_AddChatText(const char *text, boolean playsound);
 // set true when entering a chat message
 extern boolean chat_on;
 
-extern patch_t *hu_font[HU_FONTSIZE], *tny_font[HU_FONTSIZE];
+// Note: when adding new fonts, also update:
+// - The font definitions in hu_stuff.c
+// - The font entries in dehacked.c's LUA_CONST
+
+#define NUMFONTFREESLOTS 128 // Surely nobody's ever gonna need more than 128 font freeslots
+
+typedef enum
+{
+	FONT_HU = 0,
+	FONT_TNY,
+	FONT_LT,
+	FONT_CRED,
+	FONT_NTB,
+	FONT_NTO,
+
+	FONT_FIRSTFREESLOT,
+	FONT_LASTFREESLOT = FONT_FIRSTFREESLOT + NUMFONTFREESLOTS - 1,
+
+	MAXFONTS
+} fontnum_t;
+
+extern font_t fonts[MAXFONTS];
+extern UINT32 numfonts;
+
 extern patch_t *tallnum[10];
 extern patch_t *nightsnum[10];
-extern patch_t *lt_font[LT_FONTSIZE];
-extern patch_t *cred_font[CRED_FONTSIZE];
-extern patch_t *ntb_font[NT_FONTSIZE];
-extern patch_t *nto_font[NT_FONTSIZE];
 extern patch_t *ttlnum[10];
 extern patch_t *emeraldpics[3][8];
 extern patch_t *rflagico;
@@ -101,6 +135,8 @@ extern boolean hu_showscores;
 
 // init heads up data at game startup.
 void HU_Init(void);
+
+void HU_LoadGenericFontGraphics(font_t *font, const char *lumpprefix);
 
 void HU_LoadGraphics(void);
 

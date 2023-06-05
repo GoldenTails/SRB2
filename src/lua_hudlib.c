@@ -80,6 +80,26 @@ static const char *const hudinfo_opt[] = {
 	"f",
 	NULL};
 
+enum font {
+	font_first = 0,
+	font_last,
+	font_size,
+	font_spacewidth,
+	font_monospacewidth,
+	font_sixspacewidth,
+	font_charwidth
+};
+
+static const char *const font_opt[] = {
+	"first",
+	"last", // "end" is a lua keyword, so I guess I'll use "last".
+	"size",
+	"spacewidth",
+	"monospacewidth",
+	"sixspacewidth",
+	"charwidth",
+	NULL};
+
 enum patch {
 	patch_valid = 0,
 	patch_width,
@@ -97,56 +117,23 @@ static const char *const patch_opt[] = {
 
 // alignment types for v.drawString
 enum align {
-	align_left = 0,
+	align_small = 0,
+	align_normal,
+	align_thin,
+	align_fixed,
+	align_left,
 	align_center,
 	align_right,
-	align_fixed,
-	align_fixedcenter,
-	align_fixedright,
-	align_small,
-	align_smallfixed,
-	align_smallfixedcenter,
-	align_smallfixedright,
-	align_smallcenter,
-	align_smallright,
-	align_smallthin,
-	align_smallthincenter,
-	align_smallthinright,
-	align_smallthinfixed,
-	align_smallthinfixedcenter,
-	align_smallthinfixedright,
-	align_thin,
-	align_thinfixed,
-	align_thinfixedcenter,
-	align_thinfixedright,
-	align_thincenter,
-	align_thinright
 };
+
 static const char *const align_opt[] = {
+	"small",
+	"normal",
+	"thin",
+	"fixed",
 	"left",
 	"center",
 	"right",
-	"fixed",
-	"fixed-center",
-	"fixed-right",
-	"small",
-	"small-fixed",
-	"small-fixed-center",
-	"small-fixed-right",
-	"small-center",
-	"small-right",
-	"small-thin",
-	"small-thin-center",
-	"small-thin-right",
-	"small-thin-fixed",
-	"small-thin-fixed-center",
-	"small-thin-fixed-right",
-	"thin",
-	"thin-fixed",
-	"thin-fixed-center",
-	"thin-fixed-right",
-	"thin-center",
-	"thin-right",
 	NULL};
 
 // width types for v.stringWidth
@@ -260,6 +247,133 @@ static int hudinfo_num(lua_State *L)
 {
 	hudinfo_t *info = *((hudinfo_t **)luaL_checkudata(L, 1, META_HUDINFO));
 	lua_pushinteger(L, info-hudinfo);
+	return 1;
+}
+
+static int lib_getFontList(lua_State *L)
+{
+	UINT32 i;
+	lua_remove(L, 1);
+
+	i = luaL_checkinteger(L, 1);
+	if (i >= numfonts)
+		return luaL_error(L, "fonts[] index %d out of range (0 - %d)", i, numfonts-1);
+	LUA_PushUserdata(L, &fonts[i], META_FONT);
+	return 1;
+}
+
+// Lua table full of data -> fonts[]
+static int lib_setFontList(lua_State *L)
+{
+	font_t *info;
+	lua_remove(L, 1); // don't care about font[] userdata.
+	{
+		UINT32 i = luaL_checkinteger(L, 1);
+		if (i >= numfonts)
+			return luaL_error(L, "fonts[] index %d out of range (0 - %d)", i, numfonts-1);
+		info = &fonts[i]; // get the font to assign to.
+	}
+	luaL_checktype(L, 2, LUA_TTABLE); // check that we've been passed a table.
+	lua_remove(L, 1); // pop mobjtype num, don't need it any more.
+	lua_settop(L, 1); // cut the stack here. the only thing left now is the table of data we're assigning to the font.
+
+	// Free chars just in case they're defined
+	if (info->chars)
+		Z_Free(info->chars);
+
+	// clear the font to start with, in case of missing table elements
+	memset(info,0,sizeof(font_t));
+
+	lua_pushnil(L);
+	while (lua_next(L, 1)) {
+		lua_Integer i = 0;
+		const char *str = NULL;
+		if (lua_isnumber(L, 2))
+			i = lua_tointeger(L, 2);
+		else
+			str = luaL_checkstring(L, 2);
+
+		if (i == 1 || (str && fastcmp(str,"start"))) {
+			info->start = (INT32)luaL_checkinteger(L, 3);
+			info->size = info->end - info->start + 1;
+		} else if (i == 2 || (str && fastcmp(str,"last"))) {
+			info->end = (INT32)luaL_checkinteger(L, 3);
+			info->size = info->end - info->start + 1;
+		} else if (i == 3 || (str && fastcmp(str,"spacewidth")))
+			info->spacewidth = (INT32)luaL_checkinteger(L, 3);
+		else if (i == 4 || (str && fastcmp(str,"monospacewidth")))
+			info->monospacewidth = (INT32)luaL_checkinteger(L, 3);
+		else if (i == 5 || (str && fastcmp(str,"sixspacewidth")))
+			info->sixspacewidth = (INT32)luaL_checkinteger(L, 3);
+		else if (i == 6 || (str && fastcmp(str,"charwidth")))
+			info->charwidth = (INT32)luaL_checkinteger(L, 3);
+		lua_pop(L, 1);
+	}
+
+	return 0;
+}
+
+static int lib_fontslen(lua_State *L)
+{
+	lua_pushinteger(L, numfonts);
+	return 1;
+}
+
+static int font_get(lua_State *L)
+{
+	INT32 i;
+
+	font_t *font = *((font_t **)luaL_checkudata(L, 1, META_FONT));
+	enum font field;
+
+	I_Assert(font != NULL); // huditems are always valid
+
+	if (lua_isnumber(L, 2)) {
+		if (!hud_running)
+			return luaL_error(L, "Font patches should not be accessed outside of rendering hooks!");
+
+		i = luaL_checkinteger(L, 2) - font->start;
+
+		if (!font->chars[i])
+			return 0;
+
+		LUA_PushUserdata(L, font->chars[i], META_PATCH);
+		return 1;
+	}
+
+	field = luaL_checkoption(L, 2, font_opt[0], font_opt);
+
+	switch(field)
+	{
+	case font_first:
+		lua_pushinteger(L, font->start);
+		break;
+	case font_last: // "end" is a lua keyword, so using "last" instead.
+		lua_pushinteger(L, font->end);
+		break;
+	case font_size:
+		lua_pushinteger(L, font->size);
+		break;
+	case font_spacewidth:
+		lua_pushinteger(L, font->spacewidth);
+		break;
+	case font_monospacewidth:
+		lua_pushinteger(L, font->monospacewidth);
+		break;
+	case font_sixspacewidth:
+		lua_pushinteger(L, font->sixspacewidth);
+		break;
+	case font_charwidth:
+		lua_pushinteger(L, font->charwidth);
+		break;
+	}
+	return 1;
+}
+
+static int font_num(lua_State *L)
+{
+	font_t *info = *((font_t **)luaL_checkudata(L, 1, META_FONT));
+	lua_pushinteger(L, info-fonts);
 	return 1;
 }
 
@@ -856,18 +970,122 @@ static int libd_drawFill(lua_State *L)
 	return 0;
 }
 
+static boolean applyAlignmentFromString(char *string, fixed_t *scale, font_t **font, INT32 *stringflags)
+{
+	INT32 align_enum = 0;
+
+	for (align_enum = 0; align_opt[align_enum]; align_enum++)
+	{
+		if (!strcmp(string, align_opt[align_enum]))
+			break;
+	}
+
+	switch (align_enum)
+	{
+		case align_small:
+			*scale = FRACUNIT/2;
+			break;
+		case align_normal:
+			*font = &fonts[FONT_HU];
+			break;
+		case align_thin:
+			*font = &fonts[FONT_TNY];
+			break;
+		case align_fixed:
+			*stringflags &= ~VDS_INTEGER;
+			break;
+		case align_left:
+			*stringflags &= ~(VDS_CENTERALIGN|VDS_RIGHTALIGN);
+			break;
+		case align_center:
+			*stringflags |= VDS_CENTERALIGN;
+			*stringflags &= ~VDS_RIGHTALIGN;
+			break;
+		case align_right:
+			*stringflags |= VDS_RIGHTALIGN;
+			*stringflags &= ~VDS_CENTERALIGN;
+			break;
+		default:
+			return false;
+	}
+
+	return true;
+}
+
+static INT32 getStringAlignmentFlags(lua_State *L, const char *string, font_t *font, fixed_t scale)
+{
+	INT32 stringflags = VDS_INTEGER;
+	const char *align = strdup(string);
+	char *align_cpy = strdup(align);
+	char *cur_align;
+
+	// Wiki people, please put a stern warning on the wiki, thanks
+	//LUA_UsageWarning(L, "String-based alignment flags are deprecated and will be removed.\nUse integer-based alignment flags instead.\n");
+
+	if (strstr(align, "--"))
+		return luaL_error(L, "alignment string must not contain 2 consecutive dashes!");
+
+	if (align[strlen(align) - 1] == '-')
+		return luaL_error(L, "alignment string must not contain a trailing dash!");
+
+	if (align[0] == '-')
+		return luaL_error(L, "alignment string must not contain a leading dash!");
+
+	if (!strchr(align_cpy, '-'))
+	{
+		if (!applyAlignmentFromString(align_cpy, &scale, &font, &stringflags))
+			return luaL_error(L, "alignment string contains an unrecognised option!");
+	}
+	else
+	{
+		cur_align = strtok(align_cpy, "-");
+
+		while (cur_align != NULL)
+		{
+			// don't care about order or amount of '-' seperated entries
+			if (!applyAlignmentFromString(cur_align, &scale, &font, &stringflags))
+				return luaL_error(L, "alignment string contains an unrecognised option!");
+
+			cur_align = strtok(NULL, "-");
+		}
+	}
+
+	return stringflags;
+}
+
 static int libd_drawString(lua_State *L)
 {
 	huddrawlist_h list;
+	INT32 stringflags = VDS_INTEGER;
+	fixed_t scale = FRACUNIT;
+	font_t *font = &fonts[FONT_HU];
+
 	fixed_t x = luaL_checkinteger(L, 1);
 	fixed_t y = luaL_checkinteger(L, 2);
 	const char *str = luaL_checkstring(L, 3);
 	INT32 flags = luaL_optinteger(L, 4, V_ALLOWLOWERCASE);
-	enum align align = luaL_checkoption(L, 5, "left", align_opt);
+
+	// remove this next line for 2.3 please
+	const char *align = strdup(luaL_optstring(L, 5, ""));
 
 	flags &= ~V_PARAMMASK; // Don't let crashes happen.
 
 	HUDONLY
+
+	// please only support numeric alignment flags for 2.3, this string parser sucks
+	if (lua_isnumber(L, 5))
+		stringflags |= luaL_checkinteger(L, 5);
+	else if (strlen(align) == 0)
+		;
+	else
+		stringflags = getStringAlignmentFlags(L, align, font, scale);
+
+	if (!lua_isnoneornil(L, 6))
+	{
+		font_t *newfont = *((font_t **)luaL_checkudata(L, 6, META_FONT));
+		if (newfont)
+			font = newfont; // Overwrite the font chosen by the string-based alignment flags (if any)
+	}
 
 	lua_getfield(L, LUA_REGISTRYINDEX, "HUD_DRAW_LIST");
 	list = (huddrawlist_h) lua_touserdata(L, -1);
@@ -875,86 +1093,57 @@ static int libd_drawString(lua_State *L)
 
 	// okay, sorry, this is kind of ugly
 	if (LUA_HUD_IsDrawListValid(list))
-		LUA_HUD_AddDrawString(list, x, y, str, flags, align);
+		LUA_HUD_AddDrawString(list, x, y, scale, font, str, flags, stringflags);
 	else
-	switch(align)
+		V_DrawScaledString(x, y, scale, *font, stringflags, flags, str);
+
+	return 0;
+}
+
+static int libd_drawScaledString(lua_State *L)
+{
+	huddrawlist_h list;
+	INT32 stringflags = 0;
+	font_t *font = &fonts[FONT_HU];
+
+	fixed_t x = luaL_checkfixed(L, 1);
+	fixed_t y = luaL_checkfixed(L, 2);
+	fixed_t scale = luaL_checkfixed(L, 3);
+	const char *str = luaL_checkstring(L, 4);
+	INT32 flags = luaL_optinteger(L, 5, V_ALLOWLOWERCASE);
+
+	// remove this next line for 2.3 please
+	const char *align = strdup(luaL_optstring(L, 5, ""));
+
+	flags &= ~V_PARAMMASK; // Don't let crashes happen.
+
+	HUDONLY
+
+	// please only support numeric alignment flags for 2.3, this string parser sucks
+	if (lua_isnumber(L, 6))
+		stringflags |= luaL_checkinteger(L, 6);
+	else if (strlen(align) == 0)
+		;
+	else
+		stringflags = getStringAlignmentFlags(L, align, font, scale);
+
+	if (!lua_isnoneornil(L, 7))
 	{
-	// hu_font
-	case align_left:
-		V_DrawString(x, y, flags, str);
-		break;
-	case align_center:
-		V_DrawCenteredString(x, y, flags, str);
-		break;
-	case align_right:
-		V_DrawRightAlignedString(x, y, flags, str);
-		break;
-	case align_fixed:
-		V_DrawStringAtFixed(x, y, flags, str);
-		break;
-	case align_fixedcenter:
-		V_DrawCenteredStringAtFixed(x, y, flags, str);
-		break;
-	case align_fixedright:
-		V_DrawRightAlignedStringAtFixed(x, y, flags, str);
-		break;
-	// hu_font, 0.5x scale
-	case align_small:
-		V_DrawSmallString(x, y, flags, str);
-		break;
-	case align_smallfixed:
-		V_DrawSmallStringAtFixed(x, y, flags, str);
-		break;
-	case align_smallfixedcenter:
-		V_DrawCenteredSmallStringAtFixed(x, y, flags, str);
-		break;
-	case align_smallfixedright:
-		V_DrawRightAlignedSmallStringAtFixed(x, y, flags, str);
-		break;
-	case align_smallcenter:
-		V_DrawCenteredSmallString(x, y, flags, str);
-		break;
-	case align_smallright:
-		V_DrawRightAlignedSmallString(x, y, flags, str);
-		break;
-	case align_smallthin:
-		V_DrawSmallThinString(x, y, flags, str);
-		break;
-	case align_smallthincenter:
-		V_DrawCenteredSmallThinString(x, y, flags, str);
-		break;
-	case align_smallthinright:
-		V_DrawRightAlignedSmallThinString(x, y, flags, str);
-		break;
-	case align_smallthinfixed:
-		V_DrawSmallThinStringAtFixed(x, y, flags, str);
-		break;
-	case align_smallthinfixedcenter:
-		V_DrawCenteredSmallThinStringAtFixed(x, y, flags, str);
-		break;
-	case align_smallthinfixedright:
-		V_DrawRightAlignedSmallThinStringAtFixed(x, y, flags, str);
-		break;
-	// tny_font
-	case align_thin:
-		V_DrawThinString(x, y, flags, str);
-		break;
-	case align_thincenter:
-		V_DrawCenteredThinString(x, y, flags, str);
-		break;
-	case align_thinright:
-		V_DrawRightAlignedThinString(x, y, flags, str);
-		break;
-	case align_thinfixed:
-		V_DrawThinStringAtFixed(x, y, flags, str);
-		break;
-	case align_thinfixedcenter:
-		V_DrawCenteredThinStringAtFixed(x, y, flags, str);
-		break;
-	case align_thinfixedright:
-		V_DrawRightAlignedThinStringAtFixed(x, y, flags, str);
-		break;
+		font_t *newfont = *((font_t **)luaL_checkudata(L, 7, META_FONT));
+		if (newfont)
+			font = newfont; // Overwrite the font chosen by the string-based alignment flags (if any)
 	}
+
+	lua_getfield(L, LUA_REGISTRYINDEX, "HUD_DRAW_LIST");
+	list = (huddrawlist_h) lua_touserdata(L, -1);
+	lua_pop(L, 1);
+
+	// okay, sorry, this is kind of ugly
+	if (LUA_HUD_IsDrawListValid(list))
+		LUA_HUD_AddDrawString(list, x, y, scale, font, str, flags, stringflags);
+	else
+		V_DrawScaledString(x, y, scale, *font, stringflags, flags, str);
+
 	return 0;
 }
 
@@ -1070,19 +1259,68 @@ static int libd_stringWidth(lua_State *L)
 {
 	const char *str = luaL_checkstring(L, 1);
 	INT32 flags = luaL_optinteger(L, 2, V_ALLOWLOWERCASE);
-	enum widtht widtht = luaL_checkoption(L, 3, "normal", widtht_opt);
+	enum widtht widtht;
 
 	HUDONLY
+
+	if (lua_isuserdata(L, 3)) {
+		font_t *font = *((font_t **)luaL_checkudata(L, 3, META_FONT));
+
+		if (!font) // I'd have no idea how this condition would be satisfied, but whatever.
+			font = &fonts[FONT_HU];
+
+		lua_pushinteger(L, V_ScaledStringWidth(str, *font, flags, 1));
+		return 1;
+	}
+
+	widtht = luaL_checkoption(L, 3, "normal", widtht_opt);
+
 	switch(widtht)
 	{
-	case widtht_normal: // hu_font
-		lua_pushinteger(L, V_StringWidth(str, flags));
+	case widtht_normal: // FONT_HU
+		lua_pushinteger(L, V_ScaledStringWidth(str, fonts[FONT_HU], flags, 1));
 		break;
-	case widtht_small: // hu_font, 0.5x scale
-		lua_pushinteger(L, V_SmallStringWidth(str, flags));
+	case widtht_small: // FONT_HU, 0.5x scale
+		lua_pushinteger(L, V_ScaledStringWidth(str, fonts[FONT_HU], flags, FRACUNIT/2)>>FRACBITS);
 		break;
-	case widtht_thin: // tny_font
-		lua_pushinteger(L, V_ThinStringWidth(str, flags));
+	case widtht_thin: // FONT_TNY
+		lua_pushinteger(L, V_ScaledStringWidth(str, fonts[FONT_TNY], flags, 1));
+		break;
+	}
+	return 1;
+}
+
+static int libd_scaledStringWidth(lua_State *L)
+{
+	const char *str = luaL_checkstring(L, 1);
+	fixed_t scale = luaL_checkfixed(L, 2);
+	INT32 flags = luaL_optinteger(L, 3, V_ALLOWLOWERCASE);
+	enum widtht widtht;
+
+	HUDONLY
+
+	if (lua_isuserdata(L, 4)) {
+		font_t *font = *((font_t **)luaL_checkudata(L, 4, META_FONT));
+
+		if (!font) // I'd have no idea how this condition would be satisfied, but whatever.
+			font = &fonts[FONT_HU];
+
+		lua_pushfixed(L, V_ScaledStringWidth(str, *font, flags, scale));
+		return 1;
+	}
+
+	widtht = luaL_checkoption(L, 4, "normal", widtht_opt);
+
+	switch(widtht)
+	{
+	case widtht_normal: // FONT_HU
+		lua_pushfixed(L, V_ScaledStringWidth(str, fonts[FONT_HU], flags, scale));
+		break;
+	case widtht_small: // FONT_HU, 0.5x scale
+		lua_pushfixed(L, V_ScaledStringWidth(str, fonts[FONT_HU], flags, scale/2));
+		break;
+	case widtht_thin: // FONT_TNY
+		lua_pushfixed(L, V_ScaledStringWidth(str, fonts[FONT_TNY], flags, scale));
 		break;
 	}
 	return 1;
@@ -1325,12 +1563,14 @@ static luaL_Reg lib_draw[] = {
 	{"drawPaddedNum", libd_drawPaddedNum},
 	{"drawFill", libd_drawFill},
 	{"drawString", libd_drawString},
+	{"drawScaledString", libd_drawScaledString},
 	{"drawNameTag", libd_drawNameTag},
 	{"drawScaledNameTag", libd_drawScaledNameTag},
 	{"drawLevelTitle", libd_drawLevelTitle},
 	{"fadeScreen", libd_fadeScreen},
 	// misc
 	{"stringWidth", libd_stringWidth},
+	{"scaledStringWidth", libd_scaledStringWidth},
 	{"nameTagWidth", libd_nameTagWidth},
 	{"levelTitleWidth", libd_levelTitleWidth},
 	{"levelTitleHeight", libd_levelTitleHeight},
@@ -1430,6 +1670,27 @@ int LUA_HudLib(lua_State *L)
 			lua_setfield(L, -2, "__len");
 		lua_setmetatable(L, -2);
 	lua_setglobal(L, "hudinfo");
+
+	luaL_newmetatable(L, META_FONT);
+		lua_pushcfunction(L, font_get);
+		lua_setfield(L, -2, "__index");
+
+		lua_pushcfunction(L, font_num);
+		lua_setfield(L, -2, "__len");
+	lua_pop(L,1);
+
+	lua_newuserdata(L, 0);
+		lua_createtable(L, 0, 2);
+			lua_pushcfunction(L, lib_getFontList);
+			lua_setfield(L, -2, "__index");
+
+			lua_pushcfunction(L, lib_setFontList);
+			lua_setfield(L, -2, "__newindex");
+
+			lua_pushcfunction(L, lib_fontslen);
+			lua_setfield(L, -2, "__len");
+		lua_setmetatable(L, -2);
+	lua_setglobal(L, "fonts");
 
 	luaL_newmetatable(L, META_COLORMAP);
 		lua_pushcfunction(L, colormap_get);

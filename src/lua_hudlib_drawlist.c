@@ -55,10 +55,11 @@ typedef struct drawitem_s {
 	fixed_t sy;
 	INT32 num;
 	INT32 digits;
+	font_t *font;
 	const char *str;
 	UINT16 color;
 	UINT8 strength;
-	INT32 align;
+	INT32 stringflags;
 } drawitem_t;
 
 // The internal structure of a drawlist.
@@ -69,34 +70,6 @@ struct huddrawlist_s {
 	char *strbuf;
 	size_t strbuf_capacity;
 	size_t strbuf_len;
-};
-
-// alignment types for v.drawString
-enum align {
-	align_left = 0,
-	align_center,
-	align_right,
-	align_fixed,
-	align_fixedcenter,
-	align_fixedright,
-	align_small,
-	align_smallfixed,
-	align_smallfixedcenter,
-	align_smallfixedright,
-	align_smallcenter,
-	align_smallright,
-	align_smallthin,
-	align_smallthincenter,
-	align_smallthinright,
-	align_smallthinfixed,
-	align_smallthinfixedcenter,
-	align_smallthinfixedright,
-	align_thin,
-	align_thinfixed,
-	align_thinfixedcenter,
-	align_thinfixedright,
-	align_thincenter,
-	align_thinright
 };
 
 huddrawlist_h LUA_HUD_CreateDrawList(void)
@@ -340,9 +313,11 @@ void LUA_HUD_AddDrawString(
 	huddrawlist_h list,
 	fixed_t x,
 	fixed_t y,
+	fixed_t scale,
+	font_t *font,
 	const char *str,
 	INT32 flags,
-	INT32 align
+	INT32 stringflags
 )
 {
 	size_t i = AllocateDrawItem(list);
@@ -350,9 +325,11 @@ void LUA_HUD_AddDrawString(
 	item->type = DI_DrawString;
 	item->x = x;
 	item->y = y;
+	item->scale = scale;
+	item->font = font;
 	item->str = CopyString(list, str);
 	item->flags = flags;
-	item->align = align;
+	item->stringflags = stringflags;
 }
 
 void LUA_HUD_AddDrawNameTag(
@@ -473,84 +450,7 @@ void LUA_HUD_DrawList(huddrawlist_h list)
 				V_DrawFill(item->x, item->y, item->w, item->h, item->c);
 				break;
 			case DI_DrawString:
-				switch(item->align)
-				{
-				// hu_font
-				case align_left:
-					V_DrawString(item->x, item->y, item->flags, item->str);
-					break;
-				case align_center:
-					V_DrawCenteredString(item->x, item->y, item->flags, item->str);
-					break;
-				case align_right:
-					V_DrawRightAlignedString(item->x, item->y, item->flags, item->str);
-					break;
-				case align_fixed:
-					V_DrawStringAtFixed(item->x, item->y, item->flags, item->str);
-					break;
-				case align_fixedcenter:
-					V_DrawCenteredStringAtFixed(item->x, item->y, item->flags, item->str);
-					break;
-				case align_fixedright:
-					V_DrawRightAlignedStringAtFixed(item->x, item->y, item->flags, item->str);
-					break;
-				// hu_font, 0.5x scale
-				case align_small:
-					V_DrawSmallString(item->x, item->y, item->flags, item->str);
-					break;
-				case align_smallfixed:
-					V_DrawSmallStringAtFixed(item->x, item->y, item->flags, item->str);
-					break;
-				case align_smallfixedcenter:
-					V_DrawCenteredSmallStringAtFixed(item->x, item->y, item->flags, item->str);
-					break;
-				case align_smallfixedright:
-					V_DrawRightAlignedSmallStringAtFixed(item->x, item->y, item->flags, item->str);
-					break;
-				case align_smallcenter:
-					V_DrawCenteredSmallString(item->x, item->y, item->flags, item->str);
-					break;
-				case align_smallright:
-					V_DrawRightAlignedSmallString(item->x, item->y, item->flags, item->str);
-					break;
-				case align_smallthin:
-					V_DrawSmallThinString(item->x, item->y, item->flags, item->str);
-					break;
-				case align_smallthincenter:
-					V_DrawCenteredSmallThinString(item->x, item->y, item->flags, item->str);
-					break;
-				case align_smallthinright:
-					V_DrawRightAlignedSmallThinString(item->x, item->y, item->flags, item->str);
-					break;
-				case align_smallthinfixed:
-					V_DrawSmallThinStringAtFixed(item->x, item->y, item->flags, item->str);
-					break;
-				case align_smallthinfixedcenter:
-					V_DrawCenteredSmallThinStringAtFixed(item->x, item->y, item->flags, item->str);
-					break;
-				case align_smallthinfixedright:
-					V_DrawRightAlignedSmallThinStringAtFixed(item->x, item->y, item->flags, item->str);
-					break;
-				// tny_font
-				case align_thin:
-					V_DrawThinString(item->x, item->y, item->flags, item->str);
-					break;
-				case align_thincenter:
-					V_DrawCenteredThinString(item->x, item->y, item->flags, item->str);
-					break;
-				case align_thinright:
-					V_DrawRightAlignedThinString(item->x, item->y, item->flags, item->str);
-					break;
-				case align_thinfixed:
-					V_DrawThinStringAtFixed(item->x, item->y, item->flags, item->str);
-					break;
-				case align_thinfixedcenter:
-					V_DrawCenteredThinStringAtFixed(item->x, item->y, item->flags, item->str);
-					break;
-				case align_thinfixedright:
-					V_DrawRightAlignedThinStringAtFixed(item->x, item->y, item->flags, item->str);
-					break;
-				}
+				V_DrawScaledString(item->x, item->y, item->scale, *item->font, item->stringflags, item->flags, item->str);
 				break;
 			case DI_DrawNameTag:
 				V_DrawNameTag(item->x, item->y, item->flags, FRACUNIT, item->basecolormap, item->outlinecolormap, item->str);

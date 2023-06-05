@@ -19,6 +19,7 @@
 
 #include "doomtype.h"
 #include "r_defs.h"
+#include "hu_stuff.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -102,9 +103,11 @@ void LUA_HUD_AddDrawString(
 	huddrawlist_h list,
 	fixed_t x,
 	fixed_t y,
+	fixed_t scale,
+	font_t *font,
 	const char *str,
 	INT32 flags,
-	INT32 align
+	INT32 stringflags
 );
 void LUA_HUD_AddDrawNameTag(
 	huddrawlist_h list,
