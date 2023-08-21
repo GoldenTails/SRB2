@@ -24,6 +24,36 @@ quiet=0 # Also don't print anything if they supplied the quiet argument
 # in those cases, and honestly even outside of those cases, it's better to just put a working one in your $PATH yourself..
 url="https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-$(uname -m).AppImage"
 
+# A whitelist of libraries to include into SRB2's AppImage if SRB2 is dynamically linked.
+# please don't add a newline at the end of this or i will cry :(
+libraryWhitelist="
+libnsl
+libSDL2
+libSDL2_mixer
+libgme
+libopenmpt
+libpng
+libfluidsynth
+libpulse
+libmodplug
+libvorbisfile
+libopusfile
+libFLAC
+libmad
+libmpg123
+libvorbis
+libpulsecommon
+libsndfile
+libsndio
+libogg
+libvorbisenc
+libjson
+libreadline
+libwrap
+libtinfo
+libtirpc
+libpng16"
+
 # these kinda look like macros don't they
 function print { (( "$quiet" == 0 )) && echo "$@" || :; } # echo if not quiet
 function coloredText { printf "$1"; print "${@:2}"; printf "$RESET"; } # use print to inherit quiet
@@ -207,15 +237,33 @@ verboseOnly 1 "Testing if this build is dynamically linked..."
 
 set +e # Disable auto-exit for ldd.
 
-ldd "$__BUILD_DIR/$__PROGRAM_FILENAME" >> /dev/null
+srb2Libraries="$(ldd "$__BUILD_DIR/$__PROGRAM_FILENAME")"
 exitcode="$?"
 
 set -e # Enable it again!
 
 if (( $exitcode == 0 )); then
-	verboseOnly 1 "This build *is* dynamically linked! Continuing with Python script."
+	verboseOnly 1 "This build *is* dynamically linked! Packaging dependencies."
 
-	__LDD_LIST=$(python3 "$__ROOT_DIR/AppImage_prunedepends.py" "$__BUILD_DIR/$__PROGRAM_FILENAME")
+	# read the dynamic libraries of srb2, trim off beginning whitespace, and get the third field seperated by spaces
+	# this gives us a newline-seperated list of libraries with their full paths.
+	srb2Libraries="$(echo "$srb2Libraries" | cut -f 2 | cut -d ' ' -f 3)"
+
+	# remove any extraneous newlines around the string
+	libraryWhitelist="$(echo $libraryWhitelist | head -c -1 | tr ' ' '\n')"
+
+	# replace e.g. 'abc' with '(/abc\b)', and replace newlines with '|'.
+	# this converts it into a grep regular expression to check for any whitelisted library names.
+	libraryWhitelist="$(printf "%s" "$libraryWhitelist" | sed 's|.*|(/\0\\b)|' | tr '\n' '|')"
+
+	# grab only the entries that match the regex
+	__LDD_LIST="$(printf "%s" "$srb2Libraries" | grep -E "$libraryWhitelist")"
+
+	# use echo to convert the newline-seperated list into an argument list
+	__LDD_LIST="$(echo $__LDD_LIST)"
+
+	# read into an array because i can't be bothered iterating the lines of a string today
+	# there's so many other things in this file that'd need to be adjusted to be POSIX-compliant anyway
 	IFS=' ' read -r -a paths <<< "$__LDD_LIST"
 
 	for path in "${paths[@]}"; do
