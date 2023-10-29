@@ -19,18 +19,21 @@
 #include "lualib.h"
 #include "../i_system.h"
 #include "../g_game.h"
-#include "../d_netfil.h"
+#include "../netcode/d_netfil.h"
+#include "../netcode/net_command.h"
 #include "../lua_libs.h"
 #include "../byteptr.h"
 #include "../lua_script.h"
 #include "../m_misc.h"
+#include "../i_time.h"
 #include "../dehacked.h"
 
 
 #define IO_INPUT	1
 #define IO_OUTPUT	2
 
-#define FILELIMIT (1024 * 1024) // Size limit for reading/writing files
+#define MAXBYTESPERMINUTE (10 * 1024 * 1024) // Rate limit for writing files
+#define MAXOPENSPERMINUTE 50 // Rate limit for opening new files
 
 #define FMT_FILECALLBACKID "file_callback_%d"
 
@@ -45,6 +48,10 @@ static const char *whitelist[] = {
 	".sav2",
 	".txt",
 };
+
+
+static INT64 numwrittenbytes = 0;
+static INT64 numopenedfiles = 0;
 
 
 static int pushresult (lua_State *L, int i, const char *filename) {
@@ -252,6 +259,17 @@ static int io_openlocal (lua_State *L) {
 			I_Error("Access denied to %s\n"
 			        "Files can't be opened while being downloaded\n",
 			        filename);
+
+  // Reading not restricted
+  if (client && (strchr(mode, 'w') || strchr(mode, 'a') || strchr(mode, '+')))
+  {
+    if (numopenedfiles >= (I_GetTime() / (60*TICRATE) + 1) * MAXOPENSPERMINUTE)
+      I_Error("Access denied to %s\n"
+              "File opening rate exceeded\n",
+              filename);
+
+    numopenedfiles++;
+  }
 
 	MakePathDirs(realfilename);
 
@@ -605,9 +623,12 @@ static int g_write (lua_State *L, FILE *f, int arg) {
     else {
       size_t l;
       const char *s = luaL_checklstring(L, arg, &l);
-      if (ftell(f) + l > FILELIMIT) {
-          luaL_error(L,"write limit bypassed in file. Changes have been discarded.");
-          break;
+      if (client) {
+        if (numwrittenbytes + l > (I_GetTime() / (60*TICRATE) + 1) * MAXBYTESPERMINUTE) {
+            luaL_error(L,"file write rate limit exceeded; changes have been discarded");
+            break;
+        }
+        numwrittenbytes += l;
       }
       status = status && (fwrite(s, sizeof(char), l, f) == l);
     }
@@ -720,4 +741,3 @@ LUALIB_API int luaopen_io (lua_State *L) {
   lua_pop(L, 1);  /* pop environment for default files */
   return 1;
 }
-
