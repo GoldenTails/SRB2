@@ -29,10 +29,13 @@ typedef struct
 	INT32 size;
 
 	INT32 spacewidth; // Default space width
+	INT32 lineheight; // Height of line, how much to move down when a newline is encountered
+	INT32 minlineheight; // Minimum height of line, used for V_RETURN8
 	INT32 monospacewidth; // Space width when V_MONOSPACE is enabled
 	INT32 sixspacewidth; // Space width when V_6WIDTHSPACE is enabled
 	INT32 charwidth; // Character width when V_OLDSPACING is enabled
 
+	const char *lumpprefix;
 	patch_t **chars;
 } font_t;
 
@@ -136,7 +139,7 @@ extern boolean hu_showscores;
 // init heads up data at game startup.
 void HU_Init(void);
 
-void HU_LoadGenericFontGraphics(font_t *font, const char *lumpprefix);
+void HU_LoadGenericFontGraphics(font_t *font);
 void HU_FreeGenericFontGraphics(font_t *font);
 
 void HU_LoadGraphics(void);

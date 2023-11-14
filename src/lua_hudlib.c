@@ -85,6 +85,8 @@ enum font {
 	font_last,
 	font_size,
 	font_spacewidth,
+	font_lineheight,
+	font_minlineheight,
 	font_monospacewidth,
 	font_sixspacewidth,
 	font_charwidth,
@@ -96,6 +98,8 @@ static const char *const font_opt[] = {
 	"last", // "end" is a lua keyword, so I guess I'll use "last".
 	"size",
 	"spacewidth",
+	"lineheight",
+	"minlineheight",
 	"monospacewidth",
 	"sixspacewidth",
 	"charwidth",
@@ -268,7 +272,6 @@ static int lib_getFontList(lua_State *L)
 static int lib_setFontList(lua_State *L)
 {
 	font_t *info;
-	char *lumpprefix = NULL;
 
 	lua_remove(L, 1); // don't care about font[] userdata.
 	{
@@ -304,23 +307,29 @@ static int lib_setFontList(lua_State *L)
 			info->size = info->end - info->start + 1;
 		} else if (i == 3 || (str && fastcmp(str,"spacewidth")))
 			info->spacewidth = (INT32)luaL_checkinteger(L, 3);
-		else if (i == 4 || (str && fastcmp(str,"monospacewidth")))
+		else if (i == 4 || (str && fastcmp(str,"lineheight")))
+			info->lineheight = (INT32)luaL_checkinteger(L, 3);
+		else if (i == 5 || (str && fastcmp(str,"minlineheight")))
+			info->minlineheight = (INT32)luaL_checkinteger(L, 3);
+		else if (i == 6 || (str && fastcmp(str,"monospacewidth")))
 			info->monospacewidth = (INT32)luaL_checkinteger(L, 3);
-		else if (i == 5 || (str && fastcmp(str,"sixspacewidth")))
+		else if (i == 7 || (str && fastcmp(str,"sixspacewidth")))
 			info->sixspacewidth = (INT32)luaL_checkinteger(L, 3);
-		else if (i == 6 || (str && fastcmp(str,"charwidth")))
+		else if (i == 8 || (str && fastcmp(str,"charwidth")))
 			info->charwidth = (INT32)luaL_checkinteger(L, 3);
-		else if (i == 7 || (str && fastcmp(str,"lumpprefix"))) {
-			lumpprefix = Z_StrDup(luaL_checkstring(L, 3));
+		else if (i == 9 || (str && fastcmp(str,"lumpprefix"))) {
+			char *lumpprefix = Z_StrDup(luaL_checkstring(L, 3));
 
 			if (strlen(lumpprefix) > 7 || strlen(lumpprefix) < 1) // Has to have at least 1 letter and at most 7
 				return luaL_error(L, "font_t.lumpprefix string length out of range (1 - 7)");
+
+			info->lumpprefix = lumpprefix;
 		}
 		lua_pop(L, 1);
 	}
 
-	if (lumpprefix)
-		HU_LoadGenericFontGraphics(info, lumpprefix);
+	if (info->lumpprefix)
+		HU_LoadGenericFontGraphics(info);
 
 	return 0;
 }
@@ -369,6 +378,12 @@ static int font_get(lua_State *L)
 	case font_spacewidth:
 		lua_pushinteger(L, font->spacewidth);
 		break;
+	case font_lineheight:
+		lua_pushinteger(L, font->lineheight);
+		break;
+	case font_minlineheight:
+		lua_pushinteger(L, font->minlineheight);
+		break;
 	case font_monospacewidth:
 		lua_pushinteger(L, font->monospacewidth);
 		break;
@@ -379,7 +394,7 @@ static int font_get(lua_State *L)
 		lua_pushinteger(L, font->charwidth);
 		break;
 	case font_lumpprefix: // this field is fake and only used to allocate chars
-		return luaL_error(L, "The lumpprefix field is write-only!");
+		lua_pushstring(L, font->lumpprefix);
 		break;
 	}
 	return 1;

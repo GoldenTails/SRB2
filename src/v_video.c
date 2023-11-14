@@ -2120,10 +2120,12 @@ fixed_t V_ScaledStringWidth(const char *string, font_t font, INT32 option, fixed
 	switch (option & V_SPACINGMASK)
 	{
 		case V_MONOSPACE:
-			spacewidth = font.monospacewidth * scale;
+			if (font.monospacewidth)
+				spacewidth = font.monospacewidth * scale;
 			/* FALLTHRU */
 		case V_OLDSPACING:
-			charwidth = font.charwidth * scale;
+			if (font.charwidth)
+				charwidth = font.charwidth * scale;
 			break;
 		case V_6WIDTHSPACE:
 			spacewidth = font.sixspacewidth * scale;
@@ -2218,10 +2220,12 @@ void V_DrawScaledString(fixed_t x, fixed_t y, fixed_t scale, font_t font, INT32 
 	switch (option & V_SPACINGMASK)
 	{
 		case V_MONOSPACE:
-			spacewidth = font.monospacewidth;
+			if (font.monospacewidth)
+				spacewidth = font.monospacewidth;
 			/* FALLTHRU */
 		case V_OLDSPACING:
-			charwidth = font.charwidth;
+			if (font.charwidth)
+				charwidth = font.charwidth;
 			break;
 		case V_6WIDTHSPACE:
 			spacewidth = font.sixspacewidth;
@@ -2245,9 +2249,9 @@ void V_DrawScaledString(fixed_t x, fixed_t y, fixed_t scale, font_t font, INT32 
 			cx = x;
  
 			if (option & V_RETURN8)
-				cy += 8 * dupy * scale;
+				cy += font.minlineheight * dupy * scale;
 			else
-				cy += 12 * dupy * scale;
+				cy += font.lineheight * dupy * scale;
 
 			continue;
 		}
