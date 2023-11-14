@@ -222,7 +222,8 @@ void HU_FreeGenericFontGraphics(font_t *font)
 
 	// cache the font for entire game execution
 	for (i = 0; i < font->size; i++)
-		W_UnlockCachedPatch(font->chars[i]);
+		if (font->chars[i])
+			W_UnlockCachedPatch(font->chars[i]);
 
 	Z_Free(font->chars);
 }

@@ -310,8 +310,12 @@ static int lib_setFontList(lua_State *L)
 			info->sixspacewidth = (INT32)luaL_checkinteger(L, 3);
 		else if (i == 6 || (str && fastcmp(str,"charwidth")))
 			info->charwidth = (INT32)luaL_checkinteger(L, 3);
-		else if (i == 7 || (str && fastcmp(str,"lumpprefix")))
+		else if (i == 7 || (str && fastcmp(str,"lumpprefix"))) {
 			lumpprefix = Z_StrDup(luaL_checkstring(L, 3));
+
+			if (strlen(lumpprefix) > 7 || strlen(lumpprefix) < 1) // Has to have at least 1 letter and at most 7
+				return luaL_error(L, "font_t.lumpprefix string length out of range (1 - 7)");
+		}
 		lua_pop(L, 1);
 	}
 
