@@ -31,6 +31,7 @@
 char *FREE_STATES[NUMSTATEFREESLOTS];
 char *FREE_MOBJS[NUMMOBJFREESLOTS];
 char *FREE_SKINCOLORS[NUMCOLORFREESLOTS];
+char *FREE_FONTS[NUMFONTFREESLOTS];
 UINT8 used_spr[(NUMSPRITEFREESLOTS / 8) + 1]; // Bitwise flag for sprite freeslot in use! I would use ceil() here if I could, but it only saves 1 byte of memory anyway.
 
 const char NIGHTSGRADE_LIST[] = {
@@ -4799,6 +4800,16 @@ const char *const HUDITEMS_LIST[] = {
 	"POWERUPS"
 };
 
+const char *const FONTS_LIST[] = {
+	"HU",
+	"TNY",
+	"LT",
+	"CRED",
+	"NTB",
+	"NTO",
+	NULL
+};
+
 const char *const MENUTYPES_LIST[] = {
 	"NONE",
 
@@ -5596,14 +5607,6 @@ struct int_const_s const INT_CONST[] = {
 	{"VDS_RIGHTALIGN", VDS_RIGHTALIGN},
 	{"VDS_CENTERALIGN", VDS_CENTERALIGN},
 	{"VDS_INTEGER", VDS_INTEGER},
-
-	// Font indices
-	{"FONT_HU", FONT_HU},
-	{"FONT_TNY", FONT_TNY},
-	{"FONT_LT", FONT_LT},
-	{"FONT_CRED", FONT_CRED},
-	{"FONT_NTB", FONT_NTB},
-	{"FONT_NTO", FONT_NTO},
 
 	//Kick Reasons
 	{"KR_KICK",KR_KICK},

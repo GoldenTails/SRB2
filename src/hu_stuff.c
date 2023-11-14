@@ -213,6 +213,20 @@ void HU_LoadGenericFontGraphics(font_t *font, const char *lumpprefix)
 	}
 }
 
+void HU_FreeGenericFontGraphics(font_t *font)
+{
+	INT32 i;
+
+	if (!font->chars)
+		return;
+
+	// cache the font for entire game execution
+	for (i = 0; i < font->size; i++)
+		W_UnlockCachedPatch(font->chars[i]);
+
+	Z_Free(font->chars);
+}
+
 void HU_LoadGraphics(void)
 {
 	char buffer[9];

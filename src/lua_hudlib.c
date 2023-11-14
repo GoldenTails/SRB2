@@ -87,7 +87,8 @@ enum font {
 	font_spacewidth,
 	font_monospacewidth,
 	font_sixspacewidth,
-	font_charwidth
+	font_charwidth,
+	font_lumpprefix
 };
 
 static const char *const font_opt[] = {
@@ -98,6 +99,7 @@ static const char *const font_opt[] = {
 	"monospacewidth",
 	"sixspacewidth",
 	"charwidth",
+	"lumpprefix",
 	NULL};
 
 enum patch {
@@ -266,6 +268,8 @@ static int lib_getFontList(lua_State *L)
 static int lib_setFontList(lua_State *L)
 {
 	font_t *info;
+	char *lumpprefix = NULL;
+
 	lua_remove(L, 1); // don't care about font[] userdata.
 	{
 		UINT32 i = luaL_checkinteger(L, 1);
@@ -278,8 +282,7 @@ static int lib_setFontList(lua_State *L)
 	lua_settop(L, 1); // cut the stack here. the only thing left now is the table of data we're assigning to the font.
 
 	// Free chars just in case they're defined
-	if (info->chars)
-		Z_Free(info->chars);
+	HU_FreeGenericFontGraphics(info);
 
 	// clear the font to start with, in case of missing table elements
 	memset(info,0,sizeof(font_t));
@@ -293,7 +296,7 @@ static int lib_setFontList(lua_State *L)
 		else
 			str = luaL_checkstring(L, 2);
 
-		if (i == 1 || (str && fastcmp(str,"start"))) {
+		if (i == 1 || (str && fastcmp(str,"first"))) {
 			info->start = (INT32)luaL_checkinteger(L, 3);
 			info->size = info->end - info->start + 1;
 		} else if (i == 2 || (str && fastcmp(str,"last"))) {
@@ -307,8 +310,13 @@ static int lib_setFontList(lua_State *L)
 			info->sixspacewidth = (INT32)luaL_checkinteger(L, 3);
 		else if (i == 6 || (str && fastcmp(str,"charwidth")))
 			info->charwidth = (INT32)luaL_checkinteger(L, 3);
+		else if (i == 7 || (str && fastcmp(str,"lumpprefix")))
+			lumpprefix = Z_StrDup(luaL_checkstring(L, 3));
 		lua_pop(L, 1);
 	}
+
+	if (lumpprefix)
+		HU_LoadGenericFontGraphics(info, lumpprefix);
 
 	return 0;
 }
@@ -334,7 +342,7 @@ static int font_get(lua_State *L)
 
 		i = luaL_checkinteger(L, 2) - font->start;
 
-		if (!font->chars[i])
+		if (i >= font->size || !font->chars[i])
 			return 0;
 
 		LUA_PushUserdata(L, font->chars[i], META_PATCH);
@@ -365,6 +373,9 @@ static int font_get(lua_State *L)
 		break;
 	case font_charwidth:
 		lua_pushinteger(L, font->charwidth);
+		break;
+	case font_lumpprefix: // this field is fake and only used to allocate chars
+		return luaL_error(L, "The lumpprefix field is write-only!");
 		break;
 	}
 	return 1;

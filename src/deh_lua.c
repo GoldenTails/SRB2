@@ -20,6 +20,7 @@
 #include "fastcmp.h"
 #include "lua_script.h"
 #include "lua_libs.h"
+#include "hu_stuff.h"
 
 #include "dehacked.h"
 #include "deh_lua.h"
@@ -183,6 +184,22 @@ static inline int lib_freeslot(lua_State *L)
 					r++;
 				}
 			}
+		}
+		else if (fastcmp(type, "FONT"))
+		{
+			fontnum_t i;
+			for (i = 0; i < NUMFONTFREESLOTS; i++)
+				if (!FREE_FONTS[i]) {
+					CONS_Printf("Font FONT_%s allocated.\n",word);
+					FREE_FONTS[i] = Z_Malloc(strlen(word)+1, PU_STATIC, NULL);
+					strcpy(FREE_FONTS[i],word);
+					lua_pushinteger(L, FONT_FIRSTFREESLOT + i);
+					r++;
+					numfonts++;
+					break;
+				}
+			if (i == NUMFONTFREESLOTS)
+				CONS_Alert(CONS_WARNING, "Ran out of free Font slots!\n");
 		}
 		Z_Free(s);
 		lua_remove(L, 1);
@@ -568,6 +585,23 @@ static inline int lib_getenum(lua_State *L)
 			}
 		if (mathlib) return luaL_error(L, "menutype '%s' could not be found.\n", word);
 		return 0;
+	}
+	else if (fastncmp("FONT_",word,5)) {
+		p = word+5;
+		for (i = 0; i < NUMFONTFREESLOTS; i++) {
+			if (!FREE_FONTS[i])
+				break;
+			if (fastcmp(p, FREE_FONTS[i])) {
+				lua_pushinteger(L, FONT_FIRSTFREESLOT+i);
+				return 1;
+			}
+		}
+		for (i = 0; i < FONT_FIRSTFREESLOT; i++)
+			if (fastcmp(p, FONTS_LIST[i])) {
+				lua_pushinteger(L, i);
+				return 1;
+			}
+		return luaL_error(L, "font '%s' does not exist.\n", word);
 	}
 	else if (!mathlib && fastncmp("A_",word,2)) {
 		char *caps;

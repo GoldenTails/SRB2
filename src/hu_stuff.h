@@ -137,6 +137,7 @@ extern boolean hu_showscores;
 void HU_Init(void);
 
 void HU_LoadGenericFontGraphics(font_t *font, const char *lumpprefix);
+void HU_FreeGenericFontGraphics(font_t *font);
 
 void HU_LoadGraphics(void);
 
