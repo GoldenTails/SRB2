@@ -57,15 +57,14 @@ extern boolean hud_running;
 
 boolean LUA_HudEnabled(enum hud option);
 
-<<<<<<< src/lua_hud.h
 void LUAh_GameHUD(player_t *stplyr);
 void LUAh_ScoresHUD(void);
 void LUAh_TitleHUD(void);
 void LUAh_TitleCardHUD(player_t *stplayr);
 void LUAh_IntermissionHUD(void);
 void LUAh_CutsceneHUD(INT32 cutnum, INT32 scenenum, INT32 stoptimer, INT32 scenetime);
-=======
+
 void LUA_SetHudHook(int hook, huddrawlist_h list);
 
 #endif // __LUA_HUD_H__
->>>>>>> src/lua_hud.h
+
