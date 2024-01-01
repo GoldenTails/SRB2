@@ -1,7 +1,7 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2020 by Sonic Team Junior.
+// Copyright (C) 1999-2023 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -804,45 +804,18 @@ GLMapTexture_t *HWR_GetTexture(INT32 tex)
 
 static void HWR_CacheFlat(GLMipmap_t *grMipmap, lumpnum_t flatlumpnum)
 {
-	size_t size, pflatsize;
+	size_t size = W_LumpLength(flatlumpnum);
+	UINT16 pflatsize = R_GetFlatSize(size);
 
 	// setup the texture info
 	grMipmap->format = GL_TEXFMT_P_8;
 	grMipmap->flags = TF_WRAPXY|TF_CHROMAKEYED;
 
-	size = W_LumpLength(flatlumpnum);
-
-	switch (size)
-	{
-		case 4194304: // 2048x2048 lump
-			pflatsize = 2048;
-			break;
-		case 1048576: // 1024x1024 lump
-			pflatsize = 1024;
-			break;
-		case 262144:// 512x512 lump
-			pflatsize = 512;
-			break;
-		case 65536: // 256x256 lump
-			pflatsize = 256;
-			break;
-		case 16384: // 128x128 lump
-			pflatsize = 128;
-			break;
-		case 1024: // 32x32 lump
-			pflatsize = 32;
-			break;
-		default: // 64x64 lump
-			pflatsize = 64;
-			break;
-	}
-
-	grMipmap->width  = (UINT16)pflatsize;
-	grMipmap->height = (UINT16)pflatsize;
+	grMipmap->width = pflatsize;
+	grMipmap->height = pflatsize;
 
 	// the flat raw data needn't be converted with palettized textures
-	W_ReadLump(flatlumpnum, Z_Malloc(W_LumpLength(flatlumpnum),
-		PU_HWRCACHE, &grMipmap->data));
+	W_ReadLump(flatlumpnum, Z_Malloc(size, PU_HWRCACHE, &grMipmap->data));
 }
 
 static void HWR_CacheTextureAsFlat(GLMipmap_t *grMipmap, INT32 texturenum)
@@ -866,7 +839,7 @@ static void HWR_CacheTextureAsFlat(GLMipmap_t *grMipmap, INT32 texturenum)
 }
 
 // Download a Doom 'flat' to the hardware cache and make it ready for use
-void HWR_LiterallyGetFlat(lumpnum_t flatlumpnum)
+void HWR_GetRawFlat(lumpnum_t flatlumpnum)
 {
 	GLMipmap_t *grmip;
 	patch_t *patch;
@@ -895,7 +868,7 @@ void HWR_GetLevelFlat(levelflat_t *levelflat)
 		return;
 
 	if (levelflat->type == LEVELFLAT_FLAT)
-		HWR_LiterallyGetFlat(levelflat->u.flat.lumpnum);
+		HWR_GetRawFlat(levelflat->u.flat.lumpnum);
 	else if (levelflat->type == LEVELFLAT_TEXTURE)
 	{
 		GLMapTexture_t *grtex;
@@ -934,15 +907,17 @@ void HWR_GetLevelFlat(levelflat_t *levelflat)
 #ifndef NO_PNG_LUMPS
 	else if (levelflat->type == LEVELFLAT_PNG)
 	{
-		INT32 pngwidth = 0, pngheight = 0;
 		GLMipmap_t *mipmap = levelflat->mipmap;
-		UINT8 *flat;
-		size_t size;
 
 		// Cache the picture.
-		if (!levelflat->picture)
+		if (!levelflat->mippic)
 		{
-			levelflat->picture = Picture_PNGConvert(W_CacheLumpNum(levelflat->u.flat.lumpnum, PU_CACHE), PICFMT_FLAT, &pngwidth, &pngheight, NULL, NULL, W_LumpLength(levelflat->u.flat.lumpnum), NULL, 0);
+			INT32 pngwidth = 0, pngheight = 0;
+			void *pic = Picture_PNGConvert(W_CacheLumpNum(levelflat->u.flat.lumpnum, PU_CACHE), PICFMT_FLAT, &pngwidth, &pngheight, NULL, NULL, W_LumpLength(levelflat->u.flat.lumpnum), NULL, 0);
+
+			Z_ChangeTag(pic, PU_LEVEL);
+			Z_SetUser(pic, &levelflat->mippic);
+
 			levelflat->width = (UINT16)pngwidth;
 			levelflat->height = (UINT16)pngheight;
 		}
@@ -950,7 +925,7 @@ void HWR_GetLevelFlat(levelflat_t *levelflat)
 		// Make the mipmap.
 		if (mipmap == NULL)
 		{
-			mipmap = Z_Calloc(sizeof(GLMipmap_t), PU_LEVEL, NULL);
+			mipmap = Z_Calloc(sizeof(GLMipmap_t), PU_STATIC, NULL);
 			mipmap->format = GL_TEXFMT_P_8;
 			mipmap->flags = TF_WRAPXY|TF_CHROMAKEYED;
 			levelflat->mipmap = mipmap;
@@ -958,17 +933,22 @@ void HWR_GetLevelFlat(levelflat_t *levelflat)
 
 		if (!mipmap->data && !mipmap->downloaded)
 		{
+			UINT8 *flat;
+			size_t size;
+
+			if (levelflat->mippic == NULL)
+				I_Error("HWR_GetLevelFlat: levelflat->mippic == NULL");
+
 			mipmap->width = levelflat->width;
 			mipmap->height = levelflat->height;
+
 			size = (mipmap->width * mipmap->height);
 			flat = Z_Malloc(size, PU_LEVEL, &mipmap->data);
-			if (levelflat->picture == NULL)
-				I_Error("HWR_GetLevelFlat: levelflat->picture == NULL");
-			M_Memcpy(flat, levelflat->picture, size);
+			M_Memcpy(flat, levelflat->mippic, size);
 		}
 
 		// Tell the hardware driver to bind the current texture to the flat's mipmap
-		HWD.pfnSetTexture(mipmap);
+		HWR_SetCurrentTexture(mipmap);
 	}
 #endif
 	else // set no texture
@@ -1084,7 +1064,6 @@ void HWR_UnlockCachedPatch(GLPatch_t *gpatch)
 		return;
 
 	Z_ChangeTag(gpatch->mipmap->data, PU_HWRCACHE_UNLOCKED);
-	Z_ChangeTag(gpatch, PU_HWRPATCHINFO_UNLOCKED);
 }
 
 static const INT32 picmode2GR[] =

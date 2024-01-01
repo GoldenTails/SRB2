@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2020 by Sonic Team Junior.
+// Copyright (C) 1999-2023 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -238,11 +238,11 @@ sector_t *R_FakeFlat(sector_t *sec, sector_t *tempsec, INT32 *floorlightlevel,
 {
 	if (floorlightlevel)
 		*floorlightlevel = sec->floorlightsec == -1 ?
-			sec->lightlevel : sectors[sec->floorlightsec].lightlevel;
+			(sec->floorlightabsolute ? sec->floorlightlevel : max(0, min(255, sec->lightlevel + sec->floorlightlevel))) : sectors[sec->floorlightsec].lightlevel;
 
 	if (ceilinglightlevel)
 		*ceilinglightlevel = sec->ceilinglightsec == -1 ?
-			sec->lightlevel : sectors[sec->ceilinglightsec].lightlevel;
+			(sec->ceilinglightabsolute ? sec->ceilinglightlevel : max(0, min(255, sec->lightlevel + sec->ceilinglightlevel))) : sectors[sec->ceilinglightsec].lightlevel;
 
 	// if (sec->midmap != -1)
 	//	mapnum = sec->midmap;
@@ -275,9 +275,11 @@ sector_t *R_FakeFlat(sector_t *sec, sector_t *tempsec, INT32 *floorlightlevel,
 			tempsec->ceilingheight = s->floorheight - 1, !back)) || viewz <= s->floorheight)
 		{ // head-below-floor hack
 			tempsec->floorpic = s->floorpic;
-			tempsec->floor_xoffs = s->floor_xoffs;
-			tempsec->floor_yoffs = s->floor_yoffs;
-			tempsec->floorpic_angle = s->floorpic_angle;
+			tempsec->floorxoffset = s->floorxoffset;
+			tempsec->flooryoffset = s->flooryoffset;
+			tempsec->floorxscale = s->floorxscale;
+			tempsec->flooryscale = s->flooryscale;
+			tempsec->floorangle = s->floorangle;
 
 			if (underwater)
 			{
@@ -285,27 +287,31 @@ sector_t *R_FakeFlat(sector_t *sec, sector_t *tempsec, INT32 *floorlightlevel,
 				{
 					tempsec->floorheight = tempsec->ceilingheight+1;
 					tempsec->ceilingpic = tempsec->floorpic;
-					tempsec->ceiling_xoffs = tempsec->floor_xoffs;
-					tempsec->ceiling_yoffs = tempsec->floor_yoffs;
-					tempsec->ceilingpic_angle = tempsec->floorpic_angle;
+					tempsec->ceilingxoffset = tempsec->floorxoffset;
+					tempsec->ceilingyoffset = tempsec->flooryoffset;
+					tempsec->ceilingxscale = tempsec->floorxscale;
+					tempsec->ceilingyscale = tempsec->flooryscale;
+					tempsec->ceilingangle = tempsec->floorangle;
 				}
 				else
 				{
 					tempsec->ceilingpic = s->ceilingpic;
-					tempsec->ceiling_xoffs = s->ceiling_xoffs;
-					tempsec->ceiling_yoffs = s->ceiling_yoffs;
-					tempsec->ceilingpic_angle = s->ceilingpic_angle;
+					tempsec->ceilingxoffset = s->ceilingxoffset;
+					tempsec->ceilingyoffset = s->ceilingyoffset;
+					tempsec->ceilingxscale = s->ceilingxscale;
+					tempsec->ceilingyscale = s->ceilingyscale;
+					tempsec->ceilingangle = s->ceilingangle;
 				}
 			}
 
 			tempsec->lightlevel = s->lightlevel;
 
 			if (floorlightlevel)
-				*floorlightlevel = s->floorlightsec == -1 ? s->lightlevel
+				*floorlightlevel = s->floorlightsec == -1 ? (s->floorlightabsolute ? s->floorlightlevel : max(0, min(255, s->lightlevel + s->floorlightlevel)))
 					: sectors[s->floorlightsec].lightlevel;
 
 			if (ceilinglightlevel)
-				*ceilinglightlevel = s->ceilinglightsec == -1 ? s->lightlevel
+				*ceilinglightlevel = s->ceilinglightsec == -1 ? (s->ceilinglightabsolute ? s->ceilinglightlevel : max(0, min(255, s->lightlevel + s->ceilinglightlevel)))
 					: sectors[s->ceilinglightsec].lightlevel;
 		}
 		else if (heightsec != -1 && viewz >= sectors[heightsec].ceilingheight
@@ -315,36 +321,42 @@ sector_t *R_FakeFlat(sector_t *sec, sector_t *tempsec, INT32 *floorlightlevel,
 			tempsec->floorheight = s->ceilingheight + 1;
 
 			tempsec->floorpic = tempsec->ceilingpic = s->ceilingpic;
-			tempsec->floor_xoffs = tempsec->ceiling_xoffs = s->ceiling_xoffs;
-			tempsec->floor_yoffs = tempsec->ceiling_yoffs = s->ceiling_yoffs;
-			tempsec->floorpic_angle = tempsec->ceilingpic_angle = s->ceilingpic_angle;
+			tempsec->floorxoffset = tempsec->ceilingxoffset = s->ceilingxoffset;
+			tempsec->flooryoffset = tempsec->ceilingyoffset = s->ceilingyoffset;
+			tempsec->floorxscale = tempsec->ceilingxscale = s->ceilingxscale;
+			tempsec->flooryscale = tempsec->ceilingyscale = s->ceilingyscale;
+			tempsec->floorangle = tempsec->ceilingangle = s->ceilingangle;
 
 			if (s->floorpic == skyflatnum) // SKYFIX?
 			{
 				tempsec->ceilingheight = tempsec->floorheight-1;
 				tempsec->floorpic = tempsec->ceilingpic;
-				tempsec->floor_xoffs = tempsec->ceiling_xoffs;
-				tempsec->floor_yoffs = tempsec->ceiling_yoffs;
-				tempsec->floorpic_angle = tempsec->ceilingpic_angle;
+				tempsec->floorxoffset = tempsec->ceilingxoffset;
+				tempsec->flooryoffset = tempsec->ceilingyoffset;
+				tempsec->floorxscale = tempsec->ceilingxscale;
+				tempsec->flooryscale = tempsec->ceilingyscale;
+				tempsec->floorangle = tempsec->ceilingangle;
 			}
 			else
 			{
 				tempsec->ceilingheight = sec->ceilingheight;
 				tempsec->floorpic = s->floorpic;
-				tempsec->floor_xoffs = s->floor_xoffs;
-				tempsec->floor_yoffs = s->floor_yoffs;
-				tempsec->floorpic_angle = s->floorpic_angle;
+				tempsec->floorxoffset = s->floorxoffset;
+				tempsec->flooryoffset = s->flooryoffset;
+				tempsec->floorxscale = s->floorxscale;
+				tempsec->flooryscale = s->flooryscale;
+				tempsec->floorangle = s->floorangle;
 			}
 
 			tempsec->lightlevel = s->lightlevel;
 
 			if (floorlightlevel)
-				*floorlightlevel = s->floorlightsec == -1 ? s->lightlevel :
-			sectors[s->floorlightsec].lightlevel;
+				*floorlightlevel = s->floorlightsec == -1 ? (s->floorlightabsolute ? s->floorlightlevel : max(0, min(255, s->lightlevel + s->floorlightlevel)))
+					: sectors[s->floorlightsec].lightlevel;
 
 			if (ceilinglightlevel)
-				*ceilinglightlevel = s->ceilinglightsec == -1 ? s->lightlevel :
-			sectors[s->ceilinglightsec].lightlevel;
+				*ceilinglightlevel = s->ceilinglightsec == -1 ? (s->ceilinglightabsolute ? s->ceilinglightlevel : max(0, min(255, s->lightlevel + s->ceilinglightlevel)))
+					: sectors[s->ceilinglightsec].lightlevel;
 		}
 		sec = tempsec;
 	}
@@ -362,14 +374,22 @@ boolean R_IsEmptyLine(seg_t *line, sector_t *front, sector_t *back)
 		&& back->c_slope == front->c_slope
 		&& back->lightlevel == front->lightlevel
 		&& !line->sidedef->midtexture
-		// Check offsets too!
-		&& back->floor_xoffs == front->floor_xoffs
-		&& back->floor_yoffs == front->floor_yoffs
-		&& back->floorpic_angle == front->floorpic_angle
-		&& back->ceiling_xoffs == front->ceiling_xoffs
-		&& back->ceiling_yoffs == front->ceiling_yoffs
-		&& back->ceilingpic_angle == front->ceilingpic_angle
+		// Check offsets and scale too!
+		&& back->floorxoffset == front->floorxoffset
+		&& back->flooryoffset == front->flooryoffset
+		&& back->floorxscale == front->floorxscale
+		&& back->flooryscale == front->flooryscale
+		&& back->floorangle == front->floorangle
+		&& back->ceilingxoffset == front->ceilingxoffset
+		&& back->ceilingyoffset == front->ceilingyoffset
+		&& back->ceilingxscale == front->ceilingxscale
+		&& back->ceilingyscale == front->ceilingyscale
+		&& back->ceilingangle == front->ceilingangle
 		// Consider altered lighting.
+		&& back->floorlightlevel == front->floorlightlevel
+		&& back->floorlightabsolute == front->floorlightabsolute
+		&& back->ceilinglightlevel == front->ceilinglightlevel
+		&& back->ceilinglightabsolute == front->ceilinglightabsolute
 		&& back->floorlightsec == front->floorlightsec
 		&& back->ceilinglightsec == front->ceilinglightsec
 		// Consider colormaps
@@ -395,8 +415,8 @@ static void R_AddLine(seg_t *line)
 		return;
 
 	// big room fix
-	angle1 = R_PointToAngleEx(viewx, viewy, line->v1->x, line->v1->y);
-	angle2 = R_PointToAngleEx(viewx, viewy, line->v2->x, line->v2->y);
+	angle1 = R_PointToAngle64(line->v1->x, line->v1->y);
+	angle2 = R_PointToAngle64(line->v2->x, line->v2->y);
 	curline = line;
 
 	// Clip to view edges.
@@ -616,8 +636,8 @@ static boolean R_CheckBBox(const fixed_t *bspcoord)
 	check = checkcoord[boxpos];
 
 	// big room fix
-	angle1 = R_PointToAngleEx(viewx, viewy, bspcoord[check[0]], bspcoord[check[1]]) - viewangle;
-	angle2 = R_PointToAngleEx(viewx, viewy, bspcoord[check[2]], bspcoord[check[3]]) - viewangle;
+	angle1 = R_PointToAngle64(bspcoord[check[0]], bspcoord[check[1]]) - viewangle;
+	angle2 = R_PointToAngle64(bspcoord[check[2]], bspcoord[check[3]]) - viewangle;
 
 	if ((signed)angle1 < (signed)angle2)
 	{
@@ -804,7 +824,7 @@ static void R_AddPolyObjects(subsector_t *sub)
 	}
 
 	// for render stats
-	ps_numpolyobjects += numpolys;
+	ps_numpolyobjects.value.i += numpolys;
 
 	// sort polyobjects
 	R_SortPolyObjects(sub);
@@ -836,6 +856,7 @@ static void R_Subsector(size_t num)
 	extracolormap_t *floorcolormap;
 	extracolormap_t *ceilingcolormap;
 	fixed_t floorcenterz, ceilingcenterz;
+	ffloor_t *rover;
 
 #ifdef RANGECHECK
 	if (num >= numsubsectors)
@@ -862,7 +883,23 @@ static void R_Subsector(size_t num)
 	// Check and prep all 3D floors. Set the sector floor/ceiling light levels and colormaps.
 	if (frontsector->ffloors)
 	{
-		if (frontsector->moved)
+		boolean anyMoved = frontsector->moved;
+
+		if (anyMoved == false)
+		{
+			for (rover = frontsector->ffloors; rover; rover = rover->next)
+			{
+				sector_t *controlSec = &sectors[rover->secnum];
+
+				if (controlSec->moved == true)
+				{
+					anyMoved = true;
+					break;
+				}
+			}
+		}
+
+		if (anyMoved == true)
 		{
 			frontsector->numlights = sub->sector->numlights = 0;
 			R_Prep3DFloors(frontsector);
@@ -872,12 +909,12 @@ static void R_Subsector(size_t num)
 		}
 
 		light = R_GetPlaneLight(frontsector, floorcenterz, false);
-		if (frontsector->floorlightsec == -1)
-			floorlightlevel = *frontsector->lightlist[light].lightlevel;
+		if (frontsector->floorlightsec == -1 && !frontsector->floorlightabsolute)
+			floorlightlevel = max(0, min(255, *frontsector->lightlist[light].lightlevel + frontsector->floorlightlevel));
 		floorcolormap = *frontsector->lightlist[light].extra_colormap;
 		light = R_GetPlaneLight(frontsector, ceilingcenterz, false);
-		if (frontsector->ceilinglightsec == -1)
-			ceilinglightlevel = *frontsector->lightlist[light].lightlevel;
+		if (frontsector->ceilinglightsec == -1 && !frontsector->ceilinglightabsolute)
+			ceilinglightlevel = max(0, min(255, *frontsector->lightlist[light].lightlevel + frontsector->ceilinglightlevel));
 		ceilingcolormap = *frontsector->lightlist[light].extra_colormap;
 	}
 
@@ -888,7 +925,9 @@ static void R_Subsector(size_t num)
 		|| (frontsector->heightsec != -1 && sectors[frontsector->heightsec].ceilingpic == skyflatnum))
 	{
 		floorplane = R_FindPlane(frontsector->floorheight, frontsector->floorpic, floorlightlevel,
-			frontsector->floor_xoffs, frontsector->floor_yoffs, frontsector->floorpic_angle, floorcolormap, NULL, NULL, frontsector->f_slope);
+			frontsector->floorxoffset, frontsector->flooryoffset,
+			frontsector->floorxscale, frontsector->flooryscale, frontsector->floorangle,
+			floorcolormap, NULL, NULL, frontsector->f_slope);
 	}
 	else
 		floorplane = NULL;
@@ -897,8 +936,9 @@ static void R_Subsector(size_t num)
 		|| frontsector->ceilingpic == skyflatnum
 		|| (frontsector->heightsec != -1 && sectors[frontsector->heightsec].floorpic == skyflatnum))
 	{
-		ceilingplane = R_FindPlane(frontsector->ceilingheight, frontsector->ceilingpic,
-			ceilinglightlevel, frontsector->ceiling_xoffs, frontsector->ceiling_yoffs, frontsector->ceilingpic_angle,
+		ceilingplane = R_FindPlane(frontsector->ceilingheight, frontsector->ceilingpic, ceilinglightlevel,
+			frontsector->ceilingxoffset, frontsector->ceilingyoffset,
+			frontsector->ceilingxscale, frontsector->ceilingyscale, frontsector->ceilingangle,
 			ceilingcolormap, NULL, NULL, frontsector->c_slope);
 	}
 	else
@@ -910,12 +950,11 @@ static void R_Subsector(size_t num)
 	ffloor[numffloors].polyobj = NULL;
 	if (frontsector->ffloors)
 	{
-		ffloor_t *rover;
 		fixed_t heightcheck, planecenterz;
 
 		for (rover = frontsector->ffloors; rover && numffloors < MAXFFLOORS; rover = rover->next)
 		{
-			if (!(rover->flags & FF_EXISTS) || !(rover->flags & FF_RENDERPLANES))
+			if (!(rover->fofflags & FOF_EXISTS) || !(rover->fofflags & FOF_RENDERPLANES))
 				continue;
 
 			if (frontsector->cullheight)
@@ -935,15 +974,16 @@ static void R_Subsector(size_t num)
 			planecenterz = P_GetFFloorBottomZAt(rover, frontsector->soundorg.x, frontsector->soundorg.y);
 			if (planecenterz <= ceilingcenterz
 				&& planecenterz >= floorcenterz
-				&& ((viewz < heightcheck && (rover->flags & FF_BOTHPLANES || !(rover->flags & FF_INVERTPLANES)))
-				|| (viewz > heightcheck && (rover->flags & FF_BOTHPLANES || rover->flags & FF_INVERTPLANES))))
+				&& ((viewz < heightcheck && (rover->fofflags & FOF_BOTHPLANES || !(rover->fofflags & FOF_INVERTPLANES)))
+				|| (viewz > heightcheck && (rover->fofflags & FOF_BOTHPLANES || rover->fofflags & FOF_INVERTPLANES))))
 			{
 				light = R_GetPlaneLight(frontsector, planecenterz,
 					viewz < heightcheck);
 
 				ffloor[numffloors].plane = R_FindPlane(*rover->bottomheight, *rover->bottompic,
-					*frontsector->lightlist[light].lightlevel, *rover->bottomxoffs,
-					*rover->bottomyoffs, *rover->bottomangle, *frontsector->lightlist[light].extra_colormap, rover, NULL, *rover->b_slope);
+					*frontsector->lightlist[light].lightlevel, *rover->bottomxoffs, *rover->bottomyoffs,
+					*rover->bottomxscale, *rover->bottomyscale, *rover->bottomangle,
+					*frontsector->lightlist[light].extra_colormap, rover, NULL, *rover->b_slope);
 
 				ffloor[numffloors].slope = *rover->b_slope;
 
@@ -965,13 +1005,14 @@ static void R_Subsector(size_t num)
 			planecenterz = P_GetFFloorTopZAt(rover, frontsector->soundorg.x, frontsector->soundorg.y);
 			if (planecenterz >= floorcenterz
 				&& planecenterz <= ceilingcenterz
-				&& ((viewz > heightcheck && (rover->flags & FF_BOTHPLANES || !(rover->flags & FF_INVERTPLANES)))
-				|| (viewz < heightcheck && (rover->flags & FF_BOTHPLANES || rover->flags & FF_INVERTPLANES))))
+				&& ((viewz > heightcheck && (rover->fofflags & FOF_BOTHPLANES || !(rover->fofflags & FOF_INVERTPLANES)))
+				|| (viewz < heightcheck && (rover->fofflags & FOF_BOTHPLANES || rover->fofflags & FOF_INVERTPLANES))))
 			{
 				light = R_GetPlaneLight(frontsector, planecenterz, viewz < heightcheck);
 
 				ffloor[numffloors].plane = R_FindPlane(*rover->topheight, *rover->toppic,
-					*frontsector->lightlist[light].lightlevel, *rover->topxoffs, *rover->topyoffs, *rover->topangle,
+					*frontsector->lightlist[light].lightlevel, *rover->topxoffs, *rover->topyoffs,
+					*rover->topxscale, *rover->topyscale, *rover->topangle,
 					*frontsector->lightlist[light].extra_colormap, rover, NULL, *rover->t_slope);
 
 				ffloor[numffloors].slope = *rover->t_slope;
@@ -1013,8 +1054,10 @@ static void R_Subsector(size_t num)
 			{
 				light = R_GetPlaneLight(frontsector, polysec->floorheight, viewz < polysec->floorheight);
 				ffloor[numffloors].plane = R_FindPlane(polysec->floorheight, polysec->floorpic,
-					(light == -1 ? frontsector->lightlevel : *frontsector->lightlist[light].lightlevel), polysec->floor_xoffs, polysec->floor_yoffs,
-					polysec->floorpic_angle-po->angle,
+					(light == -1 ? frontsector->lightlevel : *frontsector->lightlist[light].lightlevel),
+					polysec->floorxoffset, polysec->flooryoffset,
+					polysec->floorxscale, polysec->flooryscale,
+					polysec->floorangle-po->angle,
 					(light == -1 ? frontsector->extra_colormap : *frontsector->lightlist[light].extra_colormap), NULL, po,
 					NULL); // will ffloors be slopable eventually?
 
@@ -1037,7 +1080,10 @@ static void R_Subsector(size_t num)
 			{
 				light = R_GetPlaneLight(frontsector, polysec->floorheight, viewz < polysec->floorheight);
 				ffloor[numffloors].plane = R_FindPlane(polysec->ceilingheight, polysec->ceilingpic,
-					(light == -1 ? frontsector->lightlevel : *frontsector->lightlist[light].lightlevel), polysec->ceiling_xoffs, polysec->ceiling_yoffs, polysec->ceilingpic_angle-po->angle,
+					(light == -1 ? frontsector->lightlevel : *frontsector->lightlist[light].lightlevel),
+					polysec->ceilingxoffset, polysec->ceilingyoffset,
+					polysec->ceilingxscale, polysec->ceilingyscale,
+					polysec->ceilingangle-po->angle,
 					(light == -1 ? frontsector->extra_colormap : *frontsector->lightlist[light].extra_colormap), NULL, po,
 					NULL); // will ffloors be slopable eventually?
 
@@ -1102,11 +1148,11 @@ void R_Prep3DFloors(sector_t *sector)
 	count = 1;
 	for (rover = sector->ffloors; rover; rover = rover->next)
 	{
-		if ((rover->flags & FF_EXISTS) && (!(rover->flags & FF_NOSHADE)
-			|| (rover->flags & FF_CUTLEVEL) || (rover->flags & FF_CUTSPRITES)))
+		if ((rover->fofflags & FOF_EXISTS) && (!(rover->fofflags & FOF_NOSHADE)
+			|| (rover->fofflags & FOF_CUTLEVEL) || (rover->fofflags & FOF_CUTSPRITES)))
 		{
 			count++;
-			if (rover->flags & FF_DOUBLESHADOW)
+			if (rover->fofflags & FOF_DOUBLESHADOW)
 				count++;
 		}
 	}
@@ -1137,8 +1183,8 @@ void R_Prep3DFloors(sector_t *sector)
 		for (rover = sector->ffloors; rover; rover = rover->next)
 		{
 			rover->lastlight = 0;
-			if (!(rover->flags & FF_EXISTS) || (rover->flags & FF_NOSHADE
-				&& !(rover->flags & FF_CUTLEVEL) && !(rover->flags & FF_CUTSPRITES)))
+			if (!(rover->fofflags & FOF_EXISTS) || (rover->fofflags & FOF_NOSHADE
+				&& !(rover->fofflags & FOF_CUTLEVEL) && !(rover->fofflags & FOF_CUTSPRITES)))
 			continue;
 
 			heighttest = P_GetFFloorTopZAt(rover, sector->soundorg.x, sector->soundorg.y);
@@ -1150,7 +1196,7 @@ void R_Prep3DFloors(sector_t *sector)
 				bestslope = *rover->t_slope;
 				continue;
 			}
-			if (rover->flags & FF_DOUBLESHADOW) {
+			if (rover->fofflags & FOF_DOUBLESHADOW) {
 				heighttest = P_GetFFloorBottomZAt(rover, sector->soundorg.x, sector->soundorg.y);
 
 				if (heighttest > bestheight
@@ -1171,16 +1217,16 @@ void R_Prep3DFloors(sector_t *sector)
 
 		sector->lightlist[i].height = maxheight = bestheight;
 		sector->lightlist[i].caster = best;
-		sector->lightlist[i].flags = best->flags;
+		sector->lightlist[i].flags = best->fofflags;
 		sector->lightlist[i].slope = bestslope;
 		sec = &sectors[best->secnum];
 
-		if (best->flags & FF_NOSHADE)
+		if (best->fofflags & FOF_NOSHADE)
 		{
 			sector->lightlist[i].lightlevel = sector->lightlist[i-1].lightlevel;
 			sector->lightlist[i].extra_colormap = sector->lightlist[i-1].extra_colormap;
 		}
-		else if (best->flags & FF_COLORMAPONLY)
+		else if (best->fofflags & FOF_COLORMAPONLY)
 		{
 			sector->lightlist[i].lightlevel = sector->lightlist[i-1].lightlevel;
 			sector->lightlist[i].extra_colormap = &sec->extra_colormap;
@@ -1191,7 +1237,7 @@ void R_Prep3DFloors(sector_t *sector)
 			sector->lightlist[i].extra_colormap = &sec->extra_colormap;
 		}
 
-		if (best->flags & FF_DOUBLESHADOW)
+		if (best->fofflags & FOF_DOUBLESHADOW)
 		{
 			heighttest = P_GetFFloorBottomZAt(best, sector->soundorg.x, sector->soundorg.y);
 			if (bestheight == heighttest) ///TODO: do this in a more efficient way -Red
@@ -1239,7 +1285,7 @@ void R_RenderBSPNode(INT32 bspnum)
 	node_t *bsp;
 	INT32 side;
 
-	ps_numbspcalls++;
+	ps_numbspcalls.value.i++;
 
 	while (!(bspnum & NF_SUBSECTOR))  // Found a subsector?
 	{

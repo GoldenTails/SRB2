@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2020 by Sonic Team Junior.
+// Copyright (C) 1999-2023 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -75,6 +75,6 @@ void R_SetupSkyDraw(void)
 */
 void R_SetSkyScale(void)
 {
-	fixed_t difference = vid.fdupx-(vid.dupx<<FRACBITS);
-	skyscale = FixedDiv(fovtan, vid.fdupx+difference);
+	fixed_t difference = vid.fdup-(vid.dup<<FRACBITS);
+	skyscale = FixedDiv(fovtan, vid.fdup+difference);
 }

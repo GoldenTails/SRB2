@@ -1,7 +1,7 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
 // Copyright (C) 2012-2016 by John "JTE" Muniz.
-// Copyright (C) 2012-2020 by Sonic Team Junior.
+// Copyright (C) 2012-2023 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -45,7 +45,8 @@ extern INT32 lua_lumploading; // is LUA_LoadLump being called?
 
 int LUA_GetErrorMessage(lua_State *L);
 int LUA_Call(lua_State *L, int nargs, int nresults, int errorhandlerindex);
-void LUA_LoadLump(UINT16 wad, UINT16 lump, boolean noresults);
+boolean LUA_LoadLump(UINT16 wad, UINT16 lump);
+void LUA_DoLump(UINT16 wad, UINT16 lump, boolean noresults);
 #ifdef LUA_ALLOW_BYTECODE
 void LUA_DumpFile(const char *filename);
 #endif
@@ -56,10 +57,10 @@ void LUA_UnArchive(void);
 int LUA_PushGlobals(lua_State *L, const char *word);
 int LUA_CheckGlobals(lua_State *L, const char *word);
 void Got_Luacmd(UINT8 **cp, INT32 playernum); // lua_consolelib.c
-void LUA_CVarChanged(const char *name); // lua_consolelib.c
-int Lua_optoption(lua_State *L, int narg,
-	const char *def, const char *const lst[]);
-void LUAh_NetArchiveHook(lua_CFunction archFunc);
+void LUA_CVarChanged(void *cvar); // lua_consolelib.c
+int Lua_optoption(lua_State *L, int narg, int def, int list_ref);
+int Lua_CreateFieldTable(lua_State *L, const char *const lst[]);
+void LUA_HookNetArchive(lua_CFunction archFunc);
 
 void LUA_PushTaggableObjectArray
 (		lua_State *L,
@@ -72,6 +73,42 @@ void LUA_PushTaggableObjectArray
 		void * element_array,
 		size_t sizeof_element,
 		const char *meta);
+
+void LUA_SetCFunctionField(lua_State *L, const char *name, lua_CFunction value);
+
+void LUA_RegisterUserdataMetatable(
+	lua_State *L,
+	const char *name,
+	lua_CFunction get,
+	lua_CFunction set,
+	lua_CFunction len
+);
+
+void LUA_CreateAndSetMetatable(
+	lua_State *L,
+	lua_CFunction get,
+	lua_CFunction set,
+	lua_CFunction len,
+	boolean keep
+);
+
+void LUA_CreateAndSetUserdataField(
+	lua_State *L,
+	int index,
+	const char *name,
+	lua_CFunction get,
+	lua_CFunction set,
+	lua_CFunction len,
+	boolean keep
+);
+
+void LUA_RegisterGlobalUserdata(
+	lua_State *L,
+	const char *name,
+	lua_CFunction get,
+	lua_CFunction set,
+	lua_CFunction len
+);
 
 void LUA_InsertTaggroupIterator
 (		lua_State *L,
@@ -87,7 +124,6 @@ typedef enum {
 	LPUSHED_EXISTING,
 } lpushed_t;
 
-void LUA_PushLightUserdata(lua_State *L, void *data, const char *meta);
 void LUA_PushUserdata(lua_State *L, void *data, const char *meta);
 lpushed_t LUA_RawPushUserdata(lua_State *L, void *data);
 
