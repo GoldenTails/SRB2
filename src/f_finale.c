@@ -976,30 +976,12 @@ void F_IntroTicker(void)
 			F_RunWipe(99,true);
 		}
 	}
+
 	if (animtimer)
 		animtimer--;
 
-	F_IntroDrawScene();
-
 	// Distinguish vanilla intro as "cutscene 0" (-1 because LUAh_CutsceneHUD automatically adds 1.)
 	LUAh_CutsceneHUD(-1, intro_scenenum, intro_curtime, introscenetime[intro_scenenum]);
-}
-
-//
-// F_IntroTicker
-//
-void F_IntroTicker(void)
-{
-	// advance animation
-	finalecount++;
-
-	timetonext--;
-
-	F_WriteText();
-
-	// check for skipping
-	if (keypressed)
-		keypressed = false;
 }
 
 //

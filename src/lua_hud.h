@@ -47,9 +47,6 @@ enum hud {
 	hud_intermissionemeralds,
 	// Miscellaneous
 	hud_endingcutscene,
-
-	hud_intermissionemeralds,
-
 	hud_MAX
 };
 
@@ -63,8 +60,6 @@ void LUAh_TitleHUD(void);
 void LUAh_TitleCardHUD(player_t *stplayr);
 void LUAh_IntermissionHUD(void);
 void LUAh_CutsceneHUD(INT32 cutnum, INT32 scenenum, INT32 stoptimer, INT32 scenetime);
-
 void LUA_SetHudHook(int hook, huddrawlist_h list);
 
 #endif // __LUA_HUD_H__
-

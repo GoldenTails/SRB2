@@ -99,14 +99,6 @@ static const char *const patch_opt[] = {
 	"topoffset",
 	NULL};
 
-enum hudhook {
-	hudhook_game = 0,
-	hudhook_scores,
-	hudhook_intermission,
-	hudhook_title,
-	hudhook_titlecard,
-	hudhook_cutscene
-};
 static const char *const hudhook_opt[] = {
 	"game",
 	"scores",
@@ -1488,7 +1480,6 @@ int LUA_HudLib(lua_State *L)
 	patch_fields_ref = Lua_CreateFieldTable(L, patch_opt);
 	camera_fields_ref = Lua_CreateFieldTable(L, camera_opt);
 
-<<<<<<< src/lua_hudlib.c
 		lua_newtable(L);
 		lua_rawseti(L, -2, 4); // HUD[4] = intermission rendering functions array
 
@@ -1579,6 +1570,11 @@ void LUA_SetHudHook(int hook, huddrawlist_h list)
 
 		case HUD_HOOK(intermission):
 			lua_pushboolean(gL, stagefailed);
+			break;
+
+		case HUD_HOOK(cutscene):
+			/// LoganA: I don't know lua
+			break;
 	}
 }
 
@@ -1586,7 +1582,7 @@ void LUAh_CutsceneHUD(INT32 cutnum, INT32 scenenum, INT32 stoptimer, INT32 scene
 {
 	int argsadd = 0; // Args to add.
 
-	if (!gL || !(hudAvailable & (1<<hudhook_cutscene)))
+	if (!gL || !(1<<hudhook_cutscene))
 		return;
 
 	hud_running = true;

@@ -86,6 +86,7 @@ automatically.
 	X (title),/* titlescreen */\
 	X (titlecard),\
 	X (intermission),\
+	X (cutscene),\
 
 /*
 I chose to access the hook enums through a macro as well. This could provide
