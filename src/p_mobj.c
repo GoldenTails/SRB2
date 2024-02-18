@@ -212,7 +212,7 @@ static boolean P_SetPlayerMobjState(mobj_t *mobj, statenum_t state)
 		return P_SetPlayerMobjState(mobj, S_PLAY_FALL);
 
 	// Catch swimming versus flying
-	if ((state == S_PLAY_FLY || (state == S_PLAY_GLIDE && skins[player->skin].sprites[SPR2_SWIM].numframes))
+	if ((state == S_PLAY_FLY || (state == S_PLAY_GLIDE && skins[player->skin]->sprites[SPR2_SWIM].numframes))
 	&& player->mo->eflags & MFE_UNDERWATER && !player->skidtime)
 		return P_SetPlayerMobjState(player->mo, S_PLAY_SWIM);
 	else if (state == S_PLAY_SWIM && !(player->mo->eflags & MFE_UNDERWATER))
@@ -9455,7 +9455,7 @@ static inline boolean PIT_PushThing(mobj_t *thing)
 
 static void P_PointPushThink(mobj_t *mobj)
 {
-	INT32 xl, xh, yl, yh, bx, by;
+	INT32 xl, xh, yl, yh;
 	fixed_t radius;
 
 	if (!mobj->spawnpoint)
@@ -9470,9 +9470,8 @@ static void P_PointPushThink(mobj_t *mobj)
 	xh = (unsigned)(mobj->x + radius - bmaporgx + MAXRADIUS)>>MAPBLOCKSHIFT;
 	yl = (unsigned)(mobj->y - radius - bmaporgy - MAXRADIUS)>>MAPBLOCKSHIFT;
 	yh = (unsigned)(mobj->y + radius - bmaporgy + MAXRADIUS)>>MAPBLOCKSHIFT;
-	for (bx = xl; bx <= xh; bx++)
-		for (by = yl; by <= yh; by++)
-			P_BlockThingsIterator(bx, by, PIT_PushThing);
+
+	P_DoBlockThingsIterate(xl, yl, xh, yh, PIT_PushThing);
 }
 
 static boolean P_MobjRegularThink(mobj_t *mobj)
@@ -10064,9 +10063,10 @@ static void P_MonitorFuseThink(mobj_t *mobj)
 {
 	mobj_t *newmobj;
 
-	// Special case for ALL monitors.
+	// Special case for ALL monitors outside of co-op.
 	// If a box's speed is nonzero, it's allowed to respawn as a WRM/SRM.
-	if (mobj->info->speed != 0 && (mobj->flags2 & (MF2_AMBUSH|MF2_STRONGBOX)))
+	if (!G_CoopGametype() && mobj->info->speed != 0
+		&& (mobj->flags2 & (MF2_AMBUSH|MF2_STRONGBOX)))
 	{
 		mobjtype_t spawnchance[64];
 		INT32 numchoices = 0, i = 0;
@@ -10294,6 +10294,8 @@ void P_MobjThinker(mobj_t *mobj)
 		P_SetTarget(&mobj->hnext, NULL);
 	if (mobj->hprev && P_MobjWasRemoved(mobj->hprev))
 		P_SetTarget(&mobj->hprev, NULL);
+	if (mobj->dontdrawforviewmobj && P_MobjWasRemoved(mobj->dontdrawforviewmobj))
+		P_SetTarget(&mobj->dontdrawforviewmobj, NULL);
 
 	mobj->eflags &= ~(MFE_PUSHED|MFE_SPRUNG);
 
@@ -10856,18 +10858,28 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type, ...)
 
 	// Set shadowscale here, before spawn hook so that Lua can change it
 	mobj->shadowscale = P_DefaultMobjShadowScale(mobj);
-
-	if (!(mobj->flags & MF_NOTHINK))
-		P_AddThinker(THINK_MOBJ, &mobj->thinker);
-
+	
+	// A monitor can't respawn if we're not in multiplayer,
+	// or if we're in co-op and it's score or a 1up
+	if (mobj->flags & MF_MONITOR && (!(netgame || multiplayer)
+	|| (G_CoopGametype()
+		&& (mobj->type == MT_1UP_BOX
+		|| mobj->type == MT_SCORE1K_BOX
+		|| mobj->type == MT_SCORE10K_BOX)
+	)))
+		mobj->flags2 |= MF2_DONTRESPAWN;
 
 	if (type == MT_PLAYER)
 	{
 		// when spawning MT_PLAYER, set mobj->player before calling MobjSpawn hook to prevent P_RemoveMobj from succeeding on player mobj.
 		va_start(args, type);
 		mobj->player = va_arg(args, player_t *);
+		mobj->player->mo = mobj;
 		va_end(args);
 	}
+
+	if (!(mobj->flags & MF_NOTHINK) || (titlemapinaction && mobj->type == MT_ALTVIEWMAN))
+		P_AddThinker(THINK_MOBJ, &mobj->thinker);
 
 	// increment mobj reference, so we don't get a dangling reference in case MobjSpawn calls P_RemoveMobj
 	mobj->thinker.references++;
@@ -11086,10 +11098,10 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type, ...)
 				nummaprings++;
 			break;
 		case MT_METALSONIC_RACE:
-			mobj->skin = &skins[5];
+			mobj->skin = skins[5];
 			/* FALLTHRU */
 		case MT_METALSONIC_BATTLE:
-			mobj->color = skins[5].prefcolor;
+			mobj->color = skins[5]->prefcolor;
 			sc = 5;
 			break;
 		case MT_FANG:
@@ -11784,7 +11796,6 @@ void P_SpawnPlayer(INT32 playernum)
     // MT_PLAYER cannot be removed, so this shouldn't be able to return NULL.
 	mobj = P_SpawnMobj(0, 0, 0, MT_PLAYER, p);
 	I_Assert(mobj != NULL);
-	p->mo = mobj;
 
 	mobj->angle = 0;
 
@@ -11794,7 +11805,7 @@ void P_SpawnPlayer(INT32 playernum)
 	// set 'spritedef' override in mobj for player skins.. (see ProjectSprite)
 	// (usefulness: when body mobj is detached from player (who respawns),
 	// the dead body mobj retains the skin through the 'spritedef' override).
-	mobj->skin = &skins[p->skin];
+	mobj->skin = skins[p->skin];
 	P_SetupStateAnimation(mobj, mobj->state);
 
 	mobj->health = 1;
@@ -11802,14 +11813,14 @@ void P_SpawnPlayer(INT32 playernum)
 
 	p->bonustime = false;
 	p->realtime = leveltime;
-	p->followitem = skins[p->skin].followitem;
+	p->followitem = skins[p->skin]->followitem;
 
 	// Make sure player's stats are reset if they were in dashmode!
 	if (p->dashmode)
 	{
 		p->dashmode = 0;
-		p->normalspeed = skins[p->skin].normalspeed;
-		p->jumpfactor = skins[p->skin].jumpfactor;
+		p->normalspeed = skins[p->skin]->normalspeed;
+		p->jumpfactor = skins[p->skin]->jumpfactor;
 	}
 
 	// Clear lastlinehit and lastsidehit
@@ -11825,7 +11836,7 @@ void P_SpawnPlayer(INT32 playernum)
 	P_FlashPal(p, 0, 0); // Resets
 
 	// Set bounds accurately.
-	mobj->radius = FixedMul(skins[p->skin].radius, mobj->scale);
+	mobj->radius = FixedMul(skins[p->skin]->radius, mobj->scale);
 	mobj->height = P_GetPlayerHeight(p);
 
 	if (!leveltime && !p->spectator && ((maptol & TOL_NIGHTS) == TOL_NIGHTS) != (G_IsSpecialStage(gamemap))) // non-special NiGHTS stage or special non-NiGHTS stage
@@ -11890,7 +11901,7 @@ void P_AfterPlayerSpawn(INT32 playernum)
 	if (CheckForReverseGravity)
 		P_CheckGravity(mobj, false);
 
-	if (p->pflags & PF_FINISHED)
+	if (p->pflags & PF_FINISHED && !(p->exiting))
 		P_GiveFinishFlags(p);
 }
 
