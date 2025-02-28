@@ -36,6 +36,8 @@
 #include "lua_script.h"
 #include "p_slopes.h"
 #include "hu_stuff.h"
+#include "netcode/server_connection.h"
+#include "netcode/protocol.h"
 
 savedata_t savedata;
 
@@ -368,11 +370,12 @@ static void P_NetArchivePlayers(save_t *save_p)
 {
 	INT32 i, j;
 	UINT16 flags;
+	UINT8 maxplayers = cv_maxplayers.value > PLAYERCHUNKLEN ? MAXPLAYERS : PLAYERCHUNKLEN;
 //	size_t q;
 
 	P_WriteUINT32(save_p, ARCHIVEBLOCK_PLAYERS);
 
-	for (i = 0; i < MAXPLAYERS; i++)
+	for (i = 0; i < maxplayers; i++)
 	{
 		P_WriteSINT8(save_p, (SINT8)adminplayers[i]);
 
@@ -598,11 +601,12 @@ static void P_NetUnArchivePlayers(save_t *save_p)
 {
 	INT32 i, j;
 	UINT16 flags;
+	UINT8 maxplayers = cv_maxplayers.value > PLAYERCHUNKLEN ? MAXPLAYERS : PLAYERCHUNKLEN;
 
 	if (P_ReadUINT32(save_p) != ARCHIVEBLOCK_PLAYERS)
 		I_Error("Bad $$$.sav at archive block Players");
 
-	for (i = 0; i < MAXPLAYERS; i++)
+	for (i = 0; i < maxplayers; i++)
 	{
 		adminplayers[i] = (INT32)P_ReadSINT8(save_p);
 
@@ -2553,13 +2557,17 @@ static void SaveFloatThinker(save_t *save_p, const thinker_t *th, const UINT8 ty
 static void SaveEachTimeThinker(save_t *save_p, const thinker_t *th, const UINT8 type)
 {
 	const eachtime_t *ht  = (const void *)th;
+	UINT8 maxplayers = cv_maxplayers.value > PLAYERCHUNKLEN ? MAXPLAYERS : PLAYERCHUNKLEN;
+
 	size_t i;
 	P_WriteUINT8(save_p, type);
 	P_WriteUINT32(save_p, SaveLine(ht->sourceline));
-	for (i = 0; i < MAXPLAYERS; i++)
+
+	for (i = 0; i < maxplayers; i++)
 	{
 		P_WriteChar(save_p, ht->playersInArea[i]);
 	}
+
 	P_WriteChar(save_p, ht->triggerOnExit);
 }
 
@@ -3695,9 +3703,11 @@ static thinker_t* LoadEachTimeThinker(save_t *save_p, actionf_p1 thinker)
 {
 	size_t i;
 	eachtime_t *ht = Z_Malloc(sizeof (*ht), PU_LEVSPEC, NULL);
+	UINT8 maxplayers = cv_maxplayers.value > PLAYERCHUNKLEN ? MAXPLAYERS : PLAYERCHUNKLEN;
+
 	ht->thinker.function.acp1 = thinker;
 	ht->sourceline = LoadLine(P_ReadUINT32(save_p));
-	for (i = 0; i < MAXPLAYERS; i++)
+	for (i = 0; i < maxplayers; i++)
 	{
 		ht->playersInArea[i] = P_ReadChar(save_p);
 	}
@@ -4776,6 +4786,7 @@ static inline void P_UnArchiveSPGame(save_t *save_p, INT16 mapoverride)
 static void P_NetArchiveMisc(save_t *save_p, boolean resending)
 {
 	INT32 i;
+	UINT8 maxplayers = cv_maxplayers.value > PLAYERCHUNKLEN ? MAXPLAYERS : PLAYERCHUNKLEN;
 
 	P_WriteUINT32(save_p, ARCHIVEBLOCK_MISC);
 
@@ -4790,17 +4801,13 @@ static void P_NetArchiveMisc(save_t *save_p, boolean resending)
 	P_WriteINT16(save_p, gametype);
 
 	{
-#define UINT32_COUNT (((MAXPLAYERS - 1) % 32) + 1)
+		UINT32 pig[MAXPLAYERS / PLAYERCHUNKLEN] = {0};
 
-		UINT32 pig[UINT32_COUNT] = {0};
+		for (i = 0; i < maxplayers; i++)
+			pig[i / PLAYERCHUNKLEN] |= (playeringame[i] != 0)<<(i % PLAYERCHUNKLEN);
 
-		for (i = 0; i < MAXPLAYERS; i++)
-			pig[i / 32] |= (playeringame[i] != 0)<<(i % 32);
-
-		for (i = 0; i < UINT32_COUNT; i++)
+		for (i = 0; i < maxplayers / PLAYERCHUNKLEN; i++)
 			P_WriteUINT32(save_p, pig[i]);
-
-#undef UINT32_COUNT
 	}
 
 	P_WriteUINT32(save_p, P_GetRandSeed());
@@ -4837,10 +4844,10 @@ static void P_NetArchiveMisc(save_t *save_p, boolean resending)
 	P_WriteINT16(save_p, autobalance);
 	P_WriteINT16(save_p, teamscramble);
 
-	for (i = 0; i < MAXPLAYERS; i++)
+	for (i = 0; i < maxplayers; i++)
 		P_WriteINT16(save_p, scrambleplayers[i]);
 
-	for (i = 0; i < MAXPLAYERS; i++)
+	for (i = 0; i < maxplayers; i++)
 		P_WriteINT16(save_p, scrambleteams[i]);
 
 	P_WriteINT16(save_p, scrambletotal);
@@ -4862,7 +4869,7 @@ static void P_NetArchiveMisc(save_t *save_p, boolean resending)
 	else
 		P_WriteUINT8(save_p, 0x2e);
 
-	for (i = 0; i < MAXPLAYERS; i++)
+	for (i = 0; i < maxplayers; i++)
 	{
 		P_WriteUINT8(save_p, spam_tokens[i]);
 		P_WriteUINT32(save_p, spam_tics[i]);
@@ -4872,6 +4879,7 @@ static void P_NetArchiveMisc(save_t *save_p, boolean resending)
 static inline boolean P_NetUnArchiveMisc(save_t *save_p, boolean reloading)
 {
 	INT32 i;
+	UINT8 maxplayers = cv_maxplayers.value > PLAYERCHUNKLEN ? MAXPLAYERS : PLAYERCHUNKLEN;
 
 	if (P_ReadUINT32(save_p) != ARCHIVEBLOCK_MISC)
 		I_Error("Bad $$$.sav at archive block Misc");
@@ -4895,20 +4903,16 @@ static inline boolean P_NetUnArchiveMisc(save_t *save_p, boolean reloading)
 	gametype = P_ReadINT16(save_p);
 
 	{
-#define UINT32_COUNT (((MAXPLAYERS - 1) % 32) + 1)
+		UINT32 pig[MAXPLAYERS / PLAYERCHUNKLEN] = {0};
 
-		UINT32 pig[UINT32_COUNT] = {0};
-
-		for (i = 0; i < UINT32_COUNT; i++)
+		for (i = 0; i < maxplayers / PLAYERCHUNKLEN; i++)
 			pig[i] = P_ReadUINT32(save_p);
 
-		for (i = 0; i < MAXPLAYERS; i++)
+		for (i = 0; i < maxplayers; i++)
 		{
-			playeringame[i] = (pig[i / 32] & (1 << (i % 32))) != 0;
+			playeringame[i] = (pig[i / PLAYERCHUNKLEN] & (1 << (i % PLAYERCHUNKLEN))) != 0;
 			// playerstate is set in unarchiveplayers
 		}
-
-#undef UINT32_COUNT
 	}
 
 	P_SetRandSeed(P_ReadUINT32(save_p));
@@ -4949,10 +4953,10 @@ static inline boolean P_NetUnArchiveMisc(save_t *save_p, boolean reloading)
 	autobalance = P_ReadINT16(save_p);
 	teamscramble = P_ReadINT16(save_p);
 
-	for (i = 0; i < MAXPLAYERS; i++)
+	for (i = 0; i < maxplayers; i++)
 		scrambleplayers[i] = P_ReadINT16(save_p);
 
-	for (i = 0; i < MAXPLAYERS; i++)
+	for (i = 0; i < maxplayers; i++)
 		scrambleteams[i] = P_ReadINT16(save_p);
 
 	scrambletotal = P_ReadINT16(save_p);
@@ -4972,7 +4976,7 @@ static inline boolean P_NetUnArchiveMisc(save_t *save_p, boolean reloading)
 	if (P_ReadUINT8(save_p) == 0x2f)
 		paused = true;
 
-	for (i = 0; i < MAXPLAYERS; i++)
+	for (i = 0; i < maxplayers; i++)
 	{
 		spam_tokens[i] = P_ReadUINT8(save_p);
 		spam_tics[i] = P_ReadUINT32(save_p);
@@ -4984,6 +4988,7 @@ static inline boolean P_NetUnArchiveMisc(save_t *save_p, boolean reloading)
 static inline void P_NetArchiveEmblems(save_t *save_p)
 {
 	gamedata_t *data = serverGamedata;
+	UINT8 maxplayers = cv_maxplayers.value > PLAYERCHUNKLEN ? MAXPLAYERS : PLAYERCHUNKLEN;
 	INT32 i, j;
 	UINT8 btemp;
 	INT32 curmare;
@@ -5083,7 +5088,7 @@ static inline void P_NetArchiveEmblems(save_t *save_p)
 	// Mid-map stuff
 	P_WriteUINT32(save_p, unlocktriggers);
 
-	for (i = 0; i < MAXPLAYERS; i++)
+	for (i = 0; i < maxplayers; i++)
 	{
 		if (!ntemprecords[i].nummares)
 		{
@@ -5105,6 +5110,7 @@ static inline void P_NetArchiveEmblems(save_t *save_p)
 static inline void P_NetUnArchiveEmblems(save_t *save_p)
 {
 	gamedata_t *data = serverGamedata;
+	UINT8 maxplayers = cv_maxplayers.value > PLAYERCHUNKLEN ? MAXPLAYERS : PLAYERCHUNKLEN;
 	INT32 i, j;
 	UINT8 rtemp;
 	UINT32 recscore;
@@ -5221,7 +5227,7 @@ static inline void P_NetUnArchiveEmblems(save_t *save_p)
 	// Mid-map stuff
 	unlocktriggers = P_ReadUINT32(save_p);
 
-	for (i = 0; i < MAXPLAYERS; ++i)
+	for (i = 0; i < maxplayers; ++i)
 	{
 		if ((recmares = P_ReadUINT8(save_p)) == 0)
 			continue;

@@ -515,11 +515,14 @@ void PT_TellFilesNeeded(SINT8 node)
 
 void PT_AskInfo(SINT8 node)
 {
+	// compatibility
+	UINT8 maxplayers = cv_maxplayers.value > PLAYERCHUNKLEN ? MAXPLAYERS : PLAYERCHUNKLEN;
+
 	if (server && serverrunning)
 	{
 		SV_SendServerInfo(node, (tic_t)LONG(netbuffer->u.askinfo.time));
 
-		for (UINT8 i = 0; i < (((MAXPLAYERS - 1) / PLAYERCHUNKLEN) + 1); ++i)
+		for (UINT8 i = 0; i < ((maxplayers / PLAYERCHUNKLEN) + 1); ++i)
 			SV_SendPlayerInfoChunk(node, i); // Send extra info
 	}
 	Net_CloseConnection(node);
