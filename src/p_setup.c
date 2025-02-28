@@ -8073,7 +8073,7 @@ boolean P_LoadLevel(boolean fromnetsave, boolean reloadinggamestate)
 	skyboxmo[0] = skyboxviewpnts[0];
 	skyboxmo[1] = skyboxcenterpnts[0];
 
-	for (numcoopstarts = 0; numcoopstarts < MAXPLAYERS; numcoopstarts++)
+	for (numcoopstarts = 0; numcoopstarts < MAX_PLAYER_STARTS; numcoopstarts++)
 		if (!playerstarts[numcoopstarts])
 			break;
 

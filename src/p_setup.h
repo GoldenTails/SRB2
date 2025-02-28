@@ -22,6 +22,7 @@
 extern unsigned char mapmd5[16];
 
 // Player spawn spots for deathmatch.
+#define MAX_PLAYER_STARTS 32
 #define MAX_DM_STARTS 64
 extern mapthing_t *deathmatchstarts[MAX_DM_STARTS];
 extern INT32 numdmstarts, numcoopstarts, numredctfstarts, numbluectfstarts;

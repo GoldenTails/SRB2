@@ -2954,8 +2954,8 @@ mapthing_t *G_FindCoopStart(INT32 playernum)
 	if (numcoopstarts)
 	{
 		//if there's 6 players in a map with 3 player starts, this spawns them 1/2/3/1/2/3.
-		if (G_CheckSpot(playernum, playerstarts[playernum % numcoopstarts]))
-			return playerstarts[playernum % numcoopstarts];
+		if (G_CheckSpot(playernum, playerstarts[(playernum % MAX_PLAYER_STARTS) % numcoopstarts]))
+			return playerstarts[(playernum % MAX_PLAYER_STARTS) % numcoopstarts];
 
 		//Don't bother checking to see if the player 1 start is open.
 		//Just spawn there.

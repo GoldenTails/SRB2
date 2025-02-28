@@ -11986,10 +11986,10 @@ fixed_t P_GetMapThingSpawnHeight(const mobjtype_t mobjtype, const mapthing_t* mt
 
 static boolean P_SpawnNonMobjMapThing(mapthing_t *mthing)
 {
-#if MAXPLAYERS > 32
+#if MAX_PLAYER_STARTS > 32
 	You should think about modifying the deathmatch starts to take full advantage of this!
 #endif
-	if (mthing->type <= MAXPLAYERS) // Player starts
+	if (mthing->type <= MAX_PLAYER_STARTS) // Player starts
 	{
 		// save spots for respawning in network games
 		if (!metalrecording)
@@ -12008,7 +12008,7 @@ static boolean P_SpawnNonMobjMapThing(mapthing_t *mthing)
 	}
 	else if (mthing->type == 34) // Red CTF starts
 	{
-		if (numredctfstarts < MAXPLAYERS)
+		if (numredctfstarts < MAX_PLAYER_STARTS)
 		{
 			redctfstarts[numredctfstarts] = mthing;
 			mthing->type = 0;
@@ -12018,7 +12018,7 @@ static boolean P_SpawnNonMobjMapThing(mapthing_t *mthing)
 	}
 	else if (mthing->type == 35) // Blue CTF starts
 	{
-		if (numbluectfstarts < MAXPLAYERS)
+		if (numbluectfstarts < MAX_PLAYER_STARTS)
 		{
 			bluectfstarts[numbluectfstarts] = mthing;
 			mthing->type = 0;
