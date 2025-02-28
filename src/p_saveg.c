@@ -4790,10 +4790,17 @@ static void P_NetArchiveMisc(save_t *save_p, boolean resending)
 	P_WriteINT16(save_p, gametype);
 
 	{
-		UINT32 pig = 0;
+#define UINT32_COUNT (((MAXPLAYERS - 1) % 32) + 1)
+
+		UINT32 pig[UINT32_COUNT] = {0};
+
 		for (i = 0; i < MAXPLAYERS; i++)
-			pig |= (playeringame[i] != 0)<<i;
-		P_WriteUINT32(save_p, pig);
+			pig[i / 32] |= (playeringame[i] != 0)<<(i % 32);
+
+		for (i = 0; i < UINT32_COUNT; i++)
+			P_WriteUINT32(save_p, pig[i]);
+
+#undef UINT32_COUNT
 	}
 
 	P_WriteUINT32(save_p, P_GetRandSeed());
@@ -4888,12 +4895,20 @@ static inline boolean P_NetUnArchiveMisc(save_t *save_p, boolean reloading)
 	gametype = P_ReadINT16(save_p);
 
 	{
-		UINT32 pig = P_ReadUINT32(save_p);
+#define UINT32_COUNT (((MAXPLAYERS - 1) % 32) + 1)
+
+		UINT32 pig[UINT32_COUNT] = {0};
+
+		for (i = 0; i < UINT32_COUNT; i++)
+			pig[i] = P_ReadUINT32(save_p);
+
 		for (i = 0; i < MAXPLAYERS; i++)
 		{
-			playeringame[i] = (pig & (1<<i)) != 0;
+			playeringame[i] = (pig[i / 32] & (1 << (i % 32))) != 0;
 			// playerstate is set in unarchiveplayers
 		}
+
+#undef UINT32_COUNT
 	}
 
 	P_SetRandSeed(P_ReadUINT32(save_p));
