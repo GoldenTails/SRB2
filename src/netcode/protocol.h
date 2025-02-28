@@ -37,6 +37,8 @@ therein, increment this number.
 #define BACKUPTICS 1024
 #define MAXTEXTCMD 256
 
+#define PLAYERCHUNKLEN 32
+
 //
 // Packet structure
 //
@@ -311,8 +313,8 @@ typedef struct
 		serverrefuse_pak serverrefuse;
 		askinfo_pak askinfo;
 		msaskinfo_pak msaskinfo;
-		plrinfo_pak playerinfo[MAXPLAYERS];
-		plrconfig_pak playerconfig[MAXPLAYERS];
+		plrinfo_pak playerinfo[PLAYERCHUNKLEN];
+		plrconfig_pak playerconfig[PLAYERCHUNKLEN];
 		INT32 filesneedednum;
 		filesneededconfig_pak filesneededcfg;
 		UINT32 pingtable[MAXPLAYERS+1];

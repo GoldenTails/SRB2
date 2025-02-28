@@ -171,21 +171,23 @@ static void SV_SendServerInfo(INT32 node, tic_t servertime)
 	HSendPacket(node, false, 0, p - ((UINT8 *)&netbuffer->u));
 }
 
-static void SV_SendPlayerInfo(INT32 node)
+static void SV_SendPlayerInfoChunk(INT32 node, UINT8 chunk)
 {
 	netbuffer->packettype = PT_PLAYERINFO;
 
-	for (UINT8 i = 0; i < MAXPLAYERS; i++)
+	for (UINT8 i = 0; i < PLAYERCHUNKLEN; i++)
 	{
-		if (playernode[i] == UINT8_MAX || !netnodes[playernode[i]].ingame)
+		UINT8 pnum = i + PLAYERCHUNKLEN * chunk;
+
+		if (playernode[pnum] == UINT8_MAX || !netnodes[playernode[pnum]].ingame)
 		{
 			netbuffer->u.playerinfo[i].num = 255; // This slot is empty.
 			continue;
 		}
 
-		netbuffer->u.playerinfo[i].num = i;
+		netbuffer->u.playerinfo[i].num = pnum;
 		memset(netbuffer->u.playerinfo[i].name, 0x00, sizeof(netbuffer->u.playerinfo[i].name));
-		memcpy(netbuffer->u.playerinfo[i].name, player_names[i], sizeof(player_names[i]));
+		memcpy(netbuffer->u.playerinfo[i].name, player_names[pnum], sizeof(player_names[pnum]));
 
 		netbuffer->u.playerinfo[i].name[MAXPLAYERNAME] = '\0';
 
@@ -195,22 +197,22 @@ static void SV_SendPlayerInfo(INT32 node)
 
 		if (G_GametypeHasTeams())
 		{
-			if (!players[i].ctfteam)
+			if (!players[pnum].ctfteam)
 				netbuffer->u.playerinfo[i].team = 255;
 			else
-				netbuffer->u.playerinfo[i].team = (UINT8)players[i].ctfteam;
+				netbuffer->u.playerinfo[i].team = (UINT8)players[pnum].ctfteam;
 		}
 		else
 		{
-			if (players[i].spectator)
+			if (players[pnum].spectator)
 				netbuffer->u.playerinfo[i].team = 255;
 			else
 				netbuffer->u.playerinfo[i].team = 0;
 		}
 
-		netbuffer->u.playerinfo[i].score = LONG(players[i].score);
-		netbuffer->u.playerinfo[i].timeinserver = SHORT((UINT16)(players[i].jointime / TICRATE));
-		netbuffer->u.playerinfo[i].skin = (UINT8)(players[i].skin
+		netbuffer->u.playerinfo[i].score = LONG(players[pnum].score);
+		netbuffer->u.playerinfo[i].timeinserver = SHORT((UINT16)(players[pnum].jointime / TICRATE));
+		netbuffer->u.playerinfo[i].skin = (UINT8)(players[pnum].skin
 #ifdef DEVELOP // it's safe to do this only because PLAYERINFO isn't read by the game itself
 		% 3
 #endif
@@ -219,17 +221,17 @@ static void SV_SendPlayerInfo(INT32 node)
 		// Extra data
 		netbuffer->u.playerinfo[i].data = 0; //players[i].skincolor;
 
-		if (players[i].pflags & PF_TAGIT)
+		if (players[pnum].pflags & PF_TAGIT)
 			netbuffer->u.playerinfo[i].data |= 0x20;
 
-		if (players[i].gotflag)
+		if (players[pnum].gotflag)
 			netbuffer->u.playerinfo[i].data |= 0x40;
 
-		if (players[i].powers[pw_super])
+		if (players[pnum].powers[pw_super])
 			netbuffer->u.playerinfo[i].data |= 0x80;
 	}
 
-	HSendPacket(node, false, 0, sizeof(plrinfo_pak) * MAXPLAYERS);
+	HSendPacket(node, false, 0, sizeof(plrinfo_pak) * PLAYERCHUNKLEN);
 }
 
 /** Sends a PT_SERVERCFG packet
@@ -516,7 +518,9 @@ void PT_AskInfo(SINT8 node)
 	if (server && serverrunning)
 	{
 		SV_SendServerInfo(node, (tic_t)LONG(netbuffer->u.askinfo.time));
-		SV_SendPlayerInfo(node); // Send extra info
+
+		for (UINT8 i = 0; i < (((MAXPLAYERS - 1) / PLAYERCHUNKLEN) + 1); ++i)
+			SV_SendPlayerInfoChunk(node, i); // Send extra info
 	}
 	Net_CloseConnection(node);
 }
